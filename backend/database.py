@@ -24,7 +24,7 @@ def get_db():
         db.close()
 
 def init_db():
-    from models import Token, Route, SystemSettings
+    from models import Token, Route, SystemSettings, ComplianceFramework
     Base.metadata.create_all(bind=engine)
     
     db = SessionLocal()
@@ -36,6 +36,7 @@ def init_db():
                 default_ttl_minutes=5,
                 allowed_scopes="read-only contacts, user-profile",
                 enforce_sender_binding=True,
+                max_token_usage_limit=1000,
                 enabled_frameworks="ISO27001:2022",
                 audit_logging_enabled=True,
                 fail_strategy="fail-closed"
@@ -43,6 +44,38 @@ def init_db():
             db.add(default_settings)
             db.commit()
             print("Database seeded with default system settings.")
+
+        # Seed Compliance Frameworks if empty
+        if db.query(ComplianceFramework).count() == 0:
+            initial_frameworks = [
+                ComplianceFramework(
+                    name="ISO27001:2022",
+                    description="Information Security Management Systems requirements",
+                    score=94,
+                    enabled=True
+                ),
+                ComplianceFramework(
+                    name="NIS2",
+                    description="High common level of cybersecurity across the Union",
+                    score=88,
+                    enabled=False
+                ),
+                ComplianceFramework(
+                    name="DORA",
+                    description="Digital Operational Resilience Act for the financial sector",
+                    score=76,
+                    enabled=False
+                ),
+                ComplianceFramework(
+                    name="EU_Data_Act",
+                    description="Harmonized rules on fair access to and use of data",
+                    score=61,
+                    enabled=False
+                )
+            ]
+            db.add_all(initial_frameworks)
+            db.commit()
+            print("Database seeded with default compliance frameworks.")
 
         # Seed Tokens if empty
         if db.query(Token).count() == 0:

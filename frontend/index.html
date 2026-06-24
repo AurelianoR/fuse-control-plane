@@ -943,6 +943,19 @@
                                 <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Restricts maximum privilege boundaries for brokered tokens.</div>
                             </div>
                         </div>
+                        <div class="grid-2" style="margin-top:16px;">
+                            <div>
+                                <label class="settings-label">Max Token Usage Limit</label>
+                                <input type="number" id="token-max-usage" min="1" class="settings-input" value="1000">
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Defines maximum requests allowed per token session.</div>
+                            </div>
+                            <div style="display: flex; align-items: center; padding-top: 14px;">
+                                <label class="settings-checkbox-container" style="margin-bottom:0; width: 100%;">
+                                    <input type="checkbox" id="token-sender-binding">
+                                    <span>Enforce Sender Binding (DPoP)</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     <div class="settings-footer">
                         <button onclick="saveAllSettings('token')" class="settings-save-btn">
@@ -964,7 +977,7 @@
                             <div class="grid-2">
                                 <div>
                                     <label class="settings-label">Provider</label>
-                                    <select id="cloud-provider" class="settings-select">
+                                    <select id="cloud-provider" class="settings-select" onchange="updateCloudFormFields()">
                                         <option value="Azure">Microsoft Azure</option>
                                         <option value="AWS">Amazon Web Services (AWS)</option>
                                         <option value="GCP">Google Cloud Platform (GCP)</option>
@@ -978,19 +991,8 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="grid-3">
-                                <div>
-                                    <label class="settings-label">Directory (Tenant) ID</label>
-                                    <input type="text" id="cloud-tenant" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
-                                </div>
-                                <div>
-                                    <label class="settings-label">Application (Client) ID</label>
-                                    <input type="text" id="cloud-client" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
-                                </div>
-                                <div>
-                                    <label class="settings-label">Subscription ID</label>
-                                    <input type="text" id="cloud-subscription" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
-                                </div>
+                            <div id="cloud-credentials-container">
+                                <!-- Dynamic credentials form inputs based on selected provider -->
                             </div>
                         </div>
                     </div>
@@ -1013,23 +1015,22 @@
                         <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
                             Select security controls and framework requirements for verification:
                         </div>
-                        <div class="grid-2" style="gap:16px;">
-                            <label class="settings-checkbox-container">
-                                <input type="checkbox" name="frameworks" value="ISO27001:2022">
-                                <span>ISO/IEC 27001:2022</span>
-                            </label>
-                            <label class="settings-checkbox-container">
-                                <input type="checkbox" name="frameworks" value="NIS2">
-                                <span>NIS2 Critical Resilience</span>
-                            </label>
-                            <label class="settings-checkbox-container">
-                                <input type="checkbox" name="frameworks" value="DORA">
-                                <span>DORA (Digital Resilience)</span>
-                            </label>
-                            <label class="settings-checkbox-container">
-                                <input type="checkbox" name="frameworks" value="EU_Data_Act">
-                                <span>EU Data Act / DDG</span>
-                            </label>
+                        <div class="grid-2" style="gap:16px;" id="compliance-checkboxes-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        
+                        <!-- Research & Add Framework Section -->
+                        <div style="margin-top:24px; border-top:1px solid var(--border); padding-top:20px;">
+                            <label class="settings-label">Research & Add Regulatory Framework</label>
+                            <div style="display:flex; gap:12px; margin-top:8px;">
+                                <input type="text" id="new-framework-name" class="settings-input" style="flex:1;" placeholder="e.g. HIPAA, PCI-DSS, GDPR, SOC2">
+                                <button type="button" onclick="researchAndAddFramework()" class="settings-save-btn" style="white-space:nowrap; margin-top:0; width:auto; padding: 0 16px;">
+                                    🔍 Research & Add
+                                </button>
+                            </div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
+                                Submits the framework name to the AI compliance analyzer to map core controls and score compliance postures.
+                            </div>
                         </div>
                     </div>
                     <div class="settings-footer">
@@ -1146,6 +1147,7 @@ let apiOnline  = false;
 
 // ── Startup ────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+    updateCloudFormFields();
     loadAll();
     setInterval(loadAll, 10_000);
 });
@@ -1245,6 +1247,72 @@ function showSettingsSubView(subViewId, el) {
 }
 
 // ── Settings Panel Integration ──────────────────────────────────────────────
+// ── Settings Panel Integration ──────────────────────────────────────────────
+function updateCloudFormFields() {
+    const provider = document.getElementById('cloud-provider').value;
+    const container = document.getElementById('cloud-credentials-container');
+    if (!container) return;
+    
+    if (provider === 'Azure') {
+        container.innerHTML = `
+            <div class="grid-2">
+                <div>
+                    <label class="settings-label">Directory (Tenant) ID</label>
+                    <input type="text" id="cloud-tenant" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
+                </div>
+                <div>
+                    <label class="settings-label">Application (Client) ID</label>
+                    <input type="text" id="cloud-client" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:16px;">
+                <div>
+                    <label class="settings-label">Subscription ID</label>
+                    <input type="text" id="cloud-subscription" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
+                </div>
+                <div>
+                    <label class="settings-label">Client Secret</label>
+                    <input type="password" id="cloud-client-secret" class="settings-input" placeholder="••••••••••••••••••••">
+                </div>
+            </div>
+        `;
+    } else if (provider === 'AWS') {
+        container.innerHTML = `
+            <div class="grid-3">
+                <div>
+                    <label class="settings-label">Role ARN</label>
+                    <input type="text" id="cloud-aws-role-arn" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="arn:aws:iam::123456789012:role/FuseAccess">
+                </div>
+                <div>
+                    <label class="settings-label">Access Key ID</label>
+                    <input type="text" id="cloud-aws-access-key" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="AKIAIOSFODNN7EXAMPLE">
+                </div>
+                <div>
+                    <label class="settings-label">Secret Access Key</label>
+                    <input type="password" id="cloud-aws-secret-key" class="settings-input" placeholder="••••••••••••••••••••">
+                </div>
+            </div>
+        `;
+    } else if (provider === 'GCP') {
+        container.innerHTML = `
+            <div class="grid-2">
+                <div>
+                    <label class="settings-label">Project ID</label>
+                    <input type="text" id="cloud-gcp-project" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="my-gcp-project-123">
+                </div>
+                <div>
+                    <label class="settings-label">Client Email</label>
+                    <input type="text" id="cloud-gcp-email" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="fuse-sa@my-gcp-project-123.iam.gserviceaccount.com">
+                </div>
+            </div>
+            <div style="margin-top:16px;">
+                <label class="settings-label">Service Account JSON Private Key</label>
+                <textarea id="cloud-gcp-private-key" class="settings-input" rows="4" style="font-family:monospace; font-size:11px; resize:vertical;" placeholder='{ "type": "service_account", "private_key": "-----BEGIN PRIVATE KEY-----\\n..." }'></textarea>
+            </div>
+        `;
+    }
+}
+
 async function loadSettings() {
     try {
         const response = await fetch(`${API}/api/dashboard/settings`);
@@ -1258,14 +1326,34 @@ async function loadSettings() {
             if (data.token_governance) {
                 document.getElementById('token-ttl').value = data.token_governance.default_ttl_minutes || 5;
                 document.getElementById('token-scopes').value = (data.token_governance.allowed_scopes || []).join(', ');
+                document.getElementById('token-max-usage').value = data.token_governance.max_token_usage_limit || 1000;
+                document.getElementById('token-sender-binding').checked = !!data.token_governance.enforce_sender_binding;
             }
             
-            // Populate Compliance Framework Checkboxes
-            if (data.compliance && data.compliance.enabled_frameworks) {
-                const frameworks = data.compliance.enabled_frameworks;
-                document.querySelectorAll('input[name="frameworks"]').forEach(cb => {
-                    cb.checked = frameworks.includes(cb.value);
-                });
+            // Populate Compliance Framework Checkboxes dynamically
+            if (data.compliance && data.compliance.frameworks) {
+                const container = document.getElementById('compliance-checkboxes-container');
+                if (container) {
+                    container.innerHTML = '';
+                    data.compliance.frameworks.forEach(f => {
+                        const label = document.createElement('label');
+                        label.className = 'settings-checkbox-container';
+                        label.title = f.description;
+                        
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.name = 'frameworks';
+                        input.value = f.name;
+                        input.checked = f.enabled;
+                        
+                        const span = document.createElement('span');
+                        span.textContent = `${f.name} (${f.score}% Score)`;
+                        
+                        label.appendChild(input);
+                        label.appendChild(span);
+                        container.appendChild(label);
+                    });
+                }
             }
         }
     } catch (error) {
@@ -1279,7 +1367,8 @@ async function saveAllSettings(section) {
             const tokenData = {
                 default_ttl_minutes: parseInt(document.getElementById('token-ttl').value) || 5,
                 allowed_scopes: document.getElementById('token-scopes').value.split(',').map(s => s.trim()).filter(Boolean),
-                enforce_sender_binding: true
+                enforce_sender_binding: document.getElementById('token-sender-binding').checked,
+                max_token_usage_limit: parseInt(document.getElementById('token-max-usage').value) || 1000
             };
             
             const rToken = await fetch(`${API}/api/dashboard/settings/token`, {
@@ -1288,21 +1377,45 @@ async function saveAllSettings(section) {
                 body: JSON.stringify(tokenData)
             });
             if (!rToken.ok) throw new Error("Failed to save token governance");
-            toast("🔑 Token lifespan and scope rules saved successfully!", "success");
+            toast("🔑 Token governance policies saved successfully!", "success");
         }
         
         else if (section === 'cloud') {
-            const cloudData = {
-                provider: document.getElementById('cloud-provider').value,
-                tenant_id: document.getElementById('cloud-tenant').value.trim(),
-                client_id: document.getElementById('cloud-client').value.trim(),
-                subscription_id: document.getElementById('cloud-subscription').value.trim(),
-                environment_type: document.getElementById('cloud-env-type').value
+            const provider = document.getElementById('cloud-provider').value;
+            const envType = document.getElementById('cloud-env-type').value;
+            let cloudData = {
+                provider: provider,
+                environment_type: envType
             };
             
-            if (!cloudData.tenant_id || !cloudData.client_id || !cloudData.subscription_id) {
-                toast("⚠ All Cloud credentials (Tenant, Client, Subscription) are required.", "warn");
-                return;
+            if (provider === 'Azure') {
+                cloudData.tenant_id = document.getElementById('cloud-tenant').value.trim();
+                cloudData.client_id = document.getElementById('cloud-client').value.trim();
+                cloudData.subscription_id = document.getElementById('cloud-subscription').value.trim();
+                cloudData.client_secret = document.getElementById('cloud-client-secret').value.trim();
+                
+                if (!cloudData.tenant_id || !cloudData.client_id || !cloudData.subscription_id || !cloudData.client_secret) {
+                    toast("⚠ All Azure credentials (Tenant, Client, Subscription, Client Secret) are required.", "warn");
+                    return;
+                }
+            } else if (provider === 'AWS') {
+                cloudData.aws_role_arn = document.getElementById('cloud-aws-role-arn').value.trim();
+                cloudData.aws_access_key_id = document.getElementById('cloud-aws-access-key').value.trim();
+                cloudData.aws_secret_access_key = document.getElementById('cloud-aws-secret-key').value.trim();
+                
+                if (!cloudData.aws_role_arn || !cloudData.aws_access_key_id || !cloudData.aws_secret_access_key) {
+                    toast("⚠ All AWS credentials (Role ARN, Access Key, Secret Key) are required.", "warn");
+                    return;
+                }
+            } else if (provider === 'GCP') {
+                cloudData.gcp_project_id = document.getElementById('cloud-gcp-project').value.trim();
+                cloudData.gcp_client_email = document.getElementById('cloud-gcp-email').value.trim();
+                cloudData.gcp_private_key = document.getElementById('cloud-gcp-private-key').value.trim();
+                
+                if (!cloudData.gcp_project_id || !cloudData.gcp_client_email || !cloudData.gcp_private_key) {
+                    toast("⚠ All GCP credentials (Project ID, Client Email, Service Account JSON Key) are required.", "warn");
+                    return;
+                }
             }
             
             const rCloud = await fetch(`${API}/api/dashboard/settings/cloud`, {
@@ -1314,10 +1427,8 @@ async function saveAllSettings(section) {
             
             toast(`🔗 Connected ${cloudData.provider} (${cloudData.environment_type}) environment successfully!`, "success");
             
-            // Clear inputs on success
-            document.getElementById('cloud-tenant').value = '';
-            document.getElementById('cloud-client').value = '';
-            document.getElementById('cloud-subscription').value = '';
+            // Re-initialize dynamic form which also clears fields
+            updateCloudFormFields();
         }
         
         else if (section === 'compliance') {
@@ -1344,6 +1455,39 @@ async function saveAllSettings(section) {
     } catch (error) {
         console.error("Failed to apply settings configurations:", error);
         toast("❌ Failed to save governance rules. Check console.", "danger");
+    }
+}
+
+async function researchAndAddFramework() {
+    const inputEl = document.getElementById('new-framework-name');
+    const name = inputEl.value.trim();
+    if (!name) {
+        toast("⚠ Please enter a framework name to research.", "warn");
+        return;
+    }
+    
+    try {
+        toast(`🔍 Researching and auditing controls for ${name}...`, "info");
+        const response = await fetch(`${API}/api/dashboard/settings/compliance/research`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name })
+        });
+        
+        if (!response.ok) throw new Error("Failed to research framework");
+        
+        const result = await response.json();
+        if (result.status === 'success') {
+            toast(`✅ ${result.message}`, "success");
+            inputEl.value = '';
+            // Reload settings to update checkboxes
+            loadSettings();
+        } else {
+            toast(`⚠ ${result.message || 'Error researching framework'}`, "warn");
+        }
+    } catch (error) {
+        console.error("Framework research error:", error);
+        toast("❌ Failed to research framework. Check console.", "danger");
     }
 }
 

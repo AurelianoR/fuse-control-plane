@@ -40,20 +40,32 @@ class TokenSettingsSchema(BaseModel):
     default_ttl_minutes: int
     allowed_scopes: List[str]
     enforce_sender_binding: bool
+    max_token_usage_limit: int
 
 class CloudEnvironmentSettingsSchema(BaseModel):
     provider: str
-    tenant_id: str
-    client_id: str
-    subscription_id: str
     environment_type: str
+    tenant_id: Optional[str] = None
+    client_id: Optional[str] = None
+    subscription_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    aws_role_arn: Optional[str] = None
+    aws_access_key_id: Optional[str] = None
+    aws_secret_access_key: Optional[str] = None
+    gcp_project_id: Optional[str] = None
+    gcp_client_email: Optional[str] = None
+    gcp_private_key: Optional[str] = None
 
 class ComplianceSettingsSchema(BaseModel):
     enabled_frameworks: List[str]
     audit_logging_enabled: bool
     fail_strategy: str
 
+class ResearchFrameworkRequest(BaseModel):
+    name: str
+
 class SystemSettingsResponse(BaseModel):
     status: str
     data: Dict
+
 

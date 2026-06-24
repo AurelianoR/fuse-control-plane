@@ -50,6 +50,7 @@ class SystemSettings(Base):
     default_ttl_minutes = Column(Integer, default=5)
     allowed_scopes = Column(String, default="read-only contacts, user-profile")
     enforce_sender_binding = Column(Boolean, default=True)
+    max_token_usage_limit = Column(Integer, default=1000)
     enabled_frameworks = Column(String, default="ISO27001:2022")
     audit_logging_enabled = Column(Boolean, default=True)
     fail_strategy = Column(String, default="fail-closed")
@@ -58,8 +59,31 @@ class CloudEnvironment(Base):
     __tablename__ = "cloud_environments"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    provider = Column(String, index=True)
-    tenant_id = Column(String)
-    client_id = Column(String)
-    subscription_id = Column(String)
-    environment_type = Column(String)
+    provider = Column(String, index=True) # Azure, AWS, GCP
+    environment_type = Column(String)     # Production, Staging
+    
+    # Azure credentials
+    tenant_id = Column(String, nullable=True)
+    client_id = Column(String, nullable=True)
+    subscription_id = Column(String, nullable=True)
+    client_secret = Column(String, nullable=True)
+    
+    # AWS credentials
+    aws_role_arn = Column(String, nullable=True)
+    aws_access_key_id = Column(String, nullable=True)
+    aws_secret_access_key = Column(String, nullable=True)
+    
+    # GCP credentials
+    gcp_project_id = Column(String, nullable=True)
+    gcp_client_email = Column(String, nullable=True)
+    gcp_private_key = Column(String, nullable=True)
+
+class ComplianceFramework(Base):
+    __tablename__ = "compliance_frameworks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True, index=True)
+    description = Column(String)
+    score = Column(Integer, default=70) # Mock compliance percentage score
+    enabled = Column(Boolean, default=False)
+
