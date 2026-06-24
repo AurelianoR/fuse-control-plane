@@ -42,3 +42,24 @@ class Route(Base):
     vendor = Column(String, unique=True, index=True)
     target_url = Column(String)
     active = Column(Boolean, default=True)
+
+class SystemSettings(Base):
+    __tablename__ = "system_settings"
+
+    id = Column(Integer, primary_key=True, default=1)
+    default_ttl_minutes = Column(Integer, default=5)
+    allowed_scopes = Column(String, default="read-only contacts, user-profile")
+    enforce_sender_binding = Column(Boolean, default=True)
+    enabled_frameworks = Column(String, default="ISO27001:2022")
+    audit_logging_enabled = Column(Boolean, default=True)
+    fail_strategy = Column(String, default="fail-closed")
+
+class CloudEnvironment(Base):
+    __tablename__ = "cloud_environments"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    provider = Column(String, index=True)
+    tenant_id = Column(String)
+    client_id = Column(String)
+    subscription_id = Column(String)
+    environment_type = Column(String)

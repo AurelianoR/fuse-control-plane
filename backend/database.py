@@ -24,11 +24,26 @@ def get_db():
         db.close()
 
 def init_db():
-    from models import Token, Route
+    from models import Token, Route, SystemSettings
     Base.metadata.create_all(bind=engine)
     
     db = SessionLocal()
     try:
+        # Seed SystemSettings if empty
+        if db.query(SystemSettings).count() == 0:
+            default_settings = SystemSettings(
+                id=1,
+                default_ttl_minutes=5,
+                allowed_scopes="read-only contacts, user-profile",
+                enforce_sender_binding=True,
+                enabled_frameworks="ISO27001:2022",
+                audit_logging_enabled=True,
+                fail_strategy="fail-closed"
+            )
+            db.add(default_settings)
+            db.commit()
+            print("Database seeded with default system settings.")
+
         # Seed Tokens if empty
         if db.query(Token).count() == 0:
             initial_tokens = [

@@ -6,8 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from database import get_db, init_db
-from models import Token, AuditLog, UsedJTI
-from schemas import TokenSchema, RevokeRequest, AuditLogResponse, MetricsResponse, DPoPVerificationRequest
+from models import Token, AuditLog, UsedJTI, SystemSettings, CloudEnvironment
+from schemas import (
+    TokenSchema, RevokeRequest, AuditLogResponse, MetricsResponse, 
+    DPoPVerificationRequest, TokenSettingsSchema, CloudEnvironmentSettingsSchema, 
+    ComplianceSettingsSchema, SystemSettingsResponse
+)
 from gateway import verify_dpop_proof
 
 app = FastAPI(title="Fuse Control Plane API", version="2.4")
@@ -155,3 +159,89 @@ def gateway_verify(req: DPoPVerificationRequest, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=400, detail=message)
     return {"status": "success", "detail": message}
+
+# --- Settings & Governance Endpoints ---
+
+@app.get("/api/dashboard/settings")
+def get_settings(db: Session = Depends(get_db)):
+    settings = db.query(SystemSettings).filter(SystemSettings.id == 1).first()
+    if not settings:
+        settings = SystemSettings(id=1)
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+
+    cloud_envs = db.query(CloudEnvironment).all()
+
+    # Format allowed_scopes and enabled_frameworks into lists
+    scopes_list = [s.strip() for s in settings.allowed_scopes.split(",") if s.strip()]
+    frameworks_list = [f.strip() for f in settings.enabled_frameworks.split(",") if f.strip()]
+
+    return {
+        "status": "success",
+        "data": {
+            "token_governance": {
+                "default_ttl_minutes": settings.default_ttl_minutes,
+                "allowed_scopes": scopes_list,
+                "enforce_sender_binding": settings.enforce_sender_binding
+            },
+            "cloud_environments": [
+                {
+                    "provider": env.provider,
+                    "tenant_id": env.tenant_id,
+                    "client_id": env.client_id,
+                    "subscription_id": env.subscription_id,
+                    "environment_type": env.environment_type
+                } for env in cloud_envs
+            ],
+            "compliance": {
+                "enabled_frameworks": frameworks_list,
+                "audit_logging_enabled": settings.audit_logging_enabled,
+                "fail_strategy": settings.fail_strategy
+            }
+        }
+    }
+
+@app.post("/api/dashboard/settings/token")
+def update_token_settings(req: TokenSettingsSchema, db: Session = Depends(get_db)):
+    settings = db.query(SystemSettings).filter(SystemSettings.id == 1).first()
+    if not settings:
+        settings = SystemSettings(id=1)
+        db.add(settings)
+
+    settings.default_ttl_minutes = req.default_ttl_minutes
+    settings.allowed_scopes = ",".join(req.allowed_scopes)
+    settings.enforce_sender_binding = req.enforce_sender_binding
+    db.commit()
+
+    return {"status": "success", "message": "Token governance updated"}
+
+@app.post("/api/dashboard/settings/cloud")
+def add_cloud_environment(req: CloudEnvironmentSettingsSchema, db: Session = Depends(get_db)):
+    # Check if duplicate tenant/client/sub
+    env = CloudEnvironment(
+        provider=req.provider,
+        tenant_id=req.tenant_id,
+        client_id=req.client_id,
+        subscription_id=req.subscription_id,
+        environment_type=req.environment_type
+    )
+    db.add(env)
+    db.commit()
+
+    return {"status": "success", "message": f"{req.provider} environment connected"}
+
+@app.post("/api/dashboard/settings/compliance")
+def update_compliance_frameworks(req: ComplianceSettingsSchema, db: Session = Depends(get_db)):
+    settings = db.query(SystemSettings).filter(SystemSettings.id == 1).first()
+    if not settings:
+        settings = SystemSettings(id=1)
+        db.add(settings)
+
+    settings.enabled_frameworks = ",".join(req.enabled_frameworks)
+    settings.audit_logging_enabled = req.audit_logging_enabled
+    settings.fail_strategy = req.fail_strategy
+    db.commit()
+
+    return {"status": "success", "message": "Compliance parameters updated"}
+
