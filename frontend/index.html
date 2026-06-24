@@ -500,6 +500,47 @@
         .settings-save-btn:active {
             transform: translateY(0);
         }
+
+        /* ── Submenu styles ───────────────────────────────────────────── */
+        .settings-submenu {
+            display: none;
+            padding-left: 28px;
+            margin-bottom: 8px;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .settings-submenu.open {
+            display: flex;
+        }
+        .settings-sub-link {
+            font-size: 12px !important;
+            padding: 7px 12px !important;
+            color: var(--text-muted) !important;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            border-radius: 6px;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .settings-sub-link.active-sub {
+            color: var(--blue-bright) !important;
+            background: rgba(59, 130, 246, 0.08) !important;
+        }
+        .settings-sub-link:hover {
+            color: var(--text) !important;
+            background: var(--surface2) !important;
+        }
+        .settings-arrow {
+            margin-left: auto;
+            width: 10px; height: 10px;
+            transition: transform 0.2s ease;
+            color: var(--text-muted);
+        }
+        .settings-arrow.rotated {
+            transform: rotate(90deg);
+        }
     </style>
 </head>
 <body>
@@ -561,14 +602,26 @@
             </svg>
             Audit Log
         </a>
-        <a href="#" class="nav-link" onclick="showView('settings', this);return false;">
+        <a href="#" class="nav-link" id="settings-nav-btn" onclick="toggleSettingsMenu(this);return false;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            Settings
+            <span>Settings</span>
+            <span class="settings-arrow" id="settings-arrow">▶</span>
         </a>
+        <div class="settings-submenu" id="settings-submenu">
+            <a href="#" class="settings-sub-link" onclick="showSettingsSubView('token', this);return false;">
+                Token Configuration
+            </a>
+            <a href="#" class="settings-sub-link" onclick="showSettingsSubView('cloud', this);return false;">
+                Cloud Access Configuration
+            </a>
+            <a href="#" class="settings-sub-link" onclick="showSettingsSubView('compliance', this);return false;">
+                Compliance Configuration
+            </a>
+        </div>
     </nav>
 
     <!-- API Status -->
@@ -866,109 +919,124 @@
         <div id="settings-view" class="view-panel" style="display: none;">
             <div class="settings-container">
                 <div class="section-header">
-                    <div class="section-title" style="font-size:16px;">System Governance & Compliance Settings</div>
+                    <div class="section-title" style="font-size:16px;" id="settings-title">System Governance Settings</div>
                 </div>
 
                 <!-- Section 1: Token Configuration -->
-                <div class="settings-section">
-                    <div class="settings-section-title">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                        Token Governance Policy
+                <div id="settings-token-view" class="settings-sub-view" style="display: block;">
+                    <div class="settings-section">
+                        <div class="settings-section-title">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle; margin-right:4px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            Token Governance Policy
+                        </div>
+                        <div class="grid-2">
+                            <div>
+                                <label class="settings-label">Token Lifespan (Minutes)</label>
+                                <input type="number" id="token-ttl" min="1" max="60" class="settings-input" value="5">
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Short lifetimes mitigate token-replay windows drastically.</div>
+                            </div>
+                            <div>
+                                <label class="settings-label">Allowed Scopes (Comma-separated)</label>
+                                <input type="text" id="token-scopes" class="settings-input" placeholder="read-only contacts, user-profile">
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Restricts maximum privilege boundaries for brokered tokens.</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="grid-2">
-                        <div>
-                            <label class="settings-label">Token Lifespan (Minutes)</label>
-                            <input type="number" id="token-ttl" min="1" max="60" class="settings-input" value="5">
-                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Short lifetimes mitigate token-replay windows drastically.</div>
-                        </div>
-                        <div>
-                            <label class="settings-label">Allowed Scopes (Comma-separated)</label>
-                            <input type="text" id="token-scopes" class="settings-input" placeholder="read-only contacts, user-profile">
-                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Restricts maximum privilege boundaries for brokered tokens.</div>
-                        </div>
+                    <div class="settings-footer">
+                        <button onclick="saveAllSettings('token')" class="settings-save-btn">
+                            Save Token Policy
+                        </button>
                     </div>
                 </div>
 
                 <!-- Section 2: Cloud Infrastructure Environments -->
-                <div class="settings-section">
-                    <div class="settings-section-title">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
-                        </svg>
-                        Cloud Environment Access Boundary
+                <div id="settings-cloud-view" class="settings-sub-view" style="display: none;">
+                    <div class="settings-section">
+                        <div class="settings-section-title">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle; margin-right:4px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                            </svg>
+                            Cloud Environment Access Boundary
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:16px;">
+                            <div class="grid-2">
+                                <div>
+                                    <label class="settings-label">Provider</label>
+                                    <select id="cloud-provider" class="settings-select">
+                                        <option value="Azure">Microsoft Azure</option>
+                                        <option value="AWS">Amazon Web Services (AWS)</option>
+                                        <option value="GCP">Google Cloud Platform (GCP)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="settings-label">Environment Type</label>
+                                    <select id="cloud-env-type" class="settings-select">
+                                        <option value="Production">Production</option>
+                                        <option value="Staging">Staging</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid-3">
+                                <div>
+                                    <label class="settings-label">Directory (Tenant) ID</label>
+                                    <input type="text" id="cloud-tenant" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
+                                </div>
+                                <div>
+                                    <label class="settings-label">Application (Client) ID</label>
+                                    <input type="text" id="cloud-client" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
+                                </div>
+                                <div>
+                                    <label class="settings-label">Subscription ID</label>
+                                    <input type="text" id="cloud-subscription" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:16px;">
-                        <div class="grid-2">
-                            <div>
-                                <label class="settings-label">Provider</label>
-                                <select id="cloud-provider" class="settings-select">
-                                    <option value="Azure">Microsoft Azure</option>
-                                    <option value="AWS">Amazon Web Services (AWS)</option>
-                                    <option value="GCP">Google Cloud Platform (GCP)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="settings-label">Environment Type</label>
-                                <select id="cloud-env-type" class="settings-select">
-                                    <option value="Production">Production</option>
-                                    <option value="Staging">Staging</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="grid-3">
-                            <div>
-                                <label class="settings-label">Directory (Tenant) ID</label>
-                                <input type="text" id="cloud-tenant" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
-                            </div>
-                            <div>
-                                <label class="settings-label">Application (Client) ID</label>
-                                <input type="text" id="cloud-client" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
-                            </div>
-                            <div>
-                                <label class="settings-label">Subscription ID</label>
-                                <input type="text" id="cloud-subscription" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
-                            </div>
-                        </div>
+                    <div class="settings-footer">
+                        <button onclick="saveAllSettings('cloud')" class="settings-save-btn">
+                            Connect Cloud Boundary
+                        </button>
                     </div>
                 </div>
 
                 <!-- Section 3: Regulatory & Compliance Frameworks -->
-                <div class="settings-section">
-                    <div class="settings-section-title">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                        </svg>
-                        Continuous Regulatory & Framework Compliance
+                <div id="settings-compliance-view" class="settings-sub-view" style="display: none;">
+                    <div class="settings-section">
+                        <div class="settings-section-title">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle; margin-right:4px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                            Regulatory & Framework Compliance
+                        </div>
+                        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                            Select security controls and framework requirements for verification:
+                        </div>
+                        <div class="grid-2" style="gap:16px;">
+                            <label class="settings-checkbox-container">
+                                <input type="checkbox" name="frameworks" value="ISO27001:2022">
+                                <span>ISO/IEC 27001:2022</span>
+                            </label>
+                            <label class="settings-checkbox-container">
+                                <input type="checkbox" name="frameworks" value="NIS2">
+                                <span>NIS2 Critical Resilience</span>
+                            </label>
+                            <label class="settings-checkbox-container">
+                                <input type="checkbox" name="frameworks" value="DORA">
+                                <span>DORA (Digital Resilience)</span>
+                            </label>
+                            <label class="settings-checkbox-container">
+                                <input type="checkbox" name="frameworks" value="EU_Data_Act">
+                                <span>EU Data Act / DDG</span>
+                            </label>
+                        </div>
                     </div>
-                    <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
-                        Select security controls and framework requirements for verification:
+                    <div class="settings-footer">
+                        <button onclick="saveAllSettings('compliance')" class="settings-save-btn">
+                            Save Compliance Policy
+                        </button>
                     </div>
-                    <div class="grid-2" style="gap:16px;">
-                        <label class="settings-checkbox-container">
-                            <input type="checkbox" name="frameworks" value="ISO27001:2022">
-                            <span>ISO/IEC 27001:2022</span>
-                        </label>
-                        <label class="settings-checkbox-container">
-                            <input type="checkbox" name="frameworks" value="NIS2">
-                            <span>NIS2 Critical Resilience</span>
-                        </label>
-                        <label class="settings-checkbox-container">
-                            <input type="checkbox" name="frameworks" value="DORA">
-                            <span>DORA (Digital Resilience)</span>
-                        </label>
-                        <label class="settings-checkbox-container">
-                            <input type="checkbox" name="frameworks" value="EU_Data_Act">
-                            <span>EU Data Act / DDG</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="settings-footer">
-                    <button onclick="saveAllSettings()" class="settings-save-btn">
-                        Save System Policy
-                    </button>
                 </div>
             </div>
         </div>
@@ -1093,6 +1161,15 @@ function setNav(el) {
 function showView(viewId, el) {
     setNav(el);
     
+    // Collapse settings submenu if moving to other views
+    if (viewId !== 'settings') {
+        const sub = document.getElementById('settings-submenu');
+        const arrow = document.getElementById('settings-arrow');
+        if (sub) sub.classList.remove('open');
+        if (arrow) arrow.classList.remove('rotated');
+        document.querySelectorAll('.settings-sub-link').forEach(a => a.classList.remove('active-sub'));
+    }
+    
     // Hide all view panels
     document.querySelectorAll('.view-panel').forEach(panel => {
         panel.style.display = 'none';
@@ -1106,6 +1183,65 @@ function showView(viewId, el) {
             loadSettings();
         }
     }
+}
+
+// ── Settings Submenu & Subviews ─────────────────────────────────────────────
+function toggleSettingsMenu(el) {
+    const sub = document.getElementById('settings-submenu');
+    const arrow = document.getElementById('settings-arrow');
+    
+    if (sub) {
+        const isOpen = sub.classList.toggle('open');
+        if (arrow) arrow.classList.toggle('rotated', isOpen);
+        
+        // Go to settings view and default to Token subview if opening
+        showView('settings', el);
+        if (isOpen) {
+            const firstSubLink = sub.querySelector('.settings-sub-link');
+            if (firstSubLink) {
+                showSettingsSubView('token', firstSubLink);
+            }
+        }
+    }
+}
+
+function showSettingsSubView(subViewId, el) {
+    // Highlight sub-link
+    document.querySelectorAll('.settings-sub-link').forEach(a => a.classList.remove('active-sub'));
+    el.classList.add('active-sub');
+    
+    // Set active header settings button styling
+    const settingsBtn = document.getElementById('settings-nav-btn');
+    if (settingsBtn) {
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+        settingsBtn.classList.add('active');
+    }
+    
+    // Show settings view (main container)
+    document.querySelectorAll('.view-panel').forEach(panel => {
+        panel.style.display = 'none';
+    });
+    const mainSettings = document.getElementById('settings-view');
+    if (mainSettings) mainSettings.style.display = 'block';
+    
+    // Switch settings sub-views
+    document.querySelectorAll('.settings-sub-view').forEach(panel => {
+        panel.style.display = 'none';
+    });
+    const subPanel = document.getElementById(`settings-${subViewId}-view`);
+    if (subPanel) {
+        subPanel.style.display = 'block';
+    }
+    
+    // Set title header dynamically
+    const titleEl = document.getElementById('settings-title');
+    if (titleEl) {
+        if (subViewId === 'token') titleEl.textContent = 'Token Policy & Lifespan Governance';
+        else if (subViewId === 'cloud') titleEl.textContent = 'Cloud Infrastructure Access Boundaries';
+        else if (subViewId === 'compliance') titleEl.textContent = 'Regulatory & Compliance Frameworks';
+    }
+    
+    loadSettings();
 }
 
 // ── Settings Panel Integration ──────────────────────────────────────────────
@@ -1131,55 +1267,44 @@ async function loadSettings() {
                     cb.checked = frameworks.includes(cb.value);
                 });
             }
-            
-            // Clear Cloud inputs (they represent adding a new integration boundary)
-            document.getElementById('cloud-tenant').value = '';
-            document.getElementById('cloud-client').value = '';
-            document.getElementById('cloud-subscription').value = '';
         }
     } catch (error) {
         console.error("Failed to load settings:", error);
-        toast("❌ Failed to load system settings from API.", "danger");
     }
 }
 
-async function saveAllSettings() {
-    // 1. Package Token Policy
-    const tokenData = {
-        default_ttl_minutes: parseInt(document.getElementById('token-ttl').value) || 5,
-        allowed_scopes: document.getElementById('token-scopes').value.split(',').map(s => s.trim()).filter(Boolean),
-        enforce_sender_binding: true
-    };
-
-    // 2. Package Cloud Integration
-    const cloudData = {
-        provider: document.getElementById('cloud-provider').value,
-        tenant_id: document.getElementById('cloud-tenant').value.trim(),
-        client_id: document.getElementById('cloud-client').value.trim(),
-        subscription_id: document.getElementById('cloud-subscription').value.trim(),
-        environment_type: document.getElementById('cloud-env-type').value
-    };
-
-    // 3. Package Compliance Selections
-    const checkedFrameworks = Array.from(document.querySelectorAll('input[name="frameworks"]:checked'))
-                                   .map(checkbox => checkbox.value);
-    const complianceData = {
-        enabled_frameworks: checkedFrameworks,
-        audit_logging_enabled: true,
-        fail_strategy: "fail-closed"
-    };
-
+async function saveAllSettings(section) {
     try {
-        // Save Token policy
-        const rToken = await fetch(`${API}/api/dashboard/settings/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tokenData)
-        });
-        if (!rToken.ok) throw new Error("Failed to save token governance");
-
-        // Save Cloud environment if tenant ID is provided
-        if (cloudData.tenant_id) {
+        if (section === 'token') {
+            const tokenData = {
+                default_ttl_minutes: parseInt(document.getElementById('token-ttl').value) || 5,
+                allowed_scopes: document.getElementById('token-scopes').value.split(',').map(s => s.trim()).filter(Boolean),
+                enforce_sender_binding: true
+            };
+            
+            const rToken = await fetch(`${API}/api/dashboard/settings/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tokenData)
+            });
+            if (!rToken.ok) throw new Error("Failed to save token governance");
+            toast("🔑 Token lifespan and scope rules saved successfully!", "success");
+        }
+        
+        else if (section === 'cloud') {
+            const cloudData = {
+                provider: document.getElementById('cloud-provider').value,
+                tenant_id: document.getElementById('cloud-tenant').value.trim(),
+                client_id: document.getElementById('cloud-client').value.trim(),
+                subscription_id: document.getElementById('cloud-subscription').value.trim(),
+                environment_type: document.getElementById('cloud-env-type').value
+            };
+            
+            if (!cloudData.tenant_id || !cloudData.client_id || !cloudData.subscription_id) {
+                toast("⚠ All Cloud credentials (Tenant, Client, Subscription) are required.", "warn");
+                return;
+            }
+            
             const rCloud = await fetch(`${API}/api/dashboard/settings/cloud`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1187,18 +1312,31 @@ async function saveAllSettings() {
             });
             if (!rCloud.ok) throw new Error("Failed to connect cloud environment");
             
-            toast(`🔗 Connected ${cloudData.provider} (${cloudData.environment_type}) env successfully!`, "success");
+            toast(`🔗 Connected ${cloudData.provider} (${cloudData.environment_type}) environment successfully!`, "success");
+            
+            // Clear inputs on success
+            document.getElementById('cloud-tenant').value = '';
+            document.getElementById('cloud-client').value = '';
+            document.getElementById('cloud-subscription').value = '';
         }
-
-        // Save Compliance selections
-        const rComp = await fetch(`${API}/api/dashboard/settings/compliance`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(complianceData)
-        });
-        if (!rComp.ok) throw new Error("Failed to save compliance configurations");
-
-        toast("📋 System policies and governance configurations updated successfully!", "success");
+        
+        else if (section === 'compliance') {
+            const checkedFrameworks = Array.from(document.querySelectorAll('input[name="frameworks"]:checked'))
+                                           .map(checkbox => checkbox.value);
+            const complianceData = {
+                enabled_frameworks: checkedFrameworks,
+                audit_logging_enabled: true,
+                fail_strategy: "fail-closed"
+            };
+            
+            const rComp = await fetch(`${API}/api/dashboard/settings/compliance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(complianceData)
+            });
+            if (!rComp.ok) throw new Error("Failed to save compliance configurations");
+            toast("📋 Regulatory framework compliance parameters updated successfully!", "success");
+        }
         
         // Reload settings fields
         setTimeout(loadSettings, 500);
