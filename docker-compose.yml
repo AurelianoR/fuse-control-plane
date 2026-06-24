@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  # ── Go REST API ──────────────────────────────────────────────────────────
+  # ── Python REST API ──────────────────────────────────────────────────────
   api:
     build:
       context: ./backend
@@ -11,13 +11,13 @@ services:
       - "8080:8080"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
     labels:
       - "com.fuse.service=api"
-      - "com.fuse.description=Fuse Control Plane Go API"
+      - "com.fuse.description=Fuse Control Plane Python API"
 
   # ── Frontend Static Server ────────────────────────────────────────────────
   # Serves the dashboard HTML with a tiny nginx container
