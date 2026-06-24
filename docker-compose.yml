@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  # ── Go REST API ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fuse-api
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "com.fuse.service=api"
+      - "com.fuse.description=Fuse Control Plane Go API"
+
+  # ── Frontend Static Server ────────────────────────────────────────────────
+  # Serves the dashboard HTML with a tiny nginx container
+  frontend:
+    image: nginx:alpine
+    container_name: fuse-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+    labels:
+      - "com.fuse.service=frontend"
+      - "com.fuse.description=Fuse Dashboard"
+
+networks:
+  default:
+    name: fuse-network
