@@ -10,7 +10,8 @@ from models import Token, AuditLog, UsedJTI, SystemSettings, CloudEnvironment, C
 from schemas import (
     TokenSchema, RevokeRequest, AuditLogResponse, MetricsResponse, 
     DPoPVerificationRequest, TokenSettingsSchema, CloudEnvironmentSettingsSchema, 
-    ComplianceSettingsSchema, SystemSettingsResponse, ResearchFrameworkRequest
+    ComplianceSettingsSchema, SystemSettingsResponse, ResearchFrameworkRequest,
+    ReviseComplianceRequest
 )
 from gateway import verify_dpop_proof
 
@@ -359,5 +360,43 @@ def research_compliance_framework(req: ResearchFrameworkRequest, db: Session = D
             "enabled": new_framework.enabled
         }
     }
+
+@app.post("/api/dashboard/settings/compliance/revise")
+def revise_compliance_framework(req: ReviseComplianceRequest, db: Session = Depends(get_db)):
+    framework = db.query(ComplianceFramework).filter(ComplianceFramework.id == req.id).first()
+    if not framework:
+        raise HTTPException(status_code=404, detail="Compliance framework not found")
+
+    framework.score = req.score
+    framework.description = req.description
+    framework.enabled = req.enabled
+
+    # Sync with SystemSettings enabled_frameworks list
+    settings = db.query(SystemSettings).filter(SystemSettings.id == 1).first()
+    if settings:
+        enabled_list = [f.strip() for f in settings.enabled_frameworks.split(",") if f.strip()]
+        if framework.enabled:
+            if framework.name not in enabled_list:
+                enabled_list.append(framework.name)
+        else:
+            if framework.name in enabled_list:
+                enabled_list.remove(framework.name)
+        settings.enabled_frameworks = ",".join(enabled_list)
+
+    db.commit()
+    db.refresh(framework)
+
+    return {
+        "status": "success",
+        "message": f"Framework {framework.name} successfully revised.",
+        "framework": {
+            "id": framework.id,
+            "name": framework.name,
+            "description": framework.description,
+            "score": framework.score,
+            "enabled": framework.enabled
+        }
+    }
+
 
 

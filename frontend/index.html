@@ -332,7 +332,7 @@
         .flt-btn.active-crit { background: rgba(239,68,68,.2); border-color: var(--red); color: var(--red-bright); }
 
         /* ── Side panel ───────────────────────────────────────────────── */
-        #side-panel {
+        #side-panel, #compliance-side-panel {
             position: fixed; top: 0; right: 0; height: 100%;
             width: 400px;
             background: var(--surface);
@@ -342,7 +342,7 @@
             transition: transform .3s cubic-bezier(.4,0,.2,1);
             z-index: 200;
         }
-        #side-panel.open { transform: translateX(0); }
+        #side-panel.open, #compliance-side-panel.open { transform: translateX(0); }
         #panel-backdrop {
             position: fixed; inset: 0; background: rgba(0,0,0,.5);
             backdrop-filter: blur(2px); z-index: 199;
@@ -420,7 +420,20 @@
         }
 
         /* ── Compliance legend ────────────────────────────────────────── */
-        .comp-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+        .comp-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .comp-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateX(4px);
+        }
         .comp-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .comp-name { font-size: 12px; font-weight: 700; color: var(--text); }
         .comp-sub  { font-size: 10px; color: var(--text-muted); }
@@ -772,73 +785,8 @@
             <!-- Compliance status -->
             <div class="card">
                 <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px">Compliance Posture</div>
-
-                <!-- ISO 27001 -->
-                <div class="comp-row">
-                    <div class="comp-icon" style="background:rgba(59,130,246,.12)">
-                        <svg width="16" height="16" fill="none" stroke="#60a5fa" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                    </div>
-                    <div style="flex:1">
-                        <div style="display:flex;justify-content:space-between">
-                            <div class="comp-name">ISO/IEC 27001</div>
-                            <div style="font-size:11px;font-weight:700;color:#4ade80">94%</div>
-                        </div>
-                        <div class="meter-bar"><div class="meter-fill" style="width:94%;background:linear-gradient(90deg,#22c55e,#4ade80)"></div></div>
-                        <div class="comp-sub">Access control · Audit logging</div>
-                    </div>
-                </div>
-
-                <!-- SOC 2 -->
-                <div class="comp-row">
-                    <div class="comp-icon" style="background:rgba(168,85,247,.12)">
-                        <svg width="16" height="16" fill="none" stroke="#c084fc" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                    </div>
-                    <div style="flex:1">
-                        <div style="display:flex;justify-content:space-between">
-                            <div class="comp-name">SOC 2 Type II</div>
-                            <div style="font-size:11px;font-weight:700;color:#4ade80">88%</div>
-                        </div>
-                        <div class="meter-bar"><div class="meter-fill" style="width:88%;background:linear-gradient(90deg,#a855f7,#c084fc)"></div></div>
-                        <div class="comp-sub">Security · Availability · Confidentiality</div>
-                    </div>
-                </div>
-
-                <!-- NIST CSF -->
-                <div class="comp-row">
-                    <div class="comp-icon" style="background:rgba(245,158,11,.12)">
-                        <svg width="16" height="16" fill="none" stroke="#fbbf24" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                        </svg>
-                    </div>
-                    <div style="flex:1">
-                        <div style="display:flex;justify-content:space-between">
-                            <div class="comp-name">NIST CSF 2.0</div>
-                            <div style="font-size:11px;font-weight:700;color:#fbbf24">76%</div>
-                        </div>
-                        <div class="meter-bar"><div class="meter-fill" style="width:76%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
-                        <div class="comp-sub">Identify · Protect · Detect</div>
-                    </div>
-                </div>
-
-                <!-- CIS Benchmark -->
-                <div class="comp-row" style="margin-bottom:0">
-                    <div class="comp-icon" style="background:rgba(239,68,68,.12)">
-                        <svg width="16" height="16" fill="none" stroke="#f87171" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                    </div>
-                    <div style="flex:1">
-                        <div style="display:flex;justify-content:space-between">
-                            <div class="comp-name">CIS Cloud Benchmark</div>
-                            <div style="font-size:11px;font-weight:700;color:#f87171">61%</div>
-                        </div>
-                        <div class="meter-bar"><div class="meter-fill" style="width:61%;background:linear-gradient(90deg,#ef4444,#f87171)"></div></div>
-                        <div class="comp-sub">IAM hardening gaps detected</div>
-                    </div>
+                <div id="dashboard-compliance-list" style="display:flex; flex-direction:column; gap:12px;">
+                    <!-- Populated dynamically via JS -->
                 </div>
             </div>
         </div>
@@ -1132,6 +1080,60 @@
     </div>
 </div>
 
+<!-- ══════════════════ COMPLIANCE SIDE PANEL ════════════════════════════════ -->
+<div id="compliance-side-panel">
+    <div class="panel-header">
+        <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text)" id="c-panel-title">Revise Compliance Framework</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Modify framework compliance parameters & details</div>
+        </div>
+        <button onclick="closeCompliancePanel()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted)" aria-label="Close">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="panel-body">
+        <input type="hidden" id="c-framework-id">
+        <div style="margin-bottom:16px">
+            <div class="field-label">Framework Name</div>
+            <input type="text" id="c-framework-name" class="settings-input" style="font-weight:700; background:rgba(255,255,255,0.02); color:var(--text); cursor:not-allowed;" readonly>
+        </div>
+        <div style="margin-bottom:20px">
+            <div class="field-label" style="display:flex; justify-content:space-between;">
+                <span>Compliance Posture Score</span>
+                <span id="c-score-display" style="font-weight:700; color:var(--blue);">85%</span>
+            </div>
+            <input type="range" id="c-framework-score" min="0" max="100" class="settings-input" style="padding:0; height:6px; cursor:pointer;" oninput="document.getElementById('c-score-display').textContent = this.value + '%'">
+        </div>
+        <div style="margin-bottom:16px">
+            <div class="field-label">Framework Description / Key Controls</div>
+            <textarea id="c-framework-description" class="settings-input" style="height:100px; resize:vertical; font-family:inherit;" placeholder="Describe key controls, e.g. Access control, Audit logging..."></textarea>
+        </div>
+        <div style="margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="c-framework-enabled" style="cursor:pointer; width:16px; height:16px;">
+            <label for="c-framework-enabled" class="settings-label" style="margin-top:0; cursor:pointer; font-weight:normal;">Active on dashboard posture list</label>
+        </div>
+
+        <div class="panel-divider"></div>
+
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.8;margin-bottom:16px">
+            Revising this framework will update its compliance score and description details in the database.
+            The revised values will immediately render across all user dashboards.
+        </div>
+    </div>
+
+    <div class="panel-footer">
+        <button class="revoke-btn" id="save-revision-btn" onclick="submitComplianceRevision()" style="background:var(--blue); border-color:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Save Revision
+        </button>
+    </div>
+</div>
+
 <!-- Toast host -->
 <div id="toast-host"></div>
 
@@ -1146,6 +1148,7 @@ let curFilter  = 'all';
 let panelToken = null;
 let panelRow   = null;
 let apiOnline  = false;
+let activeRevisionFramework = null;
 
 // ── Startup ────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -1154,7 +1157,12 @@ window.addEventListener('DOMContentLoaded', () => {
     setInterval(loadAll, 10_000);
 });
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+document.addEventListener('keydown', e => { 
+    if (e.key === 'Escape') {
+        closePanel(); 
+        closeCompliancePanel();
+    }
+});
 
 // ── Navigation ─────────────────────────────────────────────────────────────
 function setNav(el) {
@@ -1493,6 +1501,187 @@ async function researchAndAddFramework() {
     }
 }
 
+// ── Compliance Dashboard Integration ───────────────────────────────────────
+function getScoreColors(score) {
+    if (score >= 85) {
+        return {
+            text: '#4ade80',
+            stroke: '#4ade80',
+            bg: 'rgba(74,222,128,.12)',
+            gradient: 'linear-gradient(90deg,#22c55e,#4ade80)'
+        };
+    } else if (score >= 70) {
+        return {
+            text: '#fbbf24',
+            stroke: '#fbbf24',
+            bg: 'rgba(245,158,11,.12)',
+            gradient: 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+        };
+    } else {
+        return {
+            text: '#f87171',
+            stroke: '#f87171',
+            bg: 'rgba(239,68,68,.12)',
+            gradient: 'linear-gradient(90deg,#ef4444,#f87171)'
+        };
+    }
+}
+
+function renderComplianceList(frameworks) {
+    const listContainer = document.getElementById('dashboard-compliance-list');
+    if (!listContainer) return;
+    
+    const enabledFrameworks = frameworks.filter(f => f.enabled);
+    if (enabledFrameworks.length === 0) {
+        listContainer.innerHTML = `
+            <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px 0">
+                No compliance frameworks enabled. Go to Settings > Compliance to configure.
+            </div>
+        `;
+        return;
+    }
+    
+    listContainer.innerHTML = '';
+    enabledFrameworks.forEach((f, index) => {
+        const colors = getScoreColors(f.score);
+        const compRow = document.createElement('div');
+        compRow.className = 'comp-row';
+        if (index === enabledFrameworks.length - 1) {
+            compRow.style.marginBottom = '0';
+        }
+        
+        compRow.innerHTML = `
+            <div class="comp-icon" style="background:${colors.bg}">
+                <svg width="16" height="16" fill="none" stroke="${colors.stroke}" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+            </div>
+            <div style="flex:1">
+                <div style="display:flex;justify-content:space-between">
+                    <div class="comp-name">${f.name}</div>
+                    <div style="font-size:11px;font-weight:700;color:${colors.text}">${f.score}%</div>
+                </div>
+                <div class="meter-bar"><div class="meter-fill" style="width:${f.score}%;background:${colors.gradient}"></div></div>
+                <div class="comp-sub">${f.description}</div>
+            </div>
+        `;
+        
+        compRow.onclick = () => {
+            openComplianceRevisionPanel(f);
+        };
+        
+        listContainer.appendChild(compRow);
+    });
+}
+
+function openComplianceRevisionPanel(framework) {
+    activeRevisionFramework = framework;
+    
+    document.getElementById('c-framework-id').value = framework.id || '';
+    document.getElementById('c-framework-name').value = framework.name || '';
+    document.getElementById('c-framework-score').value = framework.score || 70;
+    document.getElementById('c-score-display').textContent = (framework.score || 70) + '%';
+    document.getElementById('c-framework-description').value = framework.description || '';
+    document.getElementById('c-framework-enabled').checked = framework.enabled !== false;
+    
+    // Highlight compliance row
+    document.querySelectorAll('#dashboard-compliance-list .comp-row').forEach(r => r.style.outline = '');
+    const compRows = document.querySelectorAll('#dashboard-compliance-list .comp-row');
+    compRows.forEach(row => {
+        if (row.querySelector('.comp-name').textContent === framework.name) {
+            row.style.setProperty('outline', '2px solid var(--blue)');
+        }
+    });
+
+    document.getElementById('compliance-side-panel').classList.add('open');
+    document.getElementById('panel-backdrop').classList.add('show');
+}
+
+function closeCompliancePanel() {
+    document.getElementById('compliance-side-panel').classList.remove('open');
+    document.getElementById('panel-backdrop').classList.remove('show');
+    document.querySelectorAll('#dashboard-compliance-list .comp-row').forEach(r => r.style.outline = '');
+    activeRevisionFramework = null;
+}
+
+async function submitComplianceRevision() {
+    if (!activeRevisionFramework) return;
+    
+    const id = document.getElementById('c-framework-id').value;
+    const score = parseInt(document.getElementById('c-framework-score').value, 10);
+    const description = document.getElementById('c-framework-description').value;
+    const enabled = document.getElementById('c-framework-enabled').checked;
+    
+    const saveBtn = document.getElementById('save-revision-btn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+    
+    try {
+        if (apiOnline) {
+            const response = await fetch(`${API}/api/dashboard/settings/compliance/revise`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: parseInt(id, 10),
+                    score: score,
+                    description: description,
+                    enabled: enabled
+                })
+            });
+            if (!response.ok) throw new Error("Failed to save revision to server");
+            const result = await response.json();
+            if (result.status === 'success') {
+                toast("📋 Compliance framework revision saved successfully!", "success");
+            } else {
+                throw new Error(result.message || "Server error");
+            }
+        } else {
+            // Local mockup revision fallback
+            toast("📋 Mock framework revision saved locally (offline mode)!", "success");
+        }
+        
+        closeCompliancePanel();
+        await loadComplianceDashboard();
+        
+    } catch (error) {
+        console.error("Revision error:", error);
+        toast("❌ Failed to save compliance revision", "danger");
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+    }
+}
+
+function renderMockCompliance() {
+    const mockData = [
+        { name: "ISO/IEC 27001", description: "Access control · Audit logging", score: 94, enabled: true },
+        { name: "SOC 2 Type II", description: "Security · Availability · Confidentiality", score: 88, enabled: true },
+        { name: "NIST CSF 2.0", description: "Identify · Protect · Detect", score: 76, enabled: true },
+        { name: "CIS Cloud Benchmark", description: "IAM hardening gaps detected", score: 61, enabled: true }
+    ];
+    renderComplianceList(mockData);
+}
+
+async function loadComplianceDashboard() {
+    if (!apiOnline) {
+        renderMockCompliance();
+        return;
+    }
+    try {
+        const response = await fetch(`${API}/api/dashboard/settings`);
+        if (!response.ok) throw new Error("Failed to fetch settings");
+        const result = await response.json();
+        if (result.status === "success" && result.data && result.data.compliance) {
+            const frameworks = result.data.compliance.frameworks || [];
+            renderComplianceList(frameworks);
+        }
+    } catch (e) {
+        console.error("Error loading dashboard compliance:", e);
+        renderMockCompliance();
+    }
+}
+
 // ── Load everything ────────────────────────────────────────────────────────
 async function loadAll() {
     const icon = document.getElementById('refresh-icon');
@@ -1501,6 +1690,7 @@ async function loadAll() {
     await checkHealth();
     await loadSessions();
     await loadAudit();
+    await loadComplianceDashboard();
 
     icon.querySelector('svg').style.animation = '';
     document.getElementById('last-updated').textContent =

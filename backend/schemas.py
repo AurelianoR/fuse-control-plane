@@ -68,4 +68,8 @@ class SystemSettingsResponse(BaseModel):
     status: str
     data: Dict
 
-
+class ReviseComplianceRequest(BaseModel):
+    id: int
+    score: int
+    description: str
+    enabled: bool
