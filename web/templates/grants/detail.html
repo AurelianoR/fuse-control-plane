@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block title %}{{ grant.client_display_name }} — {{ tenant.display_name }} — Fuse{% endblock %}
 
+{% block topbar_title %}{{ grant.client_display_name }}{% endblock %}
+
 {% block content %}
 <p><a href="{{ request.url_for('grants_list', id=tenant.id) }}">← Back to grants</a></p>
 

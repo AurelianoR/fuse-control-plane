@@ -5,12 +5,14 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from web.db import get_db
-from web.models import CollectionRun, DBGrant, GrantActivitySnapshot, GrantEvent, Tenant
+from web.models import CollectionRun, DBGrant, GrantActivitySnapshot, GrantEvent, Tenant, TenantGroup
 from web.templating import templates
 from web.utils import (
+    RISK_SIGNAL_LABELS,
     GrantRow,
     add_flash,
     build_grant_rows,
+    compute_grant_stats,
     compute_risk_signals,
     normalize_risk_signal,
     pop_flash,
@@ -19,17 +21,6 @@ from web.utils import (
 router = APIRouter(prefix="/tenants/{id}/grants", tags=["grants"])
 
 PER_PAGE = 50
-
-RISK_SIGNAL_LABELS = {
-    "unverified-publisher": "Unverified publisher",
-    "user-consented": "User-consented",
-    "write-permissions": "Write permissions",
-    "sp-disabled": "SP disabled",
-    "never-used": "Never used",
-    "dormant": "Dormant (>90d)",
-    "all-repos": "All repositories",
-    "never-reconfigured": "Never reconfigured",
-}
 
 
 def _get_tenant(id: int, db: Session) -> Tenant:
@@ -44,6 +35,7 @@ def _base_ctx(request: Request, db: Session, tenant: Tenant, **kwargs) -> dict:
         "request": request,
         "tenant": tenant,
         "tenants": db.query(Tenant).order_by(Tenant.display_name).all(),
+        "groups": db.query(TenantGroup).order_by(TenantGroup.display_name).all(),
         "flash": pop_flash(request),
         **kwargs,
     }
@@ -315,20 +307,4 @@ def grants_revoke(
     return RedirectResponse(url=str(request.url_for("grants_list", id=id)), status_code=303)
 
 
-def _compute_stats(rows: list[GrantRow]) -> dict:
-    total = len(rows)
-    delegated = sum(1 for r in rows if r.primary_grant.grant_type == "delegated")
-    application = total - delegated
-
-    risk_counts: dict[str, int] = {}
-    for r in rows:
-        for sig in r.risk_signals:
-            bucket = normalize_risk_signal(sig)
-            risk_counts[bucket] = risk_counts.get(bucket, 0) + 1
-
-    return {
-        "total": total,
-        "delegated": delegated,
-        "application": application,
-        "risk": risk_counts,
-    }
+_compute_stats = compute_grant_stats

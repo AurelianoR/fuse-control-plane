@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from web.db import get_db
-from web.models import Tenant
+from web.models import Tenant, TenantGroup
 from web.templating import templates
 from web.utils import add_flash, pop_flash
 
@@ -14,6 +14,7 @@ def _ctx(request: Request, db: Session, **kwargs) -> dict:
     return {
         "request": request,
         "tenants": db.query(Tenant).order_by(Tenant.display_name).all(),
+        "groups": db.query(TenantGroup).order_by(TenantGroup.display_name).all(),
         "flash": pop_flash(request),
         **kwargs,
     }
@@ -73,6 +74,7 @@ def tenants_edit_save(
     display_name: str = Form(...),
     client_id: str = Form(""),
     client_secret: str = Form(""),
+    group_id: str = Form(""),
     db: Session = Depends(get_db),
 ):
     from web.config import get_settings
@@ -86,6 +88,7 @@ def tenants_edit_save(
         tenant.client_id = client_id
     if client_secret.strip():
         tenant.set_secret(client_secret, settings.secret_encryption_key)
+    tenant.group_id = int(group_id) if group_id.strip() else None
     db.commit()
     add_flash(request, "success", "Tenant updated.")
     return RedirectResponse(url=request.url_for("tenants_list"), status_code=303)

@@ -142,6 +142,30 @@ def normalize_risk_signal(signal: str) -> str:
     return signal
 
 
+RISK_SIGNAL_LABELS = {
+    "unverified-publisher": "Unverified publisher",
+    "user-consented": "User-consented",
+    "write-permissions": "Write permissions",
+    "sp-disabled": "SP disabled",
+    "never-used": "Never used",
+    "dormant": "Dormant (>90d)",
+    "all-repos": "All repositories",
+    "never-reconfigured": "Never reconfigured",
+}
+
+
+def compute_grant_stats(rows: list[GrantRow]) -> dict:
+    total = len(rows)
+    delegated = sum(1 for r in rows if r.primary_grant.grant_type == "delegated")
+    application = total - delegated
+    risk_counts: dict[str, int] = {}
+    for r in rows:
+        for sig in r.risk_signals:
+            bucket = normalize_risk_signal(sig)
+            risk_counts[bucket] = risk_counts.get(bucket, 0) + 1
+    return {"total": total, "delegated": delegated, "application": application, "risk": risk_counts}
+
+
 def add_flash(request: Request, type: str, message: str) -> None:
     if "flash" not in request.session:
         request.session["flash"] = []

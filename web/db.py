@@ -44,6 +44,15 @@ def init_db(database_url: str) -> None:
             conn.execute(sa_text("ALTER TABLE grants ADD COLUMN last_modified_at DATETIME"))
             conn.commit()
 
+    # Migrate: add group_id to tenants if absent.
+    t_cols = {c["name"] for c in sa_inspect(_engine).get_columns("tenants")}
+    if "group_id" not in t_cols:
+        with _engine.connect() as conn:
+            conn.execute(sa_text(
+                "ALTER TABLE tenants ADD COLUMN group_id INTEGER REFERENCES tenant_groups(id) ON DELETE SET NULL"
+            ))
+            conn.commit()
+
 
 def new_session() -> Session:
     """Create a session for use outside request context (background threads)."""

@@ -1,44 +1,88 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Fuse{% endblock %}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
 </head>
 <body>
-  <header class="container-fluid">
-    <nav>
-      <ul>
-        <li><strong><a href="/tenants" class="nav-brand">Fuse</a></strong></li>
-      </ul>
-      <ul>
-        {% if tenants %}
-        <li>
-          {% for t in tenants %}
-            {% if loop.first and tenants|length == 1 %}
-              <a href="{{ request.url_for('grants_list', id=t.id) }}" class="nav-tenant">{{ t.display_name }}</a>
-            {% endif %}
-          {% endfor %}
-          {% if tenants|length > 1 %}
-          <select class="tenant-select" onchange="window.location.href=this.value">
-            {% for t in tenants %}
-            <option value="{{ request.url_for('grants_list', id=t.id) }}"
-                    {% if tenant is defined and tenant.id == t.id %}selected{% endif %}>
-              {{ t.display_name }}
-            </option>
-            {% endfor %}
-          </select>
-          {% endif %}
-        </li>
-        {% endif %}
-        <li><a href="{{ request.url_for('tenants_list') }}">Settings</a></li>
-      </ul>
-    </nav>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">F</div>
+    <div class="logo-text">FUSE</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Control Plane</div>
+    <a href="{% if group is defined %}{{ request.url_for('group_grants_list', gid=group.id) }}{% elif tenant is defined %}{{ request.url_for('grants_list', id=tenant.id) }}{% elif groups %}{{ request.url_for('group_grants_list', gid=groups[0].id) }}{% elif tenants %}{{ request.url_for('grants_list', id=tenants[0].id) }}{% else %}{{ request.url_for('tenants_list') }}{% endif %}"
+       class="nav-link {% if 'grants' in request.url.path or 'runs' in request.url.path %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+      </svg>
+      Grants
+    </a>
+
+    <div class="nav-section-label" style="margin-top:12px">Admin</div>
+    <a href="{{ request.url_for('tenants_list') }}"
+       class="nav-link {% if request.url.path == '/tenants' or '/edit' in request.url.path %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      Settings
+    </a>
+  </nav>
+
+  {% if (groups and groups|length > 0) or (tenants and tenants|length > 1) %}
+  <div class="sidebar-tenant">
+    <div class="nav-section-label">View</div>
+    <select class="tenant-select" onchange="window.location.href=this.value">
+      {% if groups %}
+      <optgroup label="Groups">
+        {% for g in groups %}
+        <option value="{{ request.url_for('group_grants_list', gid=g.id) }}"
+                {% if group is defined and group.id == g.id %}selected{% endif %}>
+          {{ g.display_name }}
+        </option>
+        {% endfor %}
+      </optgroup>
+      {% endif %}
+      {% if tenants %}
+      <optgroup label="Connectors">
+        {% for t in tenants %}
+        <option value="{{ request.url_for('grants_list', id=t.id) }}"
+                {% if tenant is defined and tenant.id == t.id %}selected{% endif %}>
+          {{ t.display_name }}
+        </option>
+        {% endfor %}
+      </optgroup>
+      {% endif %}
+    </select>
+  </div>
+  {% endif %}
+</aside>
+
+<!-- ── Main ────────────────────────────────────────────────────────────── -->
+<div id="main">
+  <header id="topbar">
+    <div>
+      <div class="topbar-title">{% block topbar_title %}Fuse{% endblock %}</div>
+      {% if group is defined %}
+      <div class="topbar-sub">{{ group.display_name }} · {{ group.tenants|length }} connector{{ 's' if group.tenants|length != 1 }}</div>
+      {% elif tenant is defined %}
+      <div class="topbar-sub">{{ tenant.display_name }}{% if tenant.platform %} · {{ tenant.platform | title }}{% else %} · Azure{% endif %}</div>
+      {% endif %}
+    </div>
   </header>
 
-  <main class="container">
+  <div id="content">
     {% if flash %}
       {% for msg in flash %}
       <div class="flash flash-{{ msg.type }}">{{ msg.message }}</div>
@@ -46,8 +90,9 @@
     {% endif %}
 
     {% block content %}{% endblock %}
-  </main>
+  </div>
+</div>
 
-  <script src="{{ request.url_for('static', path='app.js') }}"></script>
+<script src="{{ request.url_for('static', path='app.js') }}"></script>
 </body>
 </html>

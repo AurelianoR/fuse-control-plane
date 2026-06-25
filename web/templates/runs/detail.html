@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Run #{{ run.id }} — {{ tenant.display_name }} — Fuse{% endblock %}
 
+{% block topbar_title %}Run #{{ run.id }}{% endblock %}
+
 {% block content %}
 <p><a href="{{ request.url_for('grants_list', id=tenant.id) }}">← Back to grants</a></p>
 
@@ -9,10 +11,10 @@
 {# ── Running / pending state — poller target ───────────────────────────────── #}
 {% if run.status in ("pending", "running") %}
 <div id="run-status-container" data-poll-url="{{ poll_url }}" data-run-status="{{ run.status }}">
-  <article aria-busy="true">
+  <div class="loading-box">
     <strong>Collection {{ run.status }}…</strong>
     <span class="text-muted">Started {{ run.started_at | timeago }}. This page will refresh when done.</span>
-  </article>
+  </div>
 </div>
 
 {# ── Completed / failed state ──────────────────────────────────────────────── #}

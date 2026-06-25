@@ -9,6 +9,16 @@ from sqlalchemy.orm import relationship
 from web.db import Base
 
 
+class TenantGroup(Base):
+    __tablename__ = "tenant_groups"
+
+    id = Column(Integer, primary_key=True)
+    display_name = Column(String, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    tenants = relationship("Tenant", back_populates="group")
+
+
 class Tenant(Base):
     __tablename__ = "tenants"
 
@@ -21,8 +31,10 @@ class Tenant(Base):
     client_secret_enc = Column(Text, nullable=False)
     # "azure" | "github". NULL treated as "azure" for backward compat.
     platform = Column(String, nullable=True)
+    group_id = Column(Integer, ForeignKey("tenant_groups.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
+    group = relationship("TenantGroup", back_populates="tenants")
     runs = relationship(
         "CollectionRun",
         back_populates="tenant",

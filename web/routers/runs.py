@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from web import jobs
 from web.db import get_db
-from web.models import CollectionRun, DBGrant, GrantEvent, Tenant
+from web.models import CollectionRun, DBGrant, GrantEvent, Tenant, TenantGroup
 from web.templating import templates
 from web.utils import add_flash, pop_flash
 
@@ -26,6 +26,7 @@ def _base_ctx(request: Request, db: Session, tenant: Tenant, **kwargs) -> dict:
         "request": request,
         "tenant": tenant,
         "tenants": db.query(Tenant).order_by(Tenant.display_name).all(),
+        "groups": db.query(TenantGroup).order_by(TenantGroup.display_name).all(),
         "flash": pop_flash(request),
         **kwargs,
     }

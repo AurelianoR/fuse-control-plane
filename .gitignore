@@ -1,4 +1,7 @@
 .env
 fuse.db*
+*/__pycache__*
 __pycache__
+web/__pycache__
 .playwright*
+__pycache__/

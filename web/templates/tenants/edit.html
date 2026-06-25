@@ -4,6 +4,8 @@
 {% set platform = tenant.platform or 'azure' %}
 {% set is_github = platform == 'github' %}
 
+{% block topbar_title %}Edit tenant{% endblock %}
+
 {% block content %}
 <h2>Edit tenant: {{ tenant.display_name }}</h2>
 
@@ -27,9 +29,20 @@
       <input type="password" name="client_secret" autocomplete="new-password"
              placeholder="Leave blank to keep existing">
     </label>
+    <label>Group
+      <select name="group_id">
+        <option value="">— None —</option>
+        {% for g in groups %}
+        <option value="{{ g.id }}" {% if tenant.group_id == g.id %}selected{% endif %}>
+          {{ g.display_name }}
+        </option>
+        {% endfor %}
+      </select>
+      <small>Assign to a group to view grants from multiple connectors together</small>
+    </label>
     <div style="display:flex; gap: 0.5rem; align-items: center;">
       <button type="submit">Save</button>
-      <button type="button" class="outline" id="test-btn" onclick="testConnection({{ tenant.id }})">
+      <button type="button" class="btn-outline" id="test-btn" onclick="testConnection({{ tenant.id }})">
         Test connection
       </button>
       <span id="test-result" style="display:none"></span>
@@ -40,7 +53,7 @@
 
   <form method="post" action="{{ request.url_for('tenants_delete', id=tenant.id) }}"
         onsubmit="return confirm('Delete tenant {{ tenant.display_name }}? This removes all grants and run history.')">
-    <button type="submit" class="danger">Delete tenant</button>
+    <button type="submit" class="btn-danger">Delete tenant</button>
   </form>
 
   <p><a href="{{ request.url_for('tenants_list') }}">← Back to tenants</a></p>

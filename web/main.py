@@ -8,6 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from web.config import get_settings
 from web.db import init_db
 from web.routers.grants import router as grants_router
+from web.routers.groups import router as groups_router
 from web.routers.runs import router as runs_router
 from web.routers.tenants import router as tenants_router
 
@@ -42,6 +43,7 @@ app.mount(
 app.include_router(tenants_router)
 app.include_router(runs_router)
 app.include_router(grants_router)
+app.include_router(groups_router)
 
 
 @app.get("/")
