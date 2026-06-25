@@ -1,0 +1,4 @@
+.env
+fuse.db*
+__pycache__
+.playwright*

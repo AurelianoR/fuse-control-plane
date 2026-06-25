@@ -1,0 +1,298 @@
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+header nav {
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  padding-block: 0.75rem;
+}
+
+.nav-brand {
+  text-decoration: none;
+  color: inherit;
+  font-size: 1.1rem;
+}
+
+.tenant-select {
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  width: auto;
+  display: inline-block;
+}
+
+main {
+  padding-top: 1.5rem;
+}
+
+/* ── Flash messages ─────────────────────────────────────────────────────── */
+.flash {
+  padding: 0.75rem 1rem;
+  border-radius: var(--pico-border-radius);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.flash-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+.flash-error   { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+.flash-warning { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+.flash-info    { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
+
+/* ── Notices (inline) ───────────────────────────────────────────────────── */
+.notice {
+  padding: 0.6rem 1rem;
+  border-radius: var(--pico-border-radius);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.notice-info  { background: #dbeafe; color: #1e40af; }
+.notice-error { background: #fee2e2; color: #991b1b; }
+
+/* ── Badges ─────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.badge-lg { font-size: 0.9rem; padding: 0.25em 0.75em; }
+
+.badge-success { background: #d1fae5; color: #065f46; }
+.badge-failed  { background: #fee2e2; color: #991b1b; }
+.badge-running { background: #fef3c7; color: #92400e; }
+.badge-pending { background: #e5e7eb; color: #374151; }
+.badge-warn    { background: #fef3c7; color: #92400e; }
+.badge-info    { background: #dbeafe; color: #1e40af; }
+.badge-muted   { background: #f3f4f6; color: #6b7280; }
+.badge-removed { background: #fee2e2; color: #991b1b; }
+
+.badge-type-delegated   { background: #dbeafe; color: #1e40af; }
+.badge-type-application { background: #ede9fe; color: #5b21b6; }
+
+.badge-risk { background: #fef3c7; color: #92400e; cursor: default; }
+.badge-risk.active { background: #f59e0b; color: #fff; }
+
+.badge-event-new               { background: #d1fae5; color: #065f46; }
+.badge-event-removed           { background: #fee2e2; color: #991b1b; }
+.badge-event-permission_added  { background: #d1fae5; color: #065f46; }
+.badge-event-permission_removed{ background: #fee2e2; color: #991b1b; }
+.badge-event-revoked           { background: #fce7f3; color: #9d174d; }
+.badge-event-audit             { background: #e5e7eb; color: #374151; }
+
+/* ── Stats bar ──────────────────────────────────────────────────────────── */
+.stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+.stats-counts { display: flex; gap: 1rem; align-items: center; }
+.stats-risk   { display: flex; flex-wrap: wrap; gap: 0.35rem; flex: 1; }
+.stats-actions { display: flex; gap: 0.75rem; align-items: center; margin-left: auto; }
+.stat { font-size: 0.9rem; }
+
+/* ── Run collection button ──────────────────────────────────────────────── */
+.btn-run {
+  background: var(--pico-primary);
+  color: var(--pico-primary-inverse);
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: var(--pico-border-radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.btn-run:hover { opacity: 0.9; }
+
+.btn-sm {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+}
+
+/* ── Filter bar ─────────────────────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.filter-bar select,
+.filter-bar input[type="search"] {
+  margin: 0;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+  width: auto;
+  flex-shrink: 0;
+}
+.filter-bar button,
+.filter-bar a {
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+  width: auto !important;
+  flex-shrink: 0;
+}
+.filter-bar label {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  cursor: pointer;
+}
+.filter-bar input[type="checkbox"] {
+  margin: 0;
+  width: auto;
+}
+
+/* ── Table ──────────────────────────────────────────────────────────────── */
+.table-scroll { overflow-x: auto; }
+
+table { font-size: 0.875rem; width: 100%; }
+th { font-weight: 600; white-space: nowrap; }
+td { vertical-align: top; }
+
+table.compact td, table.compact th { padding: 0.4rem 0.5rem; }
+
+.row-inactive { opacity: 0.5; }
+.row-new td { background: #f0fdf4; }
+.row-removed td { background: #fef2f2; }
+
+code.perm {
+  font-size: 0.78rem;
+  background: var(--pico-code-background-color);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ── Last used colour coding ────────────────────────────────────────────── */
+.last-used-good  { color: #059669; }
+.last-used-warn  { color: #d97706; }
+.last-used-bad   { color: #dc2626; }
+.last-used-never { color: #dc2626; font-style: italic; }
+
+/* ── Grant detail ───────────────────────────────────────────────────────── */
+.risk-card {
+  border: 1px solid #fbbf24;
+  background: #fffbeb;
+  border-radius: var(--pico-border-radius);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+.risk-signals { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0; }
+.risk-explanations p { margin: 0.3rem 0; font-size: 0.85rem; }
+
+.detail-grid { gap: 2rem; }
+
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; font-size: 0.875rem; }
+dt { color: var(--pico-muted-color); font-weight: 500; }
+dd { margin: 0; word-break: break-word; }
+
+.permissions-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.permissions-list li { display: flex; align-items: center; gap: 0.4rem; }
+
+/* ── Danger zone (revocation) ───────────────────────────────────────────── */
+.danger-zone {
+  border: 1px solid #fca5a5;
+  background: #fff1f2;
+  border-radius: var(--pico-border-radius);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+.danger-zone h4 { margin-top: 0; color: #991b1b; }
+
+.btn-danger {
+  background: #dc2626;
+  color: #fff;
+  border: 1px solid #dc2626;
+  padding: 0.4rem 1rem;
+  border-radius: var(--pico-border-radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.btn-danger:hover { background: #b91c1c; border-color: #b91c1c; }
+
+.btn-danger-outline {
+  background: transparent;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  padding: 0.4rem 1rem;
+  border-radius: var(--pico-border-radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.btn-danger-outline:hover { background: #fee2e2; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--pico-color);
+  border: 1px solid var(--pico-muted-border-color);
+  padding: 0.4rem 1rem;
+  border-radius: var(--pico-border-radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-outline:hover { background: var(--pico-card-background-color); }
+
+/* ── Run detail ─────────────────────────────────────────────────────────── */
+.run-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.run-summary {
+  display: flex;
+  gap: 1.5rem;
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+/* ── Utility ────────────────────────────────────────────────────────────── */
+.text-muted   { color: var(--pico-muted-color); }
+.text-success { color: #059669; }
+.text-error   { color: #dc2626; }
+.text-warn    { color: #d97706; }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.setup-help {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+}
+.setup-help ul { margin: 0.5rem 0; }
+
+.danger {
+  --pico-background-color: #dc2626;
+  --pico-border-color: #dc2626;
+}

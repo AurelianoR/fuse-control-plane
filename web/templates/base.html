@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Fuse{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css">
+  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+</head>
+<body>
+  <header class="container-fluid">
+    <nav>
+      <ul>
+        <li><strong><a href="/tenants" class="nav-brand">Fuse</a></strong></li>
+      </ul>
+      <ul>
+        {% if tenants %}
+        <li>
+          {% for t in tenants %}
+            {% if loop.first and tenants|length == 1 %}
+              <a href="{{ request.url_for('grants_list', id=t.id) }}" class="nav-tenant">{{ t.display_name }}</a>
+            {% endif %}
+          {% endfor %}
+          {% if tenants|length > 1 %}
+          <select class="tenant-select" onchange="window.location.href=this.value">
+            {% for t in tenants %}
+            <option value="{{ request.url_for('grants_list', id=t.id) }}"
+                    {% if tenant is defined and tenant.id == t.id %}selected{% endif %}>
+              {{ t.display_name }}
+            </option>
+            {% endfor %}
+          </select>
+          {% endif %}
+        </li>
+        {% endif %}
+        <li><a href="{{ request.url_for('tenants_list') }}">Settings</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% if flash %}
+      {% for msg in flash %}
+      <div class="flash flash-{{ msg.type }}">{{ msg.message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{{ request.url_for('static', path='app.js') }}"></script>
+</body>
+</html>

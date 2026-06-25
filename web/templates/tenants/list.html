@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Tenants — Fuse{% endblock %}
+
+{% block content %}
+<h2>Tenants</h2>
+
+<div class="grid">
+  <div>
+    <h3>Configured tenants</h3>
+    {% if tenants %}
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Platform</th>
+          <th>ID / Org</th>
+          <th>Last run</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tenants %}
+        <tr>
+          <td><strong>{{ t.display_name }}</strong></td>
+          <td>
+            {% if (t.platform or 'azure') == 'github' %}
+            <span class="badge badge-info">GitHub</span>
+            {% else %}
+            <span class="badge badge-muted">Azure</span>
+            {% endif %}
+          </td>
+          <td><code>{{ t.tenant_id }}</code></td>
+          <td>
+            {% if t.last_run %}
+              <span class="badge badge-{{ t.last_run.status }}">{{ t.last_run.status }}</span>
+              <span class="text-muted">{{ t.last_run.started_at | timeago }}</span>
+            {% else %}
+              <span class="text-muted">never</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ request.url_for('grants_list', id=t.id) }}" role="button" class="btn-sm">Grants</a>
+            <a href="{{ request.url_for('tenants_edit', id=t.id) }}" role="button" class="btn-sm outline">Edit</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No tenants configured yet. Add one below.</p>
+    {% endif %}
+  </div>
+
+  <div>
+    <h3>Add tenant</h3>
+    <form method="post" action="{{ request.url_for('tenants_create') }}" id="add-tenant-form">
+
+      <label>Platform
+        <select name="platform" id="add-platform" onchange="updateAddForm()">
+          <option value="azure">Azure / Entra ID</option>
+          <option value="github">GitHub</option>
+        </select>
+      </label>
+
+      <label>Display name
+        <input type="text" name="display_name" required placeholder="My Company">
+      </label>
+
+      <label id="label-tenant-id">
+        <span id="label-tenant-id-text">Azure Tenant ID</span>
+        <input type="text" name="tenant_id" id="input-tenant-id" required
+               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        <small id="hint-tenant-id">The Azure AD tenant GUID</small>
+      </label>
+
+      <label id="label-client-id">App Registration Client ID
+        <input type="text" name="client_id" id="input-client-id"
+               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        <small>Client ID of the Fuse app registration in Entra</small>
+      </label>
+
+      <label id="label-secret">
+        <span id="label-secret-text">Client Secret</span>
+        <input type="password" name="client_secret" required autocomplete="new-password">
+        <small id="hint-secret">Stored encrypted at rest</small>
+      </label>
+
+      <button type="submit">Add tenant</button>
+    </form>
+
+    <details class="setup-help" id="azure-help">
+      <summary>Required Graph API permissions</summary>
+      <p>Register an app in Entra ID with these <strong>Application</strong> permissions (admin consent required):</p>
+      <ul>
+        <li><code>Application.Read.All</code></li>
+        <li><code>Directory.Read.All</code></li>
+        <li><code>AuditLog.Read.All</code></li>
+      </ul>
+      <p>Activity data (last-used timestamps) requires Entra ID P1/P2.</p>
+      <p><strong>To enable revocation</strong>, also add <code>Application.ReadWrite.All</code> (same consent flow). Without it, revocation attempts return a permissions error.</p>
+    </details>
+
+    <details class="setup-help" id="github-help" style="display:none">
+      <summary>What gets collected</summary>
+      <p><strong>Classic PAT</strong> (recommended) with <code>read:org</code> scope:</p>
+      <ul>
+        <li>GitHub App installations + permissions</li>
+        <li>OAuth App credential authorizations (requires SAML SSO / Enterprise)</li>
+      </ul>
+      <p class="text-muted" style="font-size:0.85rem">
+        Fine-grained PAT collection requires GitHub App auth — not supported with a PAT.
+        Audit log requires GitHub Enterprise.
+      </p>
+    </details>
+  </div>
+</div>
+
+<script>
+function updateAddForm() {
+  const platform = document.getElementById('add-platform').value;
+  const isGitHub = platform === 'github';
+
+  document.getElementById('label-tenant-id-text').textContent = isGitHub ? 'GitHub Org' : 'Azure Tenant ID';
+  document.getElementById('input-tenant-id').placeholder = isGitHub ? 'my-org-name' : 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+  document.getElementById('hint-tenant-id').textContent = isGitHub ? 'GitHub organization slug' : 'The Azure AD tenant GUID';
+  document.getElementById('label-client-id').style.display = isGitHub ? 'none' : '';
+  document.getElementById('label-secret-text').textContent = isGitHub ? 'Personal Access Token' : 'Client Secret';
+  document.getElementById('hint-secret').textContent = isGitHub ? 'Stored encrypted at rest' : 'Stored encrypted at rest';
+  document.getElementById('azure-help').style.display = isGitHub ? 'none' : '';
+  document.getElementById('github-help').style.display = isGitHub ? '' : 'none';
+}
+</script>
+{% endblock %}

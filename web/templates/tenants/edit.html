@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ tenant.display_name }} — Fuse{% endblock %}
+
+{% set platform = tenant.platform or 'azure' %}
+{% set is_github = platform == 'github' %}
+
+{% block content %}
+<h2>Edit tenant: {{ tenant.display_name }}</h2>
+
+<div style="max-width: 480px">
+  <form method="post" action="{{ request.url_for('tenants_edit_save', id=tenant.id) }}">
+    <label>Display name
+      <input type="text" name="display_name" value="{{ tenant.display_name }}" required>
+    </label>
+    <label>
+      {{ 'GitHub Org' if is_github else 'Azure Tenant ID' }}
+      <input type="text" value="{{ tenant.tenant_id }}" disabled>
+      <small>Cannot be changed after creation</small>
+    </label>
+    {% if not is_github %}
+    <label>App Registration Client ID
+      <input type="text" name="client_id" value="{{ tenant.client_id }}" required>
+    </label>
+    {% endif %}
+    <label>
+      {{ 'Personal Access Token' if is_github else 'Client Secret' }}
+      <input type="password" name="client_secret" autocomplete="new-password"
+             placeholder="Leave blank to keep existing">
+    </label>
+    <div style="display:flex; gap: 0.5rem; align-items: center;">
+      <button type="submit">Save</button>
+      <button type="button" class="outline" id="test-btn" onclick="testConnection({{ tenant.id }})">
+        Test connection
+      </button>
+      <span id="test-result" style="display:none"></span>
+    </div>
+  </form>
+
+  <hr>
+
+  <form method="post" action="{{ request.url_for('tenants_delete', id=tenant.id) }}"
+        onsubmit="return confirm('Delete tenant {{ tenant.display_name }}? This removes all grants and run history.')">
+    <button type="submit" class="danger">Delete tenant</button>
+  </form>
+
+  <p><a href="{{ request.url_for('tenants_list') }}">← Back to tenants</a></p>
+</div>
+
+<script>
+function testConnection(tenantId) {
+  const btn = document.getElementById('test-btn');
+  const result = document.getElementById('test-result');
+  btn.setAttribute('aria-busy', 'true');
+  btn.disabled = true;
+  result.style.display = 'none';
+
+  fetch(`/tenants/${tenantId}/test`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      result.style.display = 'inline';
+      if (data.ok) {
+        result.textContent = '✓ Connected';
+        result.className = 'text-success';
+      } else {
+        result.textContent = '✗ ' + (data.error || 'Failed');
+        result.className = 'text-error';
+      }
+    })
+    .finally(() => {
+      btn.removeAttribute('aria-busy');
+      btn.disabled = false;
+    });
+}
+</script>
+{% endblock %}

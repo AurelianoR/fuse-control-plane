@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% block title %}{{ grant.client_display_name }} — {{ tenant.display_name }} — Fuse{% endblock %}
+
+{% block content %}
+<p><a href="{{ request.url_for('grants_list', id=tenant.id) }}">← Back to grants</a></p>
+
+<h2>{{ grant.client_display_name }}</h2>
+<small class="text-muted">{{ grant.client_app_id }}</small>
+
+{# ── Risk signals ──────────────────────────────────────────────────────────── #}
+{% if risk_signals %}
+<div class="risk-card">
+  <strong>Risk signals</strong>
+  <div class="risk-signals">
+    {% for sig in risk_signals %}
+    <span class="badge badge-risk" title="{{ sig }}">
+      {{ sig | normalize_risk }}
+    </span>
+    {% endfor %}
+  </div>
+  <div class="risk-explanations">
+    {% for sig in risk_signals %}
+    {% if sig == "unverified-publisher" %}
+    <p>⚠ <strong>unverified-publisher</strong> — Microsoft has not verified this app's publisher identity.</p>
+    {% elif sig == "user-consented" %}
+    <p>⚠ <strong>user-consented</strong> — A regular user (not an admin) granted these permissions. May exceed intended access.</p>
+    {% elif sig == "write-permissions" %}
+    <p>⚠ <strong>write-permissions</strong> — This grant includes permissions that can modify or delete data.</p>
+    {% elif sig == "all-repos" %}
+    <p>⚠ <strong>all-repos</strong> — This app has access to all repositories in the organization, including any created in future.</p>
+    {% elif sig == "sp-disabled" %}
+    <p>⚠ <strong>sp-disabled</strong> — The service principal is currently disabled. New tokens cannot be issued.</p>
+    {% elif sig == "never-used" %}
+    <p>⚠ <strong>never-used</strong> — No sign-in activity has ever been recorded for this grant.</p>
+    {% elif "dormant" in sig %}
+    <p>⚠ <strong>{{ sig }}</strong> — No activity recorded in over 90 days. Consider revoking if no longer needed.</p>
+    {% elif sig == "never-reconfigured" %}
+    <p>⚠ <strong>never-reconfigured</strong> — This app was installed over 90 days ago and its permissions have never changed. Confirm it still needs this access level.</p>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{# ── Two-column metadata ───────────────────────────────────────────────────── #}
+<div class="grid detail-grid">
+  <div>
+    <h4>Vendor app</h4>
+    <dl>
+      <dt>Display name</dt><dd>{{ grant.client_display_name }}</dd>
+      <dt>App ID (client)</dt><dd><code>{{ grant.client_app_id }}</code></dd>
+      <dt>Service principal ID</dt><dd><code>{{ grant.client_sp_id }}</code></dd>
+      <dt>Publisher tenant</dt><dd><code>{{ grant.client_publisher_tenant_id or '—' }}</code></dd>
+      <dt>Verified publisher</dt>
+      <dd>{% if grant.client_verified_publisher %}✓ Yes{% else %}✗ No{% endif %}</dd>
+      <dt>Account enabled</dt>
+      <dd>{% if grant.client_account_enabled %}✓ Yes{% else %}✗ Disabled{% endif %}</dd>
+    </dl>
+
+    <h4>Grant details</h4>
+    <dl>
+      <dt>Type</dt><dd><span class="badge badge-type-{{ grant.grant_type }}">{{ grant.grant_type }}</span></dd>
+      <dt>Consent</dt>
+      <dd>
+        {% if grant.consent_type == "Principal" %}
+          User-consented{% if grant.consented_by_user_id %} (<code>{{ grant.consented_by_user_id }}</code>){% endif %}
+        {% else %}
+          Admin consent (all users)
+        {% endif %}
+      </dd>
+      <dt>Resource</dt><dd>{{ grant.resource_display_name }}</dd>
+      <dt>Resource SP ID</dt><dd><code>{{ grant.resource_sp_id }}</code></dd>
+      {% if grant.created_at %}
+      <dt>Created (Graph)</dt><dd>{{ grant.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</dd>
+      {% endif %}
+      <dt>First seen</dt><dd>{{ grant.first_seen_at.strftime('%Y-%m-%d') if grant.first_seen_at else '—' }}</dd>
+    </dl>
+  </div>
+
+  <div>
+    <h4>Activity</h4>
+    {% if tenant_platform == 'azure' and not activity_available %}
+    <div class="notice notice-info">Activity data requires Entra ID P1/P2.</div>
+    {% elif tenant_platform == 'github' %}
+      {% if grant.last_modified_at %}
+      <dl>
+        <dt>Last modified</dt>
+        <dd>
+          <span class="last-used-{{ grant.last_modified_at | timeago_class }}">
+            {{ grant.last_modified_at | timeago }}
+          </span>
+          <br><small class="text-muted">{{ grant.last_modified_at.strftime('%Y-%m-%d %H:%M UTC') }}</small>
+          <br><small class="text-muted">Last time permissions or repo access were changed</small>
+        </dd>
+      </dl>
+      {% endif %}
+      {% if activity and activity.last_sign_in %}
+      <dl>
+        <dt>Last used</dt>
+        <dd>
+          <span class="last-used-{{ activity.last_sign_in | timeago_class }}">
+            {{ activity.last_sign_in | timeago }}
+          </span>
+          <br><small class="text-muted">{{ activity.last_sign_in.strftime('%Y-%m-%d %H:%M UTC') }}</small>
+        </dd>
+      </dl>
+      {% elif grant.grant_type == 'delegated' %}
+      <p class="text-muted">Token has never been used.</p>
+      {% else %}
+      <p class="text-muted">GitHub does not expose App installation usage timestamps.</p>
+      {% endif %}
+    {% elif activity %}
+    <dl>
+      <dt>Last sign-in (any)</dt>
+      <dd>
+        <span class="last-used-{{ activity.last_sign_in | timeago_class }}">
+          {{ activity.last_sign_in | timeago }}
+        </span>
+        {% if activity.last_sign_in %}
+        <br><small class="text-muted">{{ activity.last_sign_in.strftime('%Y-%m-%d %H:%M UTC') }}</small>
+        {% endif %}
+      </dd>
+      <dt>Last app-only (client)</dt>
+      <dd>{{ activity.last_app_only_client | timeago }}</dd>
+      <dt>Last delegated (client)</dt>
+      <dd>{{ activity.last_delegated_client | timeago }}</dd>
+    </dl>
+    {% else %}
+    <p class="text-muted">No activity recorded.</p>
+    {% endif %}
+
+    {% if siblings %}
+    <h4>Related application grants</h4>
+    <p class="text-muted" style="font-size:0.85rem">
+      Same vendor + resource. Application grants are one permission per row in the database.
+    </p>
+    <ul>
+      {% for s in siblings %}
+      <li>
+        <a href="{{ request.url_for('grants_detail', id=tenant.id, gid=s.id) }}">
+          {{ s.permissions | join(', ') if s.permissions else '—' }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+
+{# ── Permissions ───────────────────────────────────────────────────────────── #}
+<h4>Permissions ({{ all_permissions | length }})</h4>
+<ul class="permissions-list">
+  {% for p in all_permissions %}
+  <li>
+    <code>{{ p }}</code>
+    {% if "Write" in p %}
+    <span class="badge badge-warn">write</span>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+
+{# ── Revoke access ─────────────────────────────────────────────────────────── #}
+{% if grant.is_active %}
+<div class="danger-zone">
+  <h4>Revoke access</h4>
+  <p class="text-muted" style="font-size:0.85rem">
+    {% if tenant_platform == 'azure' %}
+    Deleting a grant stops new token issuance but does <strong>not</strong> invalidate tokens already
+    issued — existing tokens remain valid for their remaining TTL (~60&nbsp;min). Disabling the vendor
+    app is the strongest available containment: it blocks all new tokens for this vendor across all
+    resources, but live tokens still expire naturally. Requires
+    <code>Application.ReadWrite.All</code> on your app registration.
+    {% elif tenant_platform == 'github' %}
+    Revoking removes the credential from the org immediately. GitHub App installations must be
+    managed directly in GitHub settings (cannot be revoked via PAT).
+    {% endif %}
+  </p>
+
+  {% if tenant_platform == 'azure' %}
+  <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.75rem">
+    <form method="post"
+          action="{{ request.url_for('grants_revoke', id=tenant.id, gid=grant.id) }}"
+          onsubmit="return confirm('Delete this grant? Stops new token issuance for this permission set.')">
+      <input type="hidden" name="action" value="delete_grant">
+      <button type="submit" class="btn-danger-outline">Delete grant</button>
+    </form>
+    <form method="post"
+          action="{{ request.url_for('grants_revoke', id=tenant.id, gid=grant.id) }}"
+          onsubmit="return confirm('Disable the vendor app entirely? Affects ALL grants for this vendor across all resources.')">
+      <input type="hidden" name="action" value="disable_sp">
+      <button type="submit" class="btn-danger">Disable vendor app</button>
+    </form>
+  </div>
+
+  {% elif tenant_platform == 'github' %}
+  <div style="margin-top:0.75rem">
+    {% if grant.graph_id.startswith('ghoauth_') %}
+    <form method="post"
+          action="{{ request.url_for('grants_revoke', id=tenant.id, gid=grant.id) }}"
+          onsubmit="return confirm('Revoke this OAuth credential?')">
+      <input type="hidden" name="action" value="delete_oauth">
+      <button type="submit" class="btn-danger">Revoke credential</button>
+    </form>
+    {% elif grant.graph_id.startswith('gh_') %}
+    {% set install_id = grant.graph_id[3:] %}
+    <a href="https://github.com/organizations/{{ grant.resource_sp_id }}/settings/installations/{{ install_id }}"
+       target="_blank" rel="noopener" role="button" class="btn-outline">
+      Manage in GitHub ↗
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── Event history ─────────────────────────────────────────────────────────── #}
+<h4>Event history</h4>
+{% if events %}
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Event</th>
+      <th>Detail</th>
+      <th>Run</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for event, run in events %}
+    <tr>
+      <td><small>{{ run.started_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+      <td><span class="badge badge-event-{{ event.event_type }}">{{ event.event_type }}</span></td>
+      <td>
+        {% if event.event_type == 'revoked' and event.detail %}
+          <small class="text-muted">{{ event.detail.get('action', '') }}{% if event.detail.get('at') %} · {{ event.detail['at'][:16] | replace('T', ' ') }} UTC{% endif %}</small>
+        {% elif event.event_type == 'audit' and event.detail %}
+          <small class="text-muted">{{ event.detail.get('actor', '') }} — {{ event.detail.get('action', '') }}</small>
+        {% elif event.detail and event.detail.get('permissions') %}
+          {% for p in event.detail['permissions'] %}<code>{{ p }}</code> {% endfor %}
+        {% endif %}
+      </td>
+      <td>
+        <a href="{{ request.url_for('runs_detail', id=tenant.id, run_id=run.id) }}">
+          Run #{{ run.id }}
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="text-muted">No events recorded.</p>
+{% endif %}
+
+{% endblock %}
