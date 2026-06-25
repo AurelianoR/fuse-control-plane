@@ -592,6 +592,39 @@ git push origin feat/your-feature
 
 ---
 
+## 🔎 Approach B — Out-of-Band OAuth Grant Collector & Web Dashboard
+
+In addition to the inline proxy/dashboard (Approach A), Fuse provides a completely non-intrusive **Out-of-band OAuth Grant Collector** (Approach B) to discover, analyze, and manage third-party access scopes without sitting in the traffic path.
+
+### Key Components
+
+1. **`collector/`**: A command-line tool implemented in Python to:
+   - Connect to Microsoft Graph API and query active delegated grants (`oauth2PermissionGrants`) and application permissions (`appRoleAssignments`).
+   - Extract verified publisher badges and resolve application IDs to human-readable permission scopes.
+   - Collect service principal login activities and track grant changes over time (delta comparisons).
+2. **`web/`**: A server-side rendered (Jinja2) FastAPI web dashboard to manage Entra ID tenant credentials, configure collection schedules, run manual snapshots, and view the live grants registry.
+
+### Repository Layout
+
+- **`collector/`**: The core collector package containing clients for Microsoft Graph and GitHub, Snapshot Store, and diff analysis.
+- **`web/`**: The FastAPI web app, containing templates (`web/templates/`), static CSS/JS (`web/static/`), and routers.
+- **`pyproject.toml`**: Package dependencies (msal, httpx, fastapi, uvicorn, jinja2, sqlalchemy, cryptography, etc.).
+
+### Local Setup & Launching
+
+You can run both the Proxy (Approach A) and the Collector (Approach B) in the same Docker Compose stack:
+
+```bash
+# Build and run everything
+docker compose up --build -d
+
+# Approach A: Proxy Dashboard -> http://localhost:3000
+# Approach A: Proxy REST API   -> http://localhost:8080
+# Approach B: Collector Web UI  -> http://localhost:8001
+```
+
+---
+
 ## 📄 License
 
 MIT © Cloud Governance Team
@@ -608,3 +641,4 @@ MIT © Cloud Governance Team
 *"The best time to revoke an over-permissive token was when it was issued. The second best time is right now."*
 
 </div>
+

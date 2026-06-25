@@ -36,6 +36,20 @@ services:
       - "com.fuse.service=frontend"
       - "com.fuse.description=Fuse Dashboard"
 
+  # ── Out-of-band Collector Web Dashboard ───────────────────────────────────
+  collector-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.collector
+    container_name: fuse-collector-web
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+    labels:
+      - "com.fuse.service=collector-web"
+      - "com.fuse.description=Fuse OAuth Grant Collector Web Dashboard"
+
 networks:
   default:
     name: fuse-network
+

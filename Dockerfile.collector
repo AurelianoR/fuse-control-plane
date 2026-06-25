@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml ./
+# Install project dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir .
+
+COPY collector/ ./collector/
+COPY web/ ./web/
+
+# Set defaults
+ENV DATABASE_URL=sqlite:////app/fuse.db
+ENV SECRET_KEY=change-me-in-production-secret-key-that-is-long-enough-32-chars
+# Default mock encryption key for development
+ENV SECRET_ENCRYPTION_KEY=y3bX8FpQ_p4-z7u5mXJ-D6XwK4u9z2vB2d4x7y8z9w0=
+
+EXPOSE 8000
+
+CMD ["uvicorn", "web.main:app", "--host", "0.0.0.0", "--port", "8000"]
