@@ -362,6 +362,26 @@
 
         .panel-divider { height: 1px; background: var(--border); margin: 20px 0; }
 
+        .compliance-report-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        .control-item {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border);
+        }
+        .control-item:first-child {
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0;
+        }
+        .badge-success { background: rgba(74,222,128,.12); color: #4ade80; border: 1px solid rgba(74,222,128,.3); }
+        .badge-danger { background: rgba(239,68,68,.12); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+
         .crit-banner {
             background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
             border-radius: 10px; padding: 14px 16px;
@@ -1050,7 +1070,15 @@
             </div>
         </div>
 
-        <div class="panel-divider"></div>
+        <!-- Compliance & Risk Report -->
+        <div id="p-compliance-report-container" style="margin-bottom:16px">
+            <div class="field-label" style="margin-bottom:8px">Selected Framework Compliance</div>
+            <div id="p-compliance-report-list" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </div>
+
+        <div class="panel-divider" id="p-compliance-divider"></div>
 
         <!-- Critical banner -->
         <div class="crit-banner" id="p-crit-banner" style="display:none;margin-bottom:16px">
@@ -1149,6 +1177,8 @@ let panelToken = null;
 let panelRow   = null;
 let apiOnline  = false;
 let activeRevisionFramework = null;
+let globalEnforceSenderBinding = true;
+let enabledFrameworkNames = [];
 
 // ── Startup ────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -1338,6 +1368,10 @@ async function loadSettings() {
                 document.getElementById('token-scopes').value = (data.token_governance.allowed_scopes || []).join(', ');
                 document.getElementById('token-max-usage').value = data.token_governance.max_token_usage_limit || 1000;
                 document.getElementById('token-sender-binding').checked = !!data.token_governance.enforce_sender_binding;
+                globalEnforceSenderBinding = !!data.token_governance.enforce_sender_binding;
+            }
+            if (data.compliance && data.compliance.enabled_frameworks) {
+                enabledFrameworkNames = data.compliance.enabled_frameworks || [];
             }
             
             // Populate Compliance Framework Checkboxes dynamically
@@ -1675,6 +1709,10 @@ async function loadComplianceDashboard() {
         if (result.status === "success" && result.data && result.data.compliance) {
             const frameworks = result.data.compliance.frameworks || [];
             renderComplianceList(frameworks);
+            if (result.data.token_governance) {
+                globalEnforceSenderBinding = !!result.data.token_governance.enforce_sender_binding;
+            }
+            enabledFrameworkNames = result.data.compliance.enabled_frameworks || [];
         }
     } catch (e) {
         console.error("Error loading dashboard compliance:", e);
@@ -1901,6 +1939,127 @@ function applyFilter(f, btnEl, silent = false) {
 }
 
 // ── Panel ──────────────────────────────────────────────────────────────────
+function auditTokenCompliance(s) {
+    const report = {};
+    
+    // Check if token is static
+    const isStatic = s.expires_in.toLowerCase().includes("static") || s.is_critical;
+    // Check if scope is over-permissive
+    const lowerScope = s.scope.toLowerCase();
+    const isOverPermissive = lowerScope.includes("owner") || lowerScope.includes("contributor") || lowerScope.includes("write") || lowerScope.includes("editor");
+    // Check if usage exceeded limit
+    const isQuotaExceeded = s.token_usage >= s.usage_limit;
+    // Check if DPoP is enforced (can get this from global settings, let's say if it's not a critical / static token and global settings enable it, else false)
+    const isDPoPEnforced = !isStatic && globalEnforceSenderBinding;
+    
+    // Framework 1: ISO 27001:2022
+    report['ISO27001:2022'] = {
+        name: 'ISO/IEC 27001:2022',
+        compliant: !isStatic && !isOverPermissive && isDPoPEnforced && !isQuotaExceeded,
+        controls: [
+            {
+                id: 'A.8.2 / A.8.5',
+                name: 'Secure Auth & Rotation',
+                compliant: !isStatic,
+                reason: isStatic ? 'Static long-lived key detected without automatic rotation.' : 'Short-lived session token with automatic rotation.',
+                recommendation: 'Migrate to OIDC Workload Identity Federation (WIF) or establish automated key rotation.',
+                sanitize: 'az ad app credential reset --id <app-id> --append'
+            },
+            {
+                id: 'A.8.12',
+                name: 'Data Leakage / Least Privilege',
+                compliant: !isOverPermissive,
+                reason: isOverPermissive ? `Over-permissive scope (${s.scope}) assigned to third-party.` : 'Scoped read-only permissions.',
+                recommendation: 'Restrict role/scope permissions to read-only or resource-specific boundaries.',
+                sanitize: 'az role assignment delete --assignee <id> --role "Contributor"'
+            },
+            {
+                id: 'A.8.24',
+                name: 'Cryptography / Sender Binding',
+                compliant: isDPoPEnforced,
+                reason: !isDPoPEnforced ? 'No cryptographic sender-binding (DPoP) proof enforced.' : 'Cryptographically signed DPoP sender-binding active.',
+                recommendation: 'Enable DPoP sender binding in the Token Policy panel and repoint vendor calls.',
+                sanitize: 'Toggle "Enforce Cryptographic Sender Binding" in settings.'
+            },
+            {
+                id: 'A.12.4',
+                name: 'Operational Logging & Quota',
+                compliant: !isQuotaExceeded,
+                reason: isQuotaExceeded ? 'Session request count has exceeded the allocated security limit.' : 'Session usage within limits.',
+                recommendation: 'Increase token quota limit or investigate potential vendor request loop.',
+                sanitize: 'Revoke token or increase Max Usage Limit under Token Configuration.'
+            }
+        ]
+    };
+    
+    // Framework 2: SOC 2 Type II
+    report['SOC2'] = {
+        name: 'SOC 2 Type II (Trust Criteria)',
+        compliant: !isStatic && !isOverPermissive && isDPoPEnforced && !isQuotaExceeded,
+        controls: [
+            {
+                id: 'CC6.1',
+                name: 'Logical Access Boundaries',
+                compliant: !isOverPermissive,
+                reason: isOverPermissive ? `Over-permissive scope (${s.scope}) violates logical boundary.` : 'Logical boundaries properly enforced.',
+                recommendation: 'Downscope token permission block to restrict access to target resource only.',
+                sanitize: 'Edit IAM policy to replace wildcard scope with specific resource resourceARN.'
+            },
+            {
+                id: 'CC6.2',
+                name: 'Credential Rotation',
+                compliant: !isStatic,
+                reason: isStatic ? 'Static token with no expiration poses credential theft risk.' : 'Short-lived token with strict time boundaries.',
+                recommendation: 'Establish credential expiration limits and automate session rotation.',
+                sanitize: 'Define session TTL (e.g. 60 minutes) under Token Configuration.'
+            },
+            {
+                id: 'CC6.3 / CC6.7',
+                name: 'Secure Transmission (DPoP)',
+                compliant: isDPoPEnforced,
+                reason: !isDPoPEnforced ? 'Lack of cryptographic proof leaves token vulnerable to replay attacks.' : 'Replay protection active via DPoP proofs.',
+                recommendation: 'Require DPoP headers on all incoming requests to tie token to private key.',
+                sanitize: 'Generate public/private JWK key pair and attach "DPoP" header to request.'
+            }
+        ]
+    };
+
+    // Framework 3: NIST CSF 2.0
+    report['NIST_CSF'] = {
+        name: 'NIST CSF 2.0 (Protect & Detect)',
+        compliant: !isStatic && !isOverPermissive && isDPoPEnforced,
+        controls: [
+            {
+                id: 'PR.AA-1',
+                name: 'Credential Management',
+                compliant: !isStatic,
+                reason: isStatic ? 'Static key has no expiration, violating credential lifecycle standards.' : 'Rotated, temporary session credentials in place.',
+                recommendation: 'Decommission static keys and replace with dynamic brokered access.',
+                sanitize: 'Migrate vendor to use AWS AssumeRole or Google Workload Identity Federation.'
+            },
+            {
+                id: 'PR.AC-1',
+                name: 'Least Privilege Access',
+                compliant: !isOverPermissive,
+                reason: isOverPermissive ? `Broad administrative scope (${s.scope}) violates least privilege.` : 'Least privilege scope enforced.',
+                recommendation: 'Enforce scope-level restrictions to minimize blast radius.',
+                sanitize: 'Revoke wide privileges; assign custom reader role to vendor service account.'
+            },
+            {
+                id: 'PR.DS-2',
+                name: 'Data-in-Transit Protection',
+                compliant: isDPoPEnforced,
+                reason: !isDPoPEnforced ? 'Bearer token lacks cryptographic sender verification.' : 'Sender identity cryptographically verified.',
+                recommendation: 'Enforce DPoP verification at API proxy level to bind token to client private key.',
+                sanitize: 'Enable DPoP proof check on the proxy.'
+            }
+        ]
+    };
+
+    return report;
+}
+
+// ── Panel ──────────────────────────────────────────────────────────────────
 function openPanel(tokenId, rowId) {
     const s = sessions.find(x => x.id === tokenId);
     if (!s) return;
@@ -1930,6 +2089,71 @@ function openPanel(tokenId, rowId) {
     document.getElementById('p-usage-bar').className      = `usage-fill ${pct>=100?'usage-high':pct>=75?'usage-med':'usage-low'}`;
     document.getElementById('p-usage-limit').textContent  = s.usage_limit.toLocaleString();
     document.getElementById('p-usage-exceeded').style.display = pct >= 100 ? '' : 'none';
+
+    // Compliance report rendering
+    const reportListEl = document.getElementById('p-compliance-report-list');
+    if (reportListEl) {
+        reportListEl.innerHTML = '';
+        const report = auditTokenCompliance(s);
+        
+        // Show frameworks based on settings (default to all if none loaded)
+        const frameworksToShow = Object.keys(report).filter(key => {
+            if (!enabledFrameworkNames.length) return true;
+            return enabledFrameworkNames.some(ef => {
+                const nameLower = ef.toLowerCase();
+                const keyLower = key.toLowerCase();
+                return nameLower.includes(keyLower) || keyLower.includes(nameLower) || 
+                       (key === 'ISO27001:2022' && (nameLower.includes('iso') || nameLower.includes('27001'))) ||
+                       (key === 'SOC2' && (nameLower.includes('soc') || nameLower.includes('dora'))) ||
+                       (key === 'NIST_CSF' && (nameLower.includes('nist') || nameLower.includes('nis2')));
+            });
+        });
+
+        if (frameworksToShow.length === 0) {
+            reportListEl.innerHTML = '<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:10px 0;">No active compliance policies enabled.</div>';
+        } else {
+            frameworksToShow.forEach(key => {
+                const fw = report[key];
+                const card = document.createElement('div');
+                card.className = 'compliance-report-card';
+                
+                const badgeClass = fw.compliant ? 'badge-success' : 'badge-danger';
+                const badgeText = fw.compliant ? '🟢 Compliant' : '🔴 Non-Compliant';
+                
+                let controlsHtml = fw.controls.map(ctrl => {
+                    const statusDot = ctrl.compliant ? '🟢' : '🔴';
+                    const statusText = ctrl.compliant ? 'Compliant' : 'Non-compliant';
+                    const recHtml = ctrl.compliant ? '' : `
+                        <div style="margin-top:6px; padding: 6px 8px; background: rgba(239, 68, 68, 0.04); border-left: 2px solid var(--red); border-radius: 4px;">
+                            <div style="font-weight:600; color:var(--text-dim); margin-bottom:2px;">Recommendation:</div>
+                            <div style="color:var(--text-muted); margin-bottom:6px;">${ctrl.recommendation}</div>
+                            <div style="font-weight:600; color:var(--text-dim); margin-bottom:2px;">Remediation Command:</div>
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size:9.5px; background: rgba(0,0,0,0.3); padding: 5px 8px; border-radius:4px; color:var(--text-dim); overflow-x:auto; white-space:pre;"><code>${ctrl.sanitize}</code></div>
+                        </div>
+                    `;
+                    return `
+                        <div class="control-item">
+                            <div style="display:flex; justify-content:space-between; font-weight:600; color:var(--text); font-size:11.5px; margin-bottom:4px;">
+                                <span>${ctrl.id} — ${ctrl.name}</span>
+                                <span style="font-size:10.5px; color:${ctrl.compliant ? '#4ade80' : '#f87171'}">${statusDot} ${statusText}</span>
+                            </div>
+                            <div style="font-size:10.5px; color:var(--text-muted); margin-bottom:4px; line-height:1.4;">${ctrl.reason}</div>
+                            ${recHtml}
+                        </div>
+                    `;
+                }).join('');
+                
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:6px;">
+                        <span style="font-size:12px; font-weight:700; color:var(--text);">${fw.name}</span>
+                        <span class="badge ${badgeClass}" style="font-size:10px; font-weight:700; padding: 2px 6px; border-radius:4px;">${badgeText}</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">${controlsHtml}</div>
+                `;
+                reportListEl.appendChild(card);
+            });
+        }
+    }
 
     // Critical banner
     document.getElementById('p-crit-banner').style.display = s.is_critical ? '' : 'none';

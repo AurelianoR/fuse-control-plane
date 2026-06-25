@@ -186,8 +186,72 @@ MOCK_RESEARCH_DB = {
     }
 }
 
+def calculate_compliance_scores(db: Session):
+    # Fetch all active tokens
+    tokens = db.query(Token).filter(Token.is_revoked == False).all()
+    settings = db.query(SystemSettings).filter(SystemSettings.id == 1).first()
+    enforce_dpop = settings.enforce_sender_binding if settings else True
+
+    # Assess parameters
+    static_count = 0
+    over_permissive_count = 0
+    dpop_disabled_count = 0
+    quota_exceeded_count = 0
+
+    for t in tokens:
+        # Check if static
+        is_static = "static" in t.expires_in.lower() or t.is_critical
+        if is_static:
+            static_count += 1
+        
+        # Check if scope is over-permissive
+        lower_scope = t.scope.lower()
+        is_over_permissive = "owner" in lower_scope or "contributor" in lower_scope or "write" in lower_scope or "editor" in lower_scope
+        if is_over_permissive:
+            over_permissive_count += 1
+            
+        # Check if DPoP disabled
+        is_dpop_disabled = is_static or not enforce_dpop
+        if is_dpop_disabled:
+            dpop_disabled_count += 1
+            
+        # Check if quota exceeded
+        is_quota_exceeded = t.token_usage >= t.usage_limit
+        if is_quota_exceeded:
+            quota_exceeded_count += 1
+
+    # Calculate scores for each framework
+    iso_score = 100 - (static_count * 15 + over_permissive_count * 10 + dpop_disabled_count * 10 + quota_exceeded_count * 10)
+    iso_score = max(40, min(100, iso_score))
+
+    nis2_score = 100 - (static_count * 15 + dpop_disabled_count * 15 + over_permissive_count * 10)
+    nis2_score = max(45, min(100, nis2_score))
+
+    dora_score = 100 - (over_permissive_count * 15 + dpop_disabled_count * 15 + quota_exceeded_count * 10)
+    dora_score = max(50, min(100, dora_score))
+
+    data_score = 100 - (over_permissive_count * 20 + static_count * 15)
+    data_score = max(35, min(100, data_score))
+
+    # Sync these calculated scores to the database framework records
+    frameworks = db.query(ComplianceFramework).all()
+    for f in frameworks:
+        name_lower = f.name.lower()
+        if "iso" in name_lower or "27001" in name_lower:
+            f.score = iso_score
+        elif "nis2" in name_lower or "nist" in name_lower:
+            f.score = nis2_score
+        elif "dora" in name_lower or "soc" in name_lower:
+            f.score = dora_score
+        elif "eu_data_act" in name_lower or "cis" in name_lower:
+            f.score = data_score
+    db.commit()
+
 @app.get("/api/dashboard/settings")
 def get_settings(db: Session = Depends(get_db)):
+    # Calculate fresh compliance scores based on current active tokens
+    calculate_compliance_scores(db)
+
     settings = db.query(SystemSettings).filter(SystemSettings.id == 1).first()
     if not settings:
         settings = SystemSettings(id=1)
