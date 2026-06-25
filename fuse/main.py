@@ -82,9 +82,27 @@ def connector_types():
             for k, c in CONNECTOR_TYPES.items()]
 
 
+def _connector_summary(conn) -> dict:
+    s = conn.summary()
+    s["company"] = STATE.connector_company.get(conn.id)
+    return s
+
+
 @app.get("/api/connectors")
 def list_connectors():
-    return [c.summary() for c in STATE.connectors.values()]
+    return [_connector_summary(c) for c in STATE.connectors.values()]
+
+
+@app.get("/api/companies")
+def list_companies():
+    return STATE.companies
+
+
+@app.post("/api/companies")
+async def add_company(request: Request):
+    body = await request.json()
+    comp = STATE.add_company(body.get("name", ""))
+    return comp
 
 
 @app.post("/api/connectors")
@@ -92,11 +110,12 @@ async def add_connector(request: Request):
     body = await request.json()
     kind = body.get("kind")
     config = body.get("config", {})
-    cid = STATE.add_connector(kind, config)
+    company_id = body.get("company")
+    cid = STATE.add_connector(kind, config, company_id=company_id)
     if not cid:
         return JSONResponse({"error": "unknown connector kind"}, status_code=400)
     ok, msg = await STATE.connect_connector(cid)
-    return {"id": cid, "connected": ok, "message": msg, "summary": STATE.connectors[cid].summary()}
+    return {"id": cid, "connected": ok, "message": msg, "summary": _connector_summary(STATE.connectors[cid])}
 
 
 @app.post("/api/connectors/{cid}/connect")
@@ -503,12 +522,15 @@ def app_detail(app_id: str):
 async def demo_quick_connect():
     """Wire the demo company (:8010) and demo vendor (:8020) connectors and
     sync them, so the dashboard fills with real apps + tokens on one click."""
+    demo_co = STATE.add_company("Acme Corp (Demo)")
     results = []
     for kind, url in (("demo_company", COMPANY_ENV), ("demo_vendor", VENDOR_ENV)):
         # reuse an existing connector of this kind if present
         cid = next((c.id for c in STATE.connectors.values() if c.kind == kind), None)
         if not cid:
-            cid = STATE.add_connector(kind, {"url": url})
+            cid = STATE.add_connector(kind, {"url": url}, company_id=demo_co["id"])
+        else:
+            STATE.connector_company.setdefault(cid, demo_co["id"])
         ok, msg = await STATE.connect_connector(cid)
         results.append({"kind": kind, "connected": ok, "message": msg})
     return {"ok": all(r["connected"] for r in results), "results": results}
@@ -550,6 +572,63 @@ def get_settings():
             "fail_strategy": comp["fail_strategy"],
         },
     }}
+
+
+@app.get("/api/compliance/findings")
+def compliance_findings():
+    """Only the NEGATIVE compliance status: framework gaps + concrete risk
+    findings across the connection inventory (live + seeded)."""
+    findings = []
+
+    # 1) framework coverage gaps (enabled frameworks below 100%)
+    for f in _SETTINGS["compliance"]["frameworks"]:
+        if f["enabled"] and f["score"] < 100:
+            sev = "high" if f["score"] < 70 else "medium" if f["score"] < 85 else "low"
+            findings.append({
+                "kind": "framework", "framework_id": f["id"],
+                "title": f"{f['name']} — {100 - f['score']}% coverage gap",
+                "detail": f"{f['description']} · current posture {f['score']}%.",
+                "severity": sev,
+            })
+
+    # 2) concrete risk findings aggregated across all connections
+    rows = []
+    if STATE.apps:
+        rows += _live_grant_rows()
+    if GRANTS_AVAILABLE:
+        db = _grant_session()
+        try:
+            for _t, r in _iter_seeded_rows(db):
+                rows.append({"vendor": r.primary_grant.client_display_name,
+                             "risk_signals": [{"key": s} for s in r.risk_signals]})
+        finally:
+            db.close()
+
+    def _count(key):
+        return sum(1 for r in rows if any(_wu.normalize_risk_signal(s["key"]) == key for s in r["risk_signals"]))
+
+    catalog = [
+        ("write-permissions", "high", "Connections holding write/export/admin permissions"),
+        ("unverified-publisher", "medium", "Connections from unverified publishers"),
+        ("user-consented", "medium", "Grants consented by a regular user, not an admin"),
+        ("never-used", "low", "Connections that have never been used (dormant grant)"),
+        ("dormant", "low", "Connections dormant for over 90 days"),
+        ("unbound-bearer", "high", "Stealable bearer tokens with no sender binding (DPoP)"),
+        ("all-repos", "high", "Apps with access to all repositories"),
+    ]
+    for key, sev, label in catalog:
+        n = _count(key)
+        if n:
+            findings.append({
+                "kind": "risk", "signal": key, "count": n, "severity": sev,
+                "title": f"{n} {label.lower()}",
+                "detail": label + ". Review in Token Monitor.",
+            })
+
+    order = {"high": 0, "medium": 1, "low": 2}
+    findings.sort(key=lambda x: order.get(x["severity"], 3))
+    sev_counts = {s: sum(1 for f in findings if f["severity"] == s) for s in ("high", "medium", "low")}
+    return {"total": len(findings), "by_severity": sev_counts, "findings": findings}
 
 
 @app.post("/api/dashboard/settings/token")
@@ -1131,6 +1210,7 @@ def _live_grant_rows():
             "id": app_obj.id, "vendor": app_obj.name, "app_id": app_obj.external_id or app_obj.id,
             "type": "application" if app_obj.token_kind in ("client_credentials", "installation", "application") else "delegated",
             "resource": conn.display_name if conn else app_obj.platform,
+            "platform": _provider(app_obj.platform),
             "permissions": list(app_obj.scopes),
             "consent": ("User" if meta.get("consent_type") == "Principal" else "Admin") if meta.get("consent_type") else "—",
             "consented_by": meta.get("consented_by"),
@@ -1144,7 +1224,7 @@ def _live_grant_rows():
 
 @app.get("/api/grants")
 def api_grants(source: str = "all", type: str = "", risk: str = "",
-               search: str = "", include_inactive: bool = False):
+               search: str = "", platform: str = "", include_inactive: bool = False):
     """Unified grant inventory: live connectors + seeded collector tenants."""
     sources = [{"id": "all", "name": "All sources", "platform": "mixed"}]
     if STATE.apps:
@@ -1165,6 +1245,7 @@ def api_grants(source: str = "all", type: str = "", risk: str = "",
                 all_rows.append({
                     "id": str(g.id), "vendor": g.client_display_name, "app_id": g.client_app_id,
                     "type": g.grant_type, "resource": g.resource_display_name,
+                    "platform": "github" if (t.platform or "azure") == "github" else "azure",
                     "permissions": r.permissions,
                     "consent": _consent_label(g, short=True), "consented_by": g.consented_by_user_id,
                     "last_used_ago": _wu.timeago(last),
@@ -1178,6 +1259,8 @@ def api_grants(source: str = "all", type: str = "", risk: str = "",
     # filter
     def keep(r):
         if source != "all" and r.get("_source") != source:
+            return False
+        if platform and r.get("platform") != platform:
             return False
         if type in ("delegated", "application") and r["type"] != type:
             return False
@@ -1235,6 +1318,26 @@ def _live_app_grant_detail(app_obj):
         "events": events,
         "revoke_caveat": "Live connection — revoke from the Dashboard (cuts the token now; real Azure/GitHub connectors cut at source).",
         "live": True,
+        "github": _github_revoke_info(app_obj),
+    }
+
+
+def _github_revoke_info(app_obj):
+    """For GitHub-platform connections, the org + installation id so the UI can
+    offer a Revoke GitHub action (delete installation / open GitHub settings)."""
+    if "github" not in (app_obj.platform or "").lower():
+        return None
+    conn = STATE.connectors.get(app_obj.source)
+    meta = app_obj.meta or {}
+    org = meta.get("target") or (conn.config.get("org") if conn else None)
+    install_id = app_obj.external_id or (conn.config.get("installation_id") if conn else None)
+    return {
+        "org": org, "installation_id": install_id,
+        "settings_url": (f"https://github.com/organizations/{org}/settings/installations/{install_id}"
+                         if org and install_id else
+                         (f"https://github.com/settings/installations/{install_id}" if install_id else
+                          "https://github.com/settings/installations")),
+        "can_api_revoke": bool(conn and conn.kind == "github"),
     }
 
 

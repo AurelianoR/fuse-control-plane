@@ -33,6 +33,8 @@ class FuseState:
         self.token_aud = os.environ.get("FUSE_URL", "http://localhost:8000") + "/api/token"
 
         self.connectors: dict = {}            # cid -> Connector
+        self.companies: list = []             # [{id, name}] logical grouping of connectors
+        self.connector_company: dict = {}     # cid -> company_id
         self.apps: dict = {}                  # app_id -> App
         self._app_index: dict = {}            # (source, external_id) -> app_id
         self.policies: dict = {}              # app_id -> Policy
@@ -58,17 +60,30 @@ class FuseState:
             except Exception:
                 self.subscribers.discard(q)
 
+    # ---- companies (lightweight logical grouping of connectors) -----------
+    def add_company(self, name: str) -> dict:
+        name = (name or "").strip() or "Untitled company"
+        existing = next((c for c in self.companies if c["name"].lower() == name.lower()), None)
+        if existing:
+            return existing
+        comp = {"id": f"co-{uuid.uuid4().hex[:6]}", "name": name}
+        self.companies.append(comp)
+        return comp
+
     # ---- connectors -------------------------------------------------------
-    def add_connector(self, kind: str, config: dict) -> Optional[str]:
+    def add_connector(self, kind: str, config: dict, company_id: Optional[str] = None) -> Optional[str]:
         cls = CONNECTOR_TYPES.get(kind)
         if not cls:
             return None
         cid = f"conn-{kind}-{uuid.uuid4().hex[:6]}"
         self.connectors[cid] = cls(cid, config)
+        if company_id and any(c["id"] == company_id for c in self.companies):
+            self.connector_company[cid] = company_id
         return cid
 
     def remove_connector(self, cid: str) -> None:
         conn = self.connectors.pop(cid, None)
+        self.connector_company.pop(cid, None)
         if not conn:
             return
         # drop this source's apps + visibility tokens

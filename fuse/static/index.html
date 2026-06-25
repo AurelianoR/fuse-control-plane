@@ -607,6 +607,61 @@
                      padding:16px; display:flex; flex-direction:column; gap:8px; }
         .conn-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
         .conn-on { background: var(--green); } .conn-off { background: var(--text-muted); }
+
+        /* ── Gateway (restored circuit-flow view), recolored to merged dark ── */
+        .gw-intro{color:var(--text-dim);font-size:13px;line-height:1.55;max-width:760px;margin-bottom:16px}
+        .gw-intro em{color:var(--blue-bright);font-style:normal}
+        .gw-bar{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+        .gw-pick{display:flex;flex-direction:column;gap:6px}
+        .gw-pick>label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+        .gw-pick select{width:auto;min-width:230px}
+        .gw-bindrow{flex-direction:row;align-items:center;gap:10px}
+        .gw-bindrow>label{margin-right:2px}
+        .gw-bindnote{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted)}
+        .gw-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:20px}
+        .gw-atk-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-bright);margin-left:8px}
+        .gw-toggle{position:relative;width:42px;height:23px;background:var(--border2);border-radius:999px;cursor:pointer;transition:.15s;flex:none}
+        .gw-toggle.on{background:var(--green)}
+        .gw-toggle::after{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;transition:.15s}
+        .gw-toggle.on::after{left:21px}
+        .gw-flow{display:grid;grid-template-columns:1fr auto 1.1fr auto 1fr;align-items:stretch;gap:0;
+          background:linear-gradient(180deg,#0c1120,#10172a);border:1px solid var(--border);border-radius:15px;padding:22px 18px;margin-bottom:16px}
+        .gw-node{display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;padding:14px 10px;border-radius:12px;
+          border:1px solid var(--border);background:var(--surface2);transition:border-color .2s,box-shadow .2s,opacity .2s,background .2s}
+        .gw-node-role{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)}
+        .gw-node-glyph{transform:scale(1.35);margin:2px 0}
+        .gw-node-name{font-weight:600;font-size:15px}
+        .gw-node-sub{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text-dim);line-height:1.4;max-width:170px}
+        .gw-node.pass{border-color:rgba(34,197,94,.4);box-shadow:0 0 22px rgba(34,197,94,.12)}
+        .gw-node.pass .gw-node-name{color:var(--green)}
+        .gw-node.fail{border-color:rgba(239,68,68,.4);background:#1d1320;box-shadow:0 0 26px rgba(239,68,68,.16)}
+        .gw-node.fail .gw-node-name{color:var(--red-bright)}
+        .gw-node.breach{border-color:rgba(239,68,68,.4)} .gw-node.breach .gw-node-name{color:var(--red-bright)}
+        .gw-node.dark{opacity:.34;border-style:dashed} .gw-node.dark .gw-node-sub{color:var(--red-bright)}
+        .gw-wire{position:relative;align-self:center;min-width:78px;height:2px;margin:0 6px;background:var(--border);border-radius:2px}
+        .gw-wire-label{position:absolute;top:-19px;left:50%;transform:translateX(-50%);white-space:nowrap;
+          font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.04em;color:var(--text-muted)}
+        .gw-current{position:absolute;top:50%;left:0;width:7px;height:7px;border-radius:50%;margin-top:-3.5px;margin-left:-3.5px;opacity:0}
+        .gw-wire.live,.gw-wire.pass{background:linear-gradient(90deg,rgba(34,197,94,.4),var(--green))}
+        .gw-wire.live .gw-current,.gw-wire.pass .gw-current{opacity:1;background:var(--green);box-shadow:0 0 9px var(--green);animation:gwflow 1.15s linear infinite}
+        .gw-wire.broken{background:repeating-linear-gradient(90deg,rgba(239,68,68,.4) 0 6px,transparent 6px 11px)}
+        .gw-wire.broken::after{content:"";position:absolute;top:50%;left:50%;width:11px;height:11px;transform:translate(-50%,-50%) rotate(45deg);
+          border-right:2px solid var(--red-bright);border-bottom:2px solid var(--red-bright)}
+        @keyframes gwflow{from{left:0} to{left:100%}}
+        .gw-banner{border-radius:11px;padding:12px 15px;font-size:13px;line-height:1.5;margin-bottom:18px;border:1px solid var(--border)}
+        .gw-banner.ok{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.4);color:var(--text)} .gw-banner.ok b{color:var(--green)}
+        .gw-banner.bad{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.4);color:var(--text)} .gw-banner.bad b{color:var(--red-bright)}
+        .gw-banner.idle{color:var(--text-dim)} .gw-banner em{color:var(--blue-bright);font-style:normal}
+        .gw-offnote{font-size:12px;color:var(--amber);margin:-8px 0 16px;line-height:1.5}
+        .gw-checks-head{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin:4px 2px 9px}
+        .gw-checks{display:grid;gap:5px}
+        .gw-check{display:grid;grid-template-columns:18px 140px 1fr;align-items:baseline;gap:10px;padding:8px 12px;border-radius:8px;
+          background:var(--surface2);border:1px solid var(--border);font-size:12.5px}
+        .gw-tick{font-family:'JetBrains Mono',monospace;font-weight:600;text-align:center}
+        .gw-cname{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text)}
+        .gw-cdetail{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-dim);line-height:1.4}
+        .gw-check.ok{border-left:2px solid var(--green)} .gw-check.ok .gw-tick{color:var(--green)}
+        .gw-check.bad{border-left:2px solid var(--red-bright);background:#1c1219} .gw-check.bad .gw-tick{color:var(--red-bright)}
     </style>
 </head>
 <body>
@@ -645,13 +700,30 @@
             Token Monitor
             <span class="nav-badge">grants</span>
         </a>
-        <a href="#" class="nav-link" onclick="showView('security', this);return false;">
+        <a href="#" class="nav-link" onclick="showView('gateway', this);return false;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
             Gateway
             <span class="nav-badge">DPoP</span>
+        </a>
+
+        <div class="nav-section-label" style="margin-top:12px">Governance</div>
+        <a href="#" class="nav-link" onclick="showView('compliance', this);return false;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Compliance
+            <span class="nav-badge" id="nav-compliance-count" style="display:none">0</span>
+        </a>
+        <a href="#" class="nav-link" onclick="showView('audit', this);return false;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+            </svg>
+            Audit Log
         </a>
         <a href="presentation.html" target="_blank" class="nav-link">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -662,26 +734,14 @@
         </a>
 
         <div class="nav-section-label" style="margin-top:12px">Admin</div>
-        <a href="#" class="nav-link" id="settings-nav-btn" onclick="toggleSettingsMenu(this);return false;">
+        <a href="#" class="nav-link" id="settings-nav-btn" onclick="showView('settings', this);return false;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
             <span>Settings</span>
-            <span class="settings-arrow" id="settings-arrow">▶</span>
         </a>
-        <div class="settings-submenu" id="settings-submenu">
-            <a href="#" class="settings-sub-link" onclick="showSettingsSubView('token', this);return false;">
-                Token Configuration
-            </a>
-            <a href="#" class="settings-sub-link" onclick="showSettingsSubView('cloud', this);return false;">
-                Cloud Access Configuration
-            </a>
-            <a href="#" class="settings-sub-link" onclick="showSettingsSubView('compliance', this);return false;">
-                Compliance Configuration
-            </a>
-        </div>
     </nav>
 
     <!-- API Status -->
@@ -741,174 +801,66 @@
     <div id="content">
         <div id="dashboard-view" class="view-panel">
 
-        <!-- ── Row 1: KPI Cards ──────────────────────────────────────── -->
+        <!-- ── KPI overview (each card routes to its detail view) ─────── -->
         <div class="section-header">
-            <div class="section-title">Live Session Overview</div>
+            <div class="section-title">Overview</div>
             <div class="section-action" id="last-updated">—</div>
         </div>
+        <div style="font-size:12px;color:var(--text-muted);margin:-6px 0 16px">Click any statistic to open its detail view.</div>
         <div class="grid-4" style="margin-bottom:24px">
 
-            <div class="kpi-card kpi-border-azure">
+            <div class="kpi-card kpi-border-azure" style="cursor:pointer" onclick="gotoView('monitor',{platform:'azure'})" title="View Azure connections in Token Monitor">
                 <div class="kpi-label">Azure / Entra Apps</div>
                 <div class="kpi-value" id="kpi-azure">—</div>
-                <div class="kpi-sub">Entra ID · Service Principals</div>
-                <div class="kpi-trend"><span class="trend-up" id="trend-azure">↑</span></div>
+                <div class="kpi-sub">Entra ID · Service Principals →</div>
                 <div class="kpi-glow" style="background:var(--azure)"></div>
             </div>
 
-            <div class="kpi-card kpi-border-aws">
+            <div class="kpi-card kpi-border-aws" style="cursor:pointer" onclick="gotoView('monitor',{platform:'github'})" title="View GitHub connections in Token Monitor">
                 <div class="kpi-label">GitHub Apps</div>
                 <div class="kpi-value" id="kpi-github">—</div>
-                <div class="kpi-sub">Installations · OAuth · PATs</div>
-                <div class="kpi-trend"><span class="trend-up" id="trend-github">↑</span></div>
+                <div class="kpi-sub">Installations · OAuth · PATs →</div>
                 <div class="kpi-glow" style="background:#c9d1d9"></div>
             </div>
 
-            <div class="kpi-card kpi-border-gcp">
+            <div class="kpi-card kpi-border-gcp" style="cursor:pointer" onclick="gotoView('gateway')" title="Manage binding in Gateway">
                 <div class="kpi-label">Bound Tokens</div>
                 <div class="kpi-value" style="color:var(--green)" id="kpi-bound">—</div>
-                <div class="kpi-sub">Sender-constrained (DPoP)</div>
-                <div class="kpi-trend"><span class="trend-flat" id="trend-bound">🔒</span></div>
+                <div class="kpi-sub">Sender-constrained (DPoP) →</div>
                 <div class="kpi-glow" style="background:var(--green)"></div>
             </div>
 
-            <div class="kpi-card kpi-border-purple">
+            <div class="kpi-card kpi-border-purple" style="cursor:pointer" onclick="gotoView('monitor',{risk:'write-permissions'})" title="View high-risk connections in Token Monitor">
                 <div class="kpi-label">High-Risk Connections</div>
                 <div class="kpi-value" style="color:var(--red-bright)" id="kpi-critical">—</div>
-                <div class="kpi-sub">Over-scoped, unbound or stale</div>
-                <div class="kpi-trend"><span class="trend-down" id="trend-crit">⚠</span></div>
+                <div class="kpi-sub">Over-scoped, unbound or stale →</div>
                 <div class="kpi-glow" style="background:var(--red)"></div>
             </div>
         </div>
 
-        <!-- ── Row 2: Donut + Usage monitor + Compliance ────────────── -->
-        <div class="grid-3" style="margin-bottom:24px">
-
-            <!-- Donut: Short-lived tokens -->
-            <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px">Token Binding Posture</div>
-                <svg width="130" height="130" viewBox="0 0 100 100">
-                    <g class="donut-ring">
-                        <circle class="donut-track" cx="50" cy="50" r="36"/>
-                        <!-- bound: green -->
-                        <circle id="donut-seg-bound" class="donut-seg" cx="50" cy="50" r="36" stroke="#22c55e"
-                            stroke-dasharray="0 100" stroke-dashoffset="0"/>
-                        <!-- bearer (governable, unbound): amber -->
-                        <circle id="donut-seg-bearer" class="donut-seg" cx="50" cy="50" r="36" stroke="#f59e0b"
-                            stroke-dasharray="0 100" stroke-dashoffset="0"/>
-                        <!-- visibility-only bearer: red -->
-                        <circle id="donut-seg-stale" class="donut-seg" cx="50" cy="50" r="36" stroke="#ef4444"
-                            stroke-dasharray="0 100" stroke-dashoffset="0"/>
-                    </g>
-                    <text x="50" y="46" class="donut-label-val" id="donut-val">—</text>
-                    <text x="50" y="57" class="donut-label-sub">BOUND</text>
-                </svg>
-                <div style="display:flex;gap:16px;margin-top:12px">
-                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted)">
-                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e"></span> Bound
-                    </div>
-                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted)">
-                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b"></span> Bearer
-                    </div>
-                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted)">
-                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444"></span> Visibility
-                    </div>
-                </div>
+        <!-- Second KPI row: governance shortcuts -->
+        <div class="grid-4" style="margin-bottom:24px">
+            <div class="kpi-card" style="cursor:pointer;border-left:3px solid var(--amber)" onclick="gotoView('compliance')" title="Open Compliance findings">
+                <div class="kpi-label">Compliance Findings</div>
+                <div class="kpi-value" style="color:var(--amber)" id="kpi-findings">—</div>
+                <div class="kpi-sub">Non-compliant items →</div>
             </div>
-
-            <!-- Live Token Usage Monitor -->
-            <div class="card" style="grid-column: span 1">
-                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px">
-                    Risk Exposure
-                    <span style="font-size:10px;color:var(--text-muted);font-weight:400;margin-left:6px;text-transform:none">per connection</span>
-                </div>
-                <div id="usage-bars-panel" style="display:flex;flex-direction:column;gap:12px">
-                    <div class="skel" style="height:38px"></div>
-                    <div class="skel" style="height:38px"></div>
-                    <div class="skel" style="height:38px"></div>
-                </div>
+            <div class="kpi-card" style="cursor:pointer;border-left:3px solid var(--blue)" onclick="gotoView('monitor')" title="Open the full grant inventory">
+                <div class="kpi-label">Total Connections</div>
+                <div class="kpi-value" id="kpi-total">—</div>
+                <div class="kpi-sub">Across all sources →</div>
             </div>
-
-            <!-- Compliance status -->
-            <div class="card">
-                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px">Compliance Posture</div>
-                <div id="dashboard-compliance-list" style="display:flex; flex-direction:column; gap:12px;">
-                    <!-- Populated dynamically via JS -->
-                </div>
+            <div class="kpi-card" style="cursor:pointer;border-left:3px solid var(--purple)" onclick="gotoView('connectors')" title="Manage connectors & companies">
+                <div class="kpi-label">Connected Sources</div>
+                <div class="kpi-value" id="kpi-connectors">—</div>
+                <div class="kpi-sub">Connectors →</div>
+            </div>
+            <div class="kpi-card" style="cursor:pointer;border-left:3px solid var(--text-muted)" onclick="gotoView('audit')" title="Open the audit log">
+                <div class="kpi-label">Audit Events</div>
+                <div class="kpi-value" id="kpi-audit">—</div>
+                <div class="kpi-sub">Activity & revocations →</div>
             </div>
         </div>
-
-        <!-- ── Row 3: Main table ──────────────────────────────────────── -->
-        <div class="section-header">
-            <div class="section-title">Discovered Connections</div>
-            <span style="font-size:11px;color:var(--text-muted)"><span id="row-count">—</span> connections</span>
-        </div>
-
-        <!-- Filter bar -->
-        <div class="filter-bar">
-            <span class="filter-label">Filter:</span>
-            <button class="flt-btn active" id="flt-all"      onclick="applyFilter('all',this)">All</button>
-            <button class="flt-btn" id="flt-azure"   onclick="applyFilter('azure',this)">
-                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--azure);margin-right:4px;vertical-align:middle"></span>Azure
-            </button>
-            <button class="flt-btn" id="flt-github"     onclick="applyFilter('github',this)">
-                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#c9d1d9;margin-right:4px;vertical-align:middle"></span>GitHub
-            </button>
-            <button class="flt-btn" id="flt-salesforce"     onclick="applyFilter('salesforce',this)">
-                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#00A1E0;margin-right:4px;vertical-align:middle"></span>Salesforce
-            </button>
-            <button class="flt-btn" id="flt-critical" onclick="applyFilter('critical',this)">⚠ High-Risk Only</button>
-        </div>
-
-        <div class="card card-sm" style="padding:0;overflow:hidden;margin-bottom:24px">
-            <div style="overflow-x:auto">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Vendor / App</th>
-                            <th>Platform</th>
-                            <th>Source</th>
-                            <th>Scope</th>
-                            <th>Risk Exposure</th>
-                            <th>Token Lifetime</th>
-                            <th>Risk</th>
-                            <th style="text-align:right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sessions-tbody">
-                        <tr>
-                            <td colspan="8">
-                                <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;color:var(--text-muted);font-size:13px">
-                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:spin .8s linear infinite">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                    </svg>
-                                    Loading connections…
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div id="empty-state" class="empty-state" style="display:none">
-                    <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--border2);margin:0 auto 10px">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    No integrations match the current filter.
-                </div>
-            </div>
-        </div>
-
-        <!-- ── Row 4: Audit log ───────────────────────────────────────── -->
-        <div class="section-header">
-            <div class="section-title">Activity & Audit Log</div>
-            <div class="section-action" onclick="loadAudit()">Refresh</div>
-        </div>
-        <div class="card" style="margin-bottom:24px">
-            <div id="audit-log-panel">
-                <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px">
-                    No revocations recorded this session.
-                </div>
-            </div>
-        </div><!-- /card -->
     </div><!-- /dashboard-view -->
 
 
@@ -916,7 +868,7 @@
         <div id="settings-view" class="view-panel" style="display: none;">
             <div class="settings-container">
                 <div class="section-header">
-                    <div class="section-title" style="font-size:16px;" id="settings-title">System Governance Settings</div>
+                    <div class="section-title" style="font-size:16px;" id="settings-title">Token Policy &amp; Lifespan Governance</div>
                 </div>
 
                 <!-- Section 1: Token Configuration -->
@@ -960,120 +912,9 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- Section 2: Cloud Infrastructure Environments -->
-                <div id="settings-cloud-view" class="settings-sub-view" style="display: none;">
-                    <div class="settings-section">
-                        <div class="settings-section-title">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle; margin-right:4px;">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
-                            </svg>
-                            Cloud Environment Access Boundary
-                        </div>
-                        <div style="display:flex; flex-direction:column; gap:16px;">
-                            <div class="grid-2">
-                                <div>
-                                    <label class="settings-label">Provider</label>
-                                    <select id="cloud-provider" class="settings-select" onchange="updateCloudFormFields()">
-                                        <option value="Azure">Microsoft Azure</option>
-                                        <option value="AWS">Amazon Web Services (AWS)</option>
-                                        <option value="GCP">Google Cloud Platform (GCP)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="settings-label">Environment Type</label>
-                                    <select id="cloud-env-type" class="settings-select">
-                                        <option value="Production">Production</option>
-                                        <option value="Staging">Staging</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div id="cloud-credentials-container">
-                                <!-- Dynamic credentials form inputs based on selected provider -->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="settings-footer">
-                        <button onclick="saveAllSettings('cloud')" class="settings-save-btn">
-                            Connect Cloud Boundary
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Section 3: Regulatory & Compliance Frameworks -->
-                <div id="settings-compliance-view" class="settings-sub-view" style="display: none;">
-                    <div class="settings-section">
-                        <div class="settings-section-title">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle; margin-right:4px;">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                            </svg>
-                            Regulatory & Framework Compliance
-                        </div>
-                        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
-                            Select security controls and framework requirements for verification:
-                        </div>
-                        <div class="grid-2" style="gap:16px;" id="compliance-checkboxes-container">
-                            <!-- Populated dynamically via JS -->
-                        </div>
-                        
-                        <!-- Research & Add Framework Section -->
-                        <div style="margin-top:24px; border-top:1px solid var(--border); padding-top:20px;">
-                            <label class="settings-label">Research & Add Regulatory Framework</label>
-                            <div style="display:flex; gap:12px; margin-top:8px;">
-                                <input type="text" id="new-framework-name" class="settings-input" style="flex:1;" placeholder="e.g. HIPAA, PCI-DSS, GDPR, SOC2">
-                                <button type="button" onclick="researchAndAddFramework()" class="settings-save-btn" style="white-space:nowrap; margin-top:0; width:auto; padding: 0 16px;">
-                                    🔍 Research & Add
-                                </button>
-                            </div>
-                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
-                                Submits the framework name to the AI compliance analyzer to map core controls and score compliance postures.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="settings-footer">
-                        <button onclick="saveAllSettings('compliance')" class="settings-save-btn">
-                            Save Compliance Policy
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <!-- ── Tokens View ───────────────────────────────────────────── -->
-        <div id="tokens-view" class="view-panel" style="display:none">
-            <div class="section-header">
-                <div class="section-title">Tokens</div>
-                <span style="font-size:11px;color:var(--text-muted)"><span id="tok-count">—</span> tokens · <span class="section-action" onclick="loadTokens()">Refresh</span></span>
-            </div>
-            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:820px;line-height:1.7">
-                Every token Fuse can see: the short-lived <strong style="color:var(--green)">bound</strong> tokens Fuse
-                issues (sender-constrained with DPoP) and the real <strong style="color:var(--amber)">bearer</strong>
-                tokens connectors surface — GitHub installation tokens, Azure Graph tokens. Bound = a stolen copy is
-                useless; bearer = stealable. Click a row to open its monitoring detail.
-            </div>
-            <div class="filter-bar">
-                <span class="filter-label">Filter:</span>
-                <button class="flt-btn active" id="tflt-all"     onclick="applyTokenFilter('all',this)">All</button>
-                <button class="flt-btn" id="tflt-bound"   onclick="applyTokenFilter('bound',this)">🔒 Bound</button>
-                <button class="flt-btn" id="tflt-bearer"  onclick="applyTokenFilter('bearer',this)">Bearer</button>
-                <button class="flt-btn" id="tflt-revoked" onclick="applyTokenFilter('revoked',this)">Revoked / expired</button>
-            </div>
-            <div class="card card-sm" style="padding:0;overflow:hidden;margin-bottom:24px">
-                <div style="overflow-x:auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Token</th><th>Connection</th><th>Scope</th>
-                                <th>Kind</th><th>Binding</th><th>Status</th><th>TTL</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tokens-tbody">
-                            <tr><td colspan="7" style="padding:28px;text-align:center;color:var(--text-muted);font-size:13px">No tokens yet — connect a source.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
 
         <!-- ── Token Monitor View (native grant inventory) ───────────── -->
         <div id="monitor-view" class="view-panel" style="display:none">
@@ -1119,6 +960,7 @@
                         <input type="checkbox" id="grant-inactive" onchange="loadGrants()"><span>Include removed</span>
                     </label>
                 </div>
+                <div style="margin-top:10px" id="grant-active-filter"></div>
                 <div id="grant-stats" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px"></div>
             </div>
             <div class="card card-sm" style="padding:0;overflow:hidden;margin-bottom:24px">
@@ -1139,17 +981,18 @@
         <!-- ── Connectors View ───────────────────────────────────────── -->
         <div id="connectors-view" class="view-panel" style="display:none">
             <div class="section-header">
-                <div class="section-title">Cloud Connectors</div>
-                <div class="section-action" onclick="quickConnectDemo()">⚡ Quick-connect demo</div>
+                <div class="section-title">Connectors</div>
+                <div>
+                    <span class="section-action" onclick="addCompanyPrompt()" style="margin-right:14px">+ Add Company</span>
+                    <span class="section-action" onclick="quickConnectDemo()">⚡ Quick-connect demo</span>
+                </div>
             </div>
-            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:760px;line-height:1.7">
-                Connect a source of visibility. Nothing auto-registers — each connector prompts for its
-                own config and connects on demand. <strong style="color:var(--text)">Quick-connect demo</strong>
-                wires the bundled company (:8010) and vendor (:8020) so the dashboard fills instantly.
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:780px;line-height:1.7">
+                Organize sources of visibility under <strong style="color:var(--text)">companies</strong>. Create a company,
+                then add connectors under it. Nothing auto-registers — each connector prompts for its own config.
+                <strong style="color:var(--text)">Quick-connect demo</strong> wires the bundled company (:8010) and vendor (:8020).
             </div>
-            <div class="grid-3" id="connectors-grid" style="gap:16px;margin-bottom:24px">
-                <div class="skel" style="height:120px"></div>
-                <div class="skel" style="height:120px"></div>
+            <div id="connectors-grouped" style="margin-bottom:24px">
                 <div class="skel" style="height:120px"></div>
             </div>
 
@@ -1160,7 +1003,10 @@
                         <label class="settings-label">Connector type</label>
                         <select id="conn-type" class="settings-select" onchange="renderConnectorForm()"></select>
                     </div>
-                    <div></div>
+                    <div>
+                        <label class="settings-label">Company</label>
+                        <select id="conn-company" class="settings-select"></select>
+                    </div>
                 </div>
                 <div id="conn-form" style="margin-top:16px"></div>
                 <div class="settings-footer">
@@ -1169,38 +1015,79 @@
             </div>
         </div>
 
-        <!-- ── Security Demo View ─────────────────────────────────────── -->
-        <div id="security-view" class="view-panel" style="display:none">
+        <!-- ── Gateway View (restored circuit-flow) ──────────────────── -->
+        <div id="gateway-view" class="view-panel" style="display:none">
             <div class="section-header">
                 <div class="section-title">Gateway — Inline DPoP Enforcement</div>
-                <div class="section-action" onclick="loadDemo()">Refresh</div>
+                <div class="section-action" onclick="loadGateway()">Refresh</div>
             </div>
-            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:820px;line-height:1.7">
-                Pick a governable, key-holding connection and run it for real. The legit vendor signs a
-                fresh DPoP proof and is <strong style="color:var(--green)">ALLOWED</strong>. Then play the
-                attacker: a stolen bearer, a forged proof, a replayed proof — all
-                <strong style="color:var(--red-bright)">DENIED</strong>. The legacy bypass shows the breach
-                as it happens today. Every run is verified by the real four-check binding verifier.
-            </div>
-            <div class="card" style="margin-bottom:20px">
-                <div class="grid-2" style="gap:16px;align-items:end">
-                    <div>
-                        <label class="settings-label">Connection</label>
-                        <select id="demo-app" class="settings-select"></select>
-                    </div>
-                    <div style="font-size:11px;color:var(--text-muted)">
-                        Only governable, key-holding connections can be bound. Connect the demo vendor first.
+            <div class="grid-3" style="gap:16px;margin-bottom:20px">
+                <!-- Token Binding posture donut (moved from Dashboard) -->
+                <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+                    <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px">Token Binding Posture</div>
+                    <svg width="120" height="120" viewBox="0 0 100 100">
+                        <g class="donut-ring">
+                            <circle class="donut-track" cx="50" cy="50" r="36"/>
+                            <circle id="donut-seg-bound" class="donut-seg" cx="50" cy="50" r="36" stroke="#22c55e" stroke-dasharray="0 100" stroke-dashoffset="0"/>
+                            <circle id="donut-seg-bearer" class="donut-seg" cx="50" cy="50" r="36" stroke="#f59e0b" stroke-dasharray="0 100" stroke-dashoffset="0"/>
+                            <circle id="donut-seg-stale" class="donut-seg" cx="50" cy="50" r="36" stroke="#ef4444" stroke-dasharray="0 100" stroke-dashoffset="0"/>
+                        </g>
+                        <text x="50" y="46" class="donut-label-val" id="donut-val">—</text>
+                        <text x="50" y="57" class="donut-label-sub">BOUND</text>
+                    </svg>
+                    <div style="display:flex;gap:14px;margin-top:12px">
+                        <span style="font-size:10px;color:var(--text-muted)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e"></span> Bound</span>
+                        <span style="font-size:10px;color:var(--text-muted)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b"></span> Bearer</span>
+                        <span style="font-size:10px;color:var(--text-muted)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444"></span> Visibility</span>
                     </div>
                 </div>
-                <div class="demo-btns">
-                    <button class="demo-btn good" onclick="runDemo('legit')">▶ Run vendor request</button>
-                    <button class="demo-btn" onclick="runDemo('gateway')">▶ Run via gateway</button>
-                    <button class="demo-btn bad" onclick="runDemo('attack','bearer_replay')">Replay stolen bearer</button>
-                    <button class="demo-btn bad" onclick="runDemo('attack','forged_proof')">Forge a proof</button>
-                    <button class="demo-btn bad" onclick="runDemo('attack','proof_replay')">Replay captured proof</button>
-                    <button class="demo-btn bad" onclick="runDemo('attack','legacy_bypass')">Legacy bypass (breach)</button>
+                <div class="card" style="grid-column:span 2;display:flex;align-items:center">
+                    <div class="gw-intro" style="margin-bottom:0">The vendor doesn't call the company directly — it routes <em>through Fuse</em>.
+                        Fuse runs the four DPoP checks inline and forwards only verified requests, with a signed assertion the
+                        company trusts. The attacker runs all hit the gateway and stop there — a stolen token alone is useless.</div>
                 </div>
-                <div id="demo-result"></div>
+            </div>
+            <div id="gateway-host"></div>
+        </div>
+
+        <!-- ── Compliance View ───────────────────────────────────────── -->
+        <div id="compliance-view" class="view-panel" style="display:none">
+            <div class="section-header">
+                <div class="section-title">Compliance Posture</div>
+                <span style="font-size:11px;color:var(--text-muted)"><span id="compliance-finding-count">—</span> findings · <span class="section-action" onclick="loadCompliance()">Refresh</span></span>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;max-width:860px;line-height:1.7">
+                Negative compliance status only — the gaps that need attention: framework coverage shortfalls and
+                concrete risk findings across the connection inventory. Frameworks at full coverage are not shown.
+            </div>
+            <div id="compliance-severity-bar" style="display:flex;gap:10px;margin-bottom:16px"></div>
+            <div class="section-header"><div class="section-title" style="font-size:14px">Findings</div></div>
+            <div id="compliance-findings" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px"></div>
+            <div class="section-header"><div class="section-title" style="font-size:14px">Frameworks (click to revise)</div></div>
+            <div id="compliance-frameworks" style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px"></div>
+            <div class="card" style="margin-bottom:24px">
+                <label class="settings-label">Research &amp; add a regulatory framework</label>
+                <div style="display:flex;gap:12px;margin-top:8px">
+                    <input id="new-framework-name" class="settings-input" style="flex:1" placeholder="e.g. HIPAA, PCI-DSS, GDPR, SOC2">
+                    <button class="settings-save-btn" style="white-space:nowrap;margin-top:0;width:auto;padding:0 16px" onclick="researchAndAddFramework()">🔍 Research &amp; Add</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Audit Log View ────────────────────────────────────────── -->
+        <div id="audit-view" class="view-panel" style="display:none">
+            <div class="section-header">
+                <div class="section-title">Activity &amp; Audit Log</div>
+                <span style="font-size:11px;color:var(--text-muted)"><span id="audit-count">—</span> events · <span class="section-action" onclick="loadAuditView()">Refresh</span></span>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;max-width:860px;line-height:1.7">
+                Every governance action Fuse recorded this session: connector syncs, policy changes, revocations,
+                gateway allows/blocks and breach attempts — newest first.
+            </div>
+            <div class="card" style="margin-bottom:24px">
+                <div id="audit-log-panel">
+                    <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:28px">Loading…</div>
+                </div>
             </div>
         </div>
 
@@ -1325,7 +1212,6 @@ const RISK_BADGE = { 'Low':'risk-low','Medium':'risk-medium','High':'risk-high',
 
 // ── Startup ────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-    updateCloudFormFields();
     loadAll();
     setInterval(loadAll, 10_000);
 });
@@ -1345,205 +1231,53 @@ function setNav(el) {
 
 function showView(viewId, el) {
     setNav(el);
-    
-    // Collapse settings submenu if moving to other views
-    if (viewId !== 'settings') {
-        const sub = document.getElementById('settings-submenu');
-        const arrow = document.getElementById('settings-arrow');
-        if (sub) sub.classList.remove('open');
-        if (arrow) arrow.classList.remove('rotated');
-        document.querySelectorAll('.settings-sub-link').forEach(a => a.classList.remove('active-sub'));
-    }
-    
+
     // Hide all view panels
     document.querySelectorAll('.view-panel').forEach(panel => {
         panel.style.display = 'none';
     });
-    
+
     // Show target view panel
     const target = document.getElementById(viewId + '-view');
     if (target) {
         target.style.display = 'block';
         if (viewId === 'settings')    loadSettings();
         if (viewId === 'connectors')  loadConnectors();
-        if (viewId === 'security')    loadDemo();
-        if (viewId === 'tokens')      loadTokens();
+        if (viewId === 'gateway')     loadGateway();
         if (viewId === 'monitor')     loadGrants();
+        if (viewId === 'compliance')  loadCompliance();
+        if (viewId === 'audit')       loadAuditView();
     }
 }
 
-// ── Settings Submenu & Subviews ─────────────────────────────────────────────
-function toggleSettingsMenu(el) {
-    const sub = document.getElementById('settings-submenu');
-    const arrow = document.getElementById('settings-arrow');
-    
-    if (sub) {
-        const isOpen = sub.classList.toggle('open');
-        if (arrow) arrow.classList.toggle('rotated', isOpen);
-        
-        // Go to settings view and default to Token subview if opening
-        showView('settings', el);
-        if (isOpen) {
-            const firstSubLink = sub.querySelector('.settings-sub-link');
-            if (firstSubLink) {
-                showSettingsSubView('token', firstSubLink);
-            }
-        }
+// nav helper — jump to a view and apply an optional filter on arrival
+function gotoView(viewId, opts) {
+    const link = Array.from(document.querySelectorAll('.nav-link'))
+        .find(a => (a.getAttribute('onclick')||'').includes(`'${viewId}'`));
+    showView(viewId, link || document.querySelector('.nav-link'));
+    if (opts && viewId === 'monitor') {
+        if (opts.source && document.getElementById('grant-tenant')) { document.getElementById('grant-tenant').value = opts.source; }
+        if (opts.risk && document.getElementById('grant-risk')) { document.getElementById('grant-risk').value = opts.risk; }
+        if (opts.platform) { window._monitorPlatform = opts.platform; }
+        loadGrants();
     }
 }
 
-function showSettingsSubView(subViewId, el) {
-    // Highlight sub-link
-    document.querySelectorAll('.settings-sub-link').forEach(a => a.classList.remove('active-sub'));
-    el.classList.add('active-sub');
-    
-    // Set active header settings button styling
-    const settingsBtn = document.getElementById('settings-nav-btn');
-    if (settingsBtn) {
-        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
-        settingsBtn.classList.add('active');
-    }
-    
-    // Show settings view (main container)
-    document.querySelectorAll('.view-panel').forEach(panel => {
-        panel.style.display = 'none';
-    });
-    const mainSettings = document.getElementById('settings-view');
-    if (mainSettings) mainSettings.style.display = 'block';
-    
-    // Switch settings sub-views
-    document.querySelectorAll('.settings-sub-view').forEach(panel => {
-        panel.style.display = 'none';
-    });
-    const subPanel = document.getElementById(`settings-${subViewId}-view`);
-    if (subPanel) {
-        subPanel.style.display = 'block';
-    }
-    
-    // Set title header dynamically
-    const titleEl = document.getElementById('settings-title');
-    if (titleEl) {
-        if (subViewId === 'token') titleEl.textContent = 'Token Policy & Lifespan Governance';
-        else if (subViewId === 'cloud') titleEl.textContent = 'Cloud Infrastructure Access Boundaries';
-        else if (subViewId === 'compliance') titleEl.textContent = 'Regulatory & Compliance Frameworks';
-    }
-    
-    loadSettings();
-}
-
-// ── Settings Panel Integration ──────────────────────────────────────────────
-// ── Settings Panel Integration ──────────────────────────────────────────────
-function updateCloudFormFields() {
-    const provider = document.getElementById('cloud-provider').value;
-    const container = document.getElementById('cloud-credentials-container');
-    if (!container) return;
-    
-    if (provider === 'Azure') {
-        container.innerHTML = `
-            <div class="grid-2">
-                <div>
-                    <label class="settings-label">Directory (Tenant) ID</label>
-                    <input type="text" id="cloud-tenant" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
-                </div>
-                <div>
-                    <label class="settings-label">Application (Client) ID</label>
-                    <input type="text" id="cloud-client" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
-                </div>
-            </div>
-            <div class="grid-2" style="margin-top:16px;">
-                <div>
-                    <label class="settings-label">Subscription ID</label>
-                    <input type="text" id="cloud-subscription" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
-                </div>
-                <div>
-                    <label class="settings-label">Client Secret</label>
-                    <input type="password" id="cloud-client-secret" class="settings-input" placeholder="••••••••••••••••••••">
-                </div>
-            </div>
-        `;
-    } else if (provider === 'AWS') {
-        container.innerHTML = `
-            <div class="grid-3">
-                <div>
-                    <label class="settings-label">Role ARN</label>
-                    <input type="text" id="cloud-aws-role-arn" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="arn:aws:iam::123456789012:role/FuseAccess">
-                </div>
-                <div>
-                    <label class="settings-label">Access Key ID</label>
-                    <input type="text" id="cloud-aws-access-key" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="AKIAIOSFODNN7EXAMPLE">
-                </div>
-                <div>
-                    <label class="settings-label">Secret Access Key</label>
-                    <input type="password" id="cloud-aws-secret-key" class="settings-input" placeholder="••••••••••••••••••••">
-                </div>
-            </div>
-        `;
-    } else if (provider === 'GCP') {
-        container.innerHTML = `
-            <div class="grid-2">
-                <div>
-                    <label class="settings-label">Project ID</label>
-                    <input type="text" id="cloud-gcp-project" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="my-gcp-project-123">
-                </div>
-                <div>
-                    <label class="settings-label">Client Email</label>
-                    <input type="text" id="cloud-gcp-email" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="fuse-sa@my-gcp-project-123.iam.gserviceaccount.com">
-                </div>
-            </div>
-            <div style="margin-top:16px;">
-                <label class="settings-label">Service Account JSON Private Key</label>
-                <textarea id="cloud-gcp-private-key" class="settings-input" rows="4" style="font-family:monospace; font-size:11px; resize:vertical;" placeholder='{ "type": "service_account", "private_key": "-----BEGIN PRIVATE KEY-----\\n..." }'></textarea>
-            </div>
-        `;
-    }
-}
-
+// ── Settings (token policy only) ─────────────────────────────────────────────
 async function loadSettings() {
+    if (!apiOnline) await checkHealth();
     try {
         const response = await fetch(`${API}/api/dashboard/settings`);
-        if (!response.ok) throw new Error("Failed to fetch settings");
-        
+        if (!response.ok) return;
         const result = await response.json();
-        if (result.status === "success") {
-            const data = result.data;
-            
-            // Populate Token Governance
-            if (data.token_governance) {
-                document.getElementById('token-ttl').value = data.token_governance.default_ttl_minutes || 5;
-                document.getElementById('token-scopes').value = (data.token_governance.allowed_scopes || []).join(', ');
-                document.getElementById('token-max-usage').value = data.token_governance.max_token_usage_limit || 1000;
-                document.getElementById('token-sender-binding').checked = !!data.token_governance.enforce_sender_binding;
-            }
-            
-            // Populate Compliance Framework Checkboxes dynamically
-            if (data.compliance && data.compliance.frameworks) {
-                const container = document.getElementById('compliance-checkboxes-container');
-                if (container) {
-                    container.innerHTML = '';
-                    data.compliance.frameworks.forEach(f => {
-                        const label = document.createElement('label');
-                        label.className = 'settings-checkbox-container';
-                        label.title = f.description;
-                        
-                        const input = document.createElement('input');
-                        input.type = 'checkbox';
-                        input.name = 'frameworks';
-                        input.value = f.name;
-                        input.checked = f.enabled;
-                        
-                        const span = document.createElement('span');
-                        span.textContent = `${f.name} (${f.score}% Score)`;
-                        
-                        label.appendChild(input);
-                        label.appendChild(span);
-                        container.appendChild(label);
-                    });
-                }
-            }
+        const tg = result.data && result.data.token_governance;
+        if (tg) {
+            document.getElementById('token-ttl').value = tg.default_ttl_minutes || 5;
+            document.getElementById('token-scopes').value = (tg.allowed_scopes || []).join(', ');
+            document.getElementById('token-max-usage').value = tg.max_token_usage_limit || 1000;
+            document.getElementById('token-sender-binding').checked = !!tg.enforce_sender_binding;
         }
-    } catch (error) {
-        console.error("Failed to load settings:", error);
-    }
+    } catch (error) { console.error("Failed to load settings:", error); }
 }
 
 async function saveAllSettings(section) {
@@ -1555,91 +1289,18 @@ async function saveAllSettings(section) {
                 enforce_sender_binding: document.getElementById('token-sender-binding').checked,
                 max_token_usage_limit: parseInt(document.getElementById('token-max-usage').value) || 1000
             };
-            
             const rToken = await fetch(`${API}/api/dashboard/settings/token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(tokenData)
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tokenData)
             });
+            const d = await rToken.json();
             if (!rToken.ok) throw new Error("Failed to save token governance");
-            toast("🔑 Token governance policies saved successfully!", "success");
+            toast(`🔑 ${d.message || 'Token policy saved'}`, "success");
         }
-        
-        else if (section === 'cloud') {
-            const provider = document.getElementById('cloud-provider').value;
-            const envType = document.getElementById('cloud-env-type').value;
-            let cloudData = {
-                provider: provider,
-                environment_type: envType
-            };
-            
-            if (provider === 'Azure') {
-                cloudData.tenant_id = document.getElementById('cloud-tenant').value.trim();
-                cloudData.client_id = document.getElementById('cloud-client').value.trim();
-                cloudData.subscription_id = document.getElementById('cloud-subscription').value.trim();
-                cloudData.client_secret = document.getElementById('cloud-client-secret').value.trim();
-                
-                if (!cloudData.tenant_id || !cloudData.client_id || !cloudData.subscription_id || !cloudData.client_secret) {
-                    toast("⚠ All Azure credentials (Tenant, Client, Subscription, Client Secret) are required.", "warn");
-                    return;
-                }
-            } else if (provider === 'AWS') {
-                cloudData.aws_role_arn = document.getElementById('cloud-aws-role-arn').value.trim();
-                cloudData.aws_access_key_id = document.getElementById('cloud-aws-access-key').value.trim();
-                cloudData.aws_secret_access_key = document.getElementById('cloud-aws-secret-key').value.trim();
-                
-                if (!cloudData.aws_role_arn || !cloudData.aws_access_key_id || !cloudData.aws_secret_access_key) {
-                    toast("⚠ All AWS credentials (Role ARN, Access Key, Secret Key) are required.", "warn");
-                    return;
-                }
-            } else if (provider === 'GCP') {
-                cloudData.gcp_project_id = document.getElementById('cloud-gcp-project').value.trim();
-                cloudData.gcp_client_email = document.getElementById('cloud-gcp-email').value.trim();
-                cloudData.gcp_private_key = document.getElementById('cloud-gcp-private-key').value.trim();
-                
-                if (!cloudData.gcp_project_id || !cloudData.gcp_client_email || !cloudData.gcp_private_key) {
-                    toast("⚠ All GCP credentials (Project ID, Client Email, Service Account JSON Key) are required.", "warn");
-                    return;
-                }
-            }
-            
-            const rCloud = await fetch(`${API}/api/dashboard/settings/cloud`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cloudData)
-            });
-            if (!rCloud.ok) throw new Error("Failed to connect cloud environment");
-            
-            toast(`🔗 Connected ${cloudData.provider} (${cloudData.environment_type}) environment successfully!`, "success");
-            
-            // Re-initialize dynamic form which also clears fields
-            updateCloudFormFields();
-        }
-        
-        else if (section === 'compliance') {
-            const checkedFrameworks = Array.from(document.querySelectorAll('input[name="frameworks"]:checked'))
-                                           .map(checkbox => checkbox.value);
-            const complianceData = {
-                enabled_frameworks: checkedFrameworks,
-                audit_logging_enabled: true,
-                fail_strategy: "fail-closed"
-            };
-            
-            const rComp = await fetch(`${API}/api/dashboard/settings/compliance`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(complianceData)
-            });
-            if (!rComp.ok) throw new Error("Failed to save compliance configurations");
-            toast("📋 Regulatory framework compliance parameters updated successfully!", "success");
-        }
-        
-        // Reload settings fields
-        setTimeout(loadSettings, 500);
-        
+        setTimeout(loadSettings, 400);
+        loadSessions();
     } catch (error) {
-        console.error("Failed to apply settings configurations:", error);
-        toast("❌ Failed to save governance rules. Check console.", "danger");
+        console.error("Failed to apply settings:", error);
+        toast("❌ Failed to save governance rules.", "danger");
     }
 }
 
@@ -1665,8 +1326,7 @@ async function researchAndAddFramework() {
         if (result.status === 'success') {
             toast(`✅ ${result.message}`, "success");
             inputEl.value = '';
-            // Reload settings to update checkboxes
-            loadSettings();
+            loadCompliance();
         } else {
             toast(`⚠ ${result.message || 'Error researching framework'}`, "warn");
         }
@@ -1676,98 +1336,96 @@ async function researchAndAddFramework() {
     }
 }
 
-// ── Compliance Dashboard Integration ───────────────────────────────────────
+// ── Compliance view (non-compliant findings + frameworks) ───────────────────
 function getScoreColors(score) {
-    if (score >= 85) {
-        return {
-            text: '#4ade80',
-            stroke: '#4ade80',
-            bg: 'rgba(74,222,128,.12)',
-            gradient: 'linear-gradient(90deg,#22c55e,#4ade80)'
-        };
-    } else if (score >= 70) {
-        return {
-            text: '#fbbf24',
-            stroke: '#fbbf24',
-            bg: 'rgba(245,158,11,.12)',
-            gradient: 'linear-gradient(90deg,#f59e0b,#fbbf24)'
-        };
-    } else {
-        return {
-            text: '#f87171',
-            stroke: '#f87171',
-            bg: 'rgba(239,68,68,.12)',
-            gradient: 'linear-gradient(90deg,#ef4444,#f87171)'
-        };
-    }
+    if (score >= 85) return { text:'#4ade80', stroke:'#4ade80', bg:'rgba(74,222,128,.12)', gradient:'linear-gradient(90deg,#22c55e,#4ade80)' };
+    if (score >= 70) return { text:'#fbbf24', stroke:'#fbbf24', bg:'rgba(245,158,11,.12)', gradient:'linear-gradient(90deg,#f59e0b,#fbbf24)' };
+    return { text:'#f87171', stroke:'#f87171', bg:'rgba(239,68,68,.12)', gradient:'linear-gradient(90deg,#ef4444,#f87171)' };
+}
+const SEV_COLOR = { high:'var(--red-bright)', medium:'var(--amber)', low:'var(--blue-bright)' };
+
+async function loadCompliance() {
+    if (!apiOnline) await checkHealth();
+    let findings = { total:0, by_severity:{}, findings:[] };
+    let frameworks = [];
+    try {
+        const [f, s] = await Promise.all([
+            fetch(`${API}/api/compliance/findings`).then(r=>r.json()).catch(()=>findings),
+            fetch(`${API}/api/dashboard/settings`).then(r=>r.json()).catch(()=>({data:{compliance:{frameworks:[]}}})),
+        ]);
+        findings = f || findings;
+        frameworks = (s.data && s.data.compliance && s.data.compliance.frameworks) || [];
+    } catch(_) {}
+    renderComplianceFindings(findings);
+    renderComplianceFrameworks(frameworks);
 }
 
-function renderComplianceList(frameworks) {
-    const listContainer = document.getElementById('dashboard-compliance-list');
-    if (!listContainer) return;
-    
-    const enabledFrameworks = frameworks.filter(f => f.enabled);
-    if (enabledFrameworks.length === 0) {
-        listContainer.innerHTML = `
-            <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px 0">
-                No compliance frameworks enabled. Go to Settings > Compliance to configure.
-            </div>
-        `;
+function renderComplianceFindings(d) {
+    document.getElementById('compliance-finding-count').textContent = d.total || 0;
+    // severity summary chips
+    const bar = document.getElementById('compliance-severity-bar');
+    const sv = d.by_severity || {};
+    bar.innerHTML = ['high','medium','low'].map(s => `
+        <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${SEV_COLOR[s]};border-radius:10px;padding:12px 14px">
+            <div style="font-size:22px;font-weight:800;color:${SEV_COLOR[s]}">${sv[s]||0}</div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:capitalize">${s} severity</div>
+        </div>`).join('');
+    // findings list
+    const el = document.getElementById('compliance-findings');
+    if (!d.findings || !d.findings.length) {
+        el.innerHTML = '<div style="color:var(--green);font-size:13px;padding:18px;text-align:center;border:1px dashed var(--border);border-radius:10px">✓ No non-compliant findings. Posture is clean.</div>';
         return;
     }
-    
-    listContainer.innerHTML = '';
-    enabledFrameworks.forEach((f, index) => {
+    el.innerHTML = d.findings.map(f => {
+        const c = SEV_COLOR[f.severity] || 'var(--text-muted)';
+        const action = f.kind === 'risk'
+            ? `<button class="demo-btn" onclick="gotoView('monitor'${f.signal?`,{risk:'${f.signal}'}`:''})">Review in Token Monitor →</button>`
+            : '';
+        return `<div style="display:flex;gap:12px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${c};border-radius:10px;padding:13px 15px">
+            <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:${c}">${esc(f.severity)}</span>
+                    <strong style="font-size:13px;color:var(--text)">${esc(f.title)}</strong>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${esc(f.detail)}</div>
+                <div style="margin-top:8px">${action}</div>
+            </div></div>`;
+    }).join('');
+}
+
+function renderComplianceFrameworks(frameworks) {
+    const el = document.getElementById('compliance-frameworks');
+    if (!el) return;
+    const enabled = frameworks.filter(f => f.enabled);
+    if (!enabled.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:14px">No frameworks enabled.</div>'; return; }
+    el.innerHTML = '';
+    enabled.forEach(f => {
         const colors = getScoreColors(f.score);
-        const compRow = document.createElement('div');
-        compRow.className = 'comp-row';
-        if (index === enabledFrameworks.length - 1) {
-            compRow.style.marginBottom = '0';
-        }
-        
-        compRow.innerHTML = `
+        const row = document.createElement('div');
+        row.className = 'comp-row';
+        row.style.cursor = 'pointer';
+        row.innerHTML = `
             <div class="comp-icon" style="background:${colors.bg}">
-                <svg width="16" height="16" fill="none" stroke="${colors.stroke}" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
+                <svg width="16" height="16" fill="none" stroke="${colors.stroke}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             </div>
             <div style="flex:1">
-                <div style="display:flex;justify-content:space-between">
-                    <div class="comp-name">${f.name}</div>
-                    <div style="font-size:11px;font-weight:700;color:${colors.text}">${f.score}%</div>
-                </div>
+                <div style="display:flex;justify-content:space-between"><div class="comp-name">${esc(f.name)}</div><div style="font-size:11px;font-weight:700;color:${colors.text}">${f.score}%</div></div>
                 <div class="meter-bar"><div class="meter-fill" style="width:${f.score}%;background:${colors.gradient}"></div></div>
-                <div class="comp-sub">${f.description}</div>
-            </div>
-        `;
-        
-        compRow.onclick = () => {
-            openComplianceRevisionPanel(f);
-        };
-        
-        listContainer.appendChild(compRow);
+                <div class="comp-sub">${esc(f.description)}</div>
+            </div>`;
+        row.onclick = () => openComplianceRevisionPanel(f);
+        el.appendChild(row);
     });
 }
 
 function openComplianceRevisionPanel(framework) {
     activeRevisionFramework = framework;
-    
     document.getElementById('c-framework-id').value = framework.id || '';
     document.getElementById('c-framework-name').value = framework.name || '';
     document.getElementById('c-framework-score').value = framework.score || 70;
     document.getElementById('c-score-display').textContent = (framework.score || 70) + '%';
     document.getElementById('c-framework-description').value = framework.description || '';
     document.getElementById('c-framework-enabled').checked = framework.enabled !== false;
-    
-    // Highlight compliance row
-    document.querySelectorAll('#dashboard-compliance-list .comp-row').forEach(r => r.style.outline = '');
-    const compRows = document.querySelectorAll('#dashboard-compliance-list .comp-row');
-    compRows.forEach(row => {
-        if (row.querySelector('.comp-name').textContent === framework.name) {
-            row.style.setProperty('outline', '2px solid var(--blue)');
-        }
-    });
-
     document.getElementById('compliance-side-panel').classList.add('open');
     document.getElementById('panel-backdrop').classList.add('show');
 }
@@ -1775,7 +1433,6 @@ function openComplianceRevisionPanel(framework) {
 function closeCompliancePanel() {
     document.getElementById('compliance-side-panel').classList.remove('open');
     document.getElementById('panel-backdrop').classList.remove('show');
-    document.querySelectorAll('#dashboard-compliance-list .comp-row').forEach(r => r.style.outline = '');
     activeRevisionFramework = null;
 }
 
@@ -1817,8 +1474,9 @@ async function submitComplianceRevision() {
         }
         
         closeCompliancePanel();
-        await loadComplianceDashboard();
-        
+        await loadCompliance();
+        loadDashboardCounts();
+
     } catch (error) {
         console.error("Revision error:", error);
         toast("❌ Failed to save compliance revision", "danger");
@@ -1828,48 +1486,39 @@ async function submitComplianceRevision() {
     }
 }
 
-function renderMockCompliance() {
-    const mockData = [
-        { name: "ISO/IEC 27001", description: "Access control · Audit logging", score: 94, enabled: true },
-        { name: "SOC 2 Type II", description: "Security · Availability · Confidentiality", score: 88, enabled: true },
-        { name: "NIST CSF 2.0", description: "Identify · Protect · Detect", score: 76, enabled: true },
-        { name: "CIS Cloud Benchmark", description: "IAM hardening gaps detected", score: 61, enabled: true }
-    ];
-    renderComplianceList(mockData);
-}
-
-async function loadComplianceDashboard() {
-    if (!apiOnline) {
-        renderMockCompliance();
-        return;
-    }
-    try {
-        const response = await fetch(`${API}/api/dashboard/settings`);
-        if (!response.ok) throw new Error("Failed to fetch settings");
-        const result = await response.json();
-        if (result.status === "success" && result.data && result.data.compliance) {
-            const frameworks = result.data.compliance.frameworks || [];
-            renderComplianceList(frameworks);
-        }
-    } catch (e) {
-        console.error("Error loading dashboard compliance:", e);
-        renderMockCompliance();
-    }
-}
-
 // ── Load everything ────────────────────────────────────────────────────────
 async function loadAll() {
     const icon = document.getElementById('refresh-icon');
-    icon.querySelector('svg').style.animation = 'spin .8s linear infinite';
+    if (icon) icon.querySelector('svg').style.animation = 'spin .8s linear infinite';
 
     await checkHealth();
     await loadSessions();
-    await loadAudit();
-    await loadComplianceDashboard();
+    await loadDashboardCounts();
 
-    icon.querySelector('svg').style.animation = '';
-    document.getElementById('last-updated').textContent =
-        'Updated ' + new Date().toLocaleTimeString();
+    if (icon) icon.querySelector('svg').style.animation = '';
+    const lu = document.getElementById('last-updated');
+    if (lu) lu.textContent = 'Updated ' + new Date().toLocaleTimeString();
+}
+
+// Fill the governance-shortcut KPIs (connectors, compliance findings, audit events)
+async function loadDashboardCounts() {
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    if (!apiOnline) { set('kpi-findings','—'); set('kpi-connectors','—'); set('kpi-audit','—'); return; }
+    try {
+        const [conns, findings, audit] = await Promise.all([
+            fetch(`${API}/api/connectors`).then(r=>r.json()).catch(()=>[]),
+            fetch(`${API}/api/compliance/findings`).then(r=>r.json()).catch(()=>({total:0,by_severity:{}})),
+            fetch(`${API}/api/audit`).then(r=>r.json()).catch(()=>({total:0})),
+        ]);
+        window._connectorCount = (conns||[]).length;
+        set('kpi-connectors', window._connectorCount);
+        set('kpi-findings', findings.total || 0);
+        set('kpi-audit', audit.total || 0);
+        const navc = document.getElementById('nav-compliance-count');
+        if (navc) { const h = (findings.by_severity && findings.by_severity.high) || 0;
+            if (findings.total) { navc.textContent = findings.total; navc.style.display=''; navc.style.background = h? 'rgba(239,68,68,.2)':''; }
+            else navc.style.display='none'; }
+    } catch(_) {}
 }
 
 // ── Health check ───────────────────────────────────────────────────────────
@@ -1919,25 +1568,28 @@ async function loadSessions() {
         governable: !!s.governable, revoked: !!s.revoked,
     }));
     renderKPIs();
-    renderUsageBars();
-    renderTable();
-    applyFilter(curFilter, null, true); // silent re-filter
 }
 
-// ── Load audit ─────────────────────────────────────────────────────────────
-async function loadAudit() {
+// ── Audit Log view ───────────────────────────────────────────────────────────
+async function loadAuditView() {
+    if (!apiOnline) await checkHealth();
     let entries = [];
     if (apiOnline) {
-        try {
-            const r = await fetch(`${API}/api/audit`);
-            const d = await r.json();
-            entries = d.entries || [];
-        } catch (_) {}
+        try { const r = await fetch(`${API}/api/audit`); const d = await r.json(); entries = d.entries || []; } catch(_) {}
     }
-    renderAudit(entries);
+    const el = document.getElementById('audit-log-panel');
+    const cnt = document.getElementById('audit-count');
+    if (cnt) cnt.textContent = entries.length;
+    if (!el) return;
+    if (!entries.length) {
+        el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:28px">No activity recorded yet. Connect a source, set policy, or run a gateway request.</div>';
+        return;
+    }
+    el.innerHTML = entries.map(e => `<div class="audit-entry">${esc(e)}</div>`).join('');
 }
 
-// ── Render KPIs ────────────────────────────────────────────────────────────
+// ── Render KPIs (dashboard overview; each routes to its detail view) ────────
+let bindingCounts = { bound: 0, bearer: 0, visibility: 0 };
 function renderKPIs() {
     let azure=0, github=0, bound=0, highrisk=0, bearerGov=0, visibility=0;
     sessions.forEach(s => {
@@ -1948,20 +1600,25 @@ function renderKPIs() {
         else visibility++;
         if (s.risk_level === 'High' || s.risk_level === 'Critical') highrisk++;
     });
-    document.getElementById('kpi-azure').textContent    = azure;
-    document.getElementById('kpi-github').textContent   = github;
-    document.getElementById('kpi-bound').textContent    = bound;
-    document.getElementById('kpi-critical').textContent = highrisk;
-    document.getElementById('alert-pip').style.display  = highrisk > 0 ? '' : 'none';
-    renderDonut(bound, bearerGov, visibility);
+    bindingCounts = { bound, bearer: bearerGov, visibility };
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('kpi-azure', azure);
+    set('kpi-github', github);
+    set('kpi-bound', bound);
+    set('kpi-critical', highrisk);
+    set('kpi-total', sessions.length);
+    set('kpi-connectors', (window._connectorCount != null ? window._connectorCount : '—'));
+    const pip = document.getElementById('alert-pip'); if (pip) pip.style.display = highrisk > 0 ? '' : 'none';
+    renderGatewayDonut();  // keep the binding donut (now on the Gateway view) in sync
 }
 
-// Token binding posture donut: bound (green) / governable-bearer (amber) / visibility (red)
-function renderDonut(bound, bearer, visibility) {
+// Token binding posture donut — lives on the Gateway view now
+function renderGatewayDonut() {
+    const { bound, bearer, visibility } = bindingCounts;
     const total = bound + bearer + visibility;
     const pct = total ? Math.round(bound / total * 100) : 0;
-    document.getElementById('donut-val').textContent = pct + '%';
-    const C = 100; // dasharray reference used by the existing SVG
+    const valEl = document.getElementById('donut-val'); if (valEl) valEl.textContent = pct + '%';
+    const C = 100;
     const segB = total ? (bound / total) * C : 0;
     const segR = total ? (bearer / total) * C : 0;
     const segV = total ? (visibility / total) * C : 0;
@@ -1972,149 +1629,6 @@ function renderDonut(bound, bearer, visibility) {
     set('donut-seg-bound',  segB, 0);
     set('donut-seg-bearer', segR, -segB);
     set('donut-seg-stale',  segV, -(segB + segR));
-}
-
-// ── Render usage bars (middle panel) ───────────────────────────────────────
-function renderUsageBars() {
-    const el = document.getElementById('usage-bars-panel');
-    if (!sessions.length) {
-        el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px">No active connections.</div>';
-        return;
-    }
-    const ranked = [...sessions].sort((a, b) => b.token_usage - a.token_usage);
-    const top = ranked.slice(0, 5);
-    const more = ranked.length - top.length;
-    el.innerHTML = top.map(s => {
-        const pct = Math.min(100, Math.round(s.token_usage / s.usage_limit * 100));
-        const cls = pct >= 100 ? 'usage-high' : pct >= 75 ? 'usage-med' : 'usage-low';
-        const warn = pct >= 100
-            ? '<span style="color:var(--red-bright);font-size:10px;font-weight:700;margin-left:6px">MAX RISK</span>'
-            : '';
-        const provColor = provColorOf(s.provider);
-        return `
-        <div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
-                <div style="font-size:11px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px">
-                    <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${provColor}"></span>
-                    <span>${s.vendor}</span>${warn}
-                </div>
-                <div style="font-size:11px;font-weight:700;color:var(--text-dim)">${pct}%</div>
-            </div>
-            <div class="usage-track">
-                <div class="usage-fill ${cls}" style="width:${pct}%"></div>
-            </div>
-            <div style="font-size:10px;color:var(--text-muted);margin-top:3px">risk exposure ${s.token_usage} / 100</div>
-        </div>`;
-    }).join('') + `<button onclick="gotoMonitor()" style="margin-top:6px;width:100%;font-size:11px;font-weight:600;padding:8px;border-radius:8px;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--blue-bright)">${more > 0 ? '+' + more + ' more · ' : ''}View all risk in Token Monitor →</button>`;
-}
-
-function gotoMonitor() {
-    const link = document.querySelector(".nav-link[onclick*=\"'monitor'\"]");
-    showView('monitor', link || document.querySelector('.nav-link'));
-}
-
-// ── Render table ───────────────────────────────────────────────────────────
-function renderTable() {
-    const tbody = document.getElementById('sessions-tbody');
-    if (!sessions.length) {
-        tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No active sessions.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = sessions.map(s => {
-        const pct = Math.min(100, Math.round(s.token_usage / s.usage_limit * 100));
-        const cls = pct >= 100 ? 'usage-high' : pct >= 75 ? 'usage-med' : 'usage-low';
-
-        const expClass = (s.expires_in === 'Static Key' || s.expires_in === 'Revoked')
-            ? 'exp-static'
-            : (s.expires_in.includes('min') ? 'exp-soon' : 'exp-ok');
-
-        const riskClass = {
-            'Low': 'risk-low', 'Medium': 'risk-medium',
-            'High': 'risk-high', 'Critical': 'risk-critical'
-        }[s.risk_level] || 'risk-low';
-
-        const isCrit = s.is_critical;
-        const critDot = isCrit ? '<span class="crit-dot"></span>' : '';
-
-        const actLabel = isCrit ? 'Investigate' : 'Manage';
-        const actClass = isCrit ? 'act-btn act-investigate' : 'act-btn act-manage';
-
-        return `
-        <tr id="row-${s.id}" data-provider="${s.provider}" data-critical="${isCrit}" class="${isCrit ? 'crit-row' : ''}">
-            <td>
-                <div style="display:flex;align-items:center">
-                    ${critDot}
-                    <span style="font-weight:600;color:var(--text)">${s.vendor}</span>
-                </div>
-                <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${s.last_seen ? 'Last seen: ' + new Date(s.last_seen).toLocaleTimeString() : ''}</div>
-            </td>
-            <td><span class="badge badge-${s.provider}">${s.provider.toUpperCase()}</span></td>
-            <td style="color:var(--text-dim);font-size:12px">${s.resource}</td>
-            <td><span class="scope-pill ${isCrit ? 'danger' : ''}" title="${s.scope}">${s.scope}</span></td>
-            <td style="min-width:140px">
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                    <span style="font-size:10px;color:var(--text-muted)">risk ${s.token_usage}</span>
-                    <span style="font-size:10px;font-weight:700;color:${pct>=100?'var(--red-bright)':pct>=75?'var(--amber)':'var(--green)'}">${pct}%</span>
-                </div>
-                <div class="usage-track">
-                    <div class="usage-fill ${cls}" style="width:${pct}%"></div>
-                </div>
-            </td>
-            <td class="${expClass}">${s.expires_in}</td>
-            <td><span class="badge ${riskClass}">${s.risk_level}</span></td>
-            <td style="text-align:right">
-                <button class="${actClass}"
-                    onclick="openPanel('${s.id}','row-${s.id}')">${actLabel}
-                </button>
-            </td>
-        </tr>`;
-    }).join('');
-}
-
-// ── Render audit log ───────────────────────────────────────────────────────
-function renderAudit(entries) {
-    const el = document.getElementById('audit-log-panel');
-    if (!entries || !entries.length) {
-        el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px">No revocations recorded this session.</div>';
-        return;
-    }
-    el.innerHTML = entries.map(e => `<div class="audit-entry">${e}</div>`).join('');
-}
-
-// ── Filter ─────────────────────────────────────────────────────────────────
-function applyFilter(f, btnEl, silent = false) {
-    curFilter = f;
-    if (!silent) {
-        document.querySelectorAll('.flt-btn').forEach(b => {
-            b.classList.remove('active','active-aws','active-azure','active-gcp','active-crit');
-        });
-        if (btnEl) {
-            btnEl.classList.add('active');
-            if (f === 'aws')      btnEl.classList.add('active-aws');
-            if (f === 'azure')    btnEl.classList.add('active-azure');
-            if (f === 'gcp')      btnEl.classList.add('active-gcp');
-            if (f === 'critical') btnEl.classList.add('active-crit');
-        }
-    }
-
-    const rows = document.querySelectorAll('#sessions-tbody tr[data-provider]');
-    let vis = 0;
-    rows.forEach(r => {
-        const match = f === 'all'
-            || (f === 'critical' && r.dataset.critical === 'true')
-            || r.dataset.provider === f;
-        r.style.display = match ? '' : 'none';
-        if (match) vis++;
-    });
-    document.getElementById('row-count').textContent = vis;
-    document.getElementById('empty-state').style.display = vis === 0 ? 'block' : 'none';
-
-    // Close panel if its row is now hidden
-    if (panelRow) {
-        const pr = document.getElementById(panelRow);
-        if (pr && pr.style.display === 'none') closePanel();
-    }
 }
 
 // ── Detail panel (token monitoring deep-dive) ───────────────────────────────
@@ -2396,68 +1910,6 @@ async function setPolicy(appId, patch) {
     loadSessions();
 }
 
-// ── Tokens view ──────────────────────────────────────────────────────────────
-let tokens = [];
-let tokenFilter = 'all';
-
-async function loadTokens() {
-    if (!apiOnline) await checkHealth();
-    try { const r = await fetch(`${API}/api/tokens`); tokens = await r.json(); } catch(_) { tokens = []; }
-    renderTokens();
-}
-
-function renderTokens() {
-    const tbody = document.getElementById('tokens-tbody');
-    const c = document.getElementById('tok-count');
-    if (c) c.textContent = tokens.length;
-    if (!tbody) return;
-    const rows = tokens.filter(t => {
-        if (tokenFilter === 'bound')   return t.sender_bound;
-        if (tokenFilter === 'bearer')  return !t.sender_bound && t.status === 'active';
-        if (tokenFilter === 'revoked') return t.status !== 'active';
-        return true;
-    });
-    if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="7" style="padding:28px;text-align:center;color:var(--text-muted);font-size:13px">No tokens match. Connect a source (Connectors → Quick-connect demo) or run a request in Security Demo.</td></tr>`;
-        return;
-    }
-    tbody.innerHTML = rows.map(t => {
-        const bind = t.sender_bound
-            ? '<span class="badge risk-low">🔒 bound</span>'
-            : '<span class="badge risk-high">bearer</span>';
-        const st = t.status === 'active' ? 'risk-low' : t.status === 'expired' ? 'risk-medium' : 'risk-critical';
-        const ttl = (t.ttl_seconds == null) ? '—'
-                  : t.status !== 'active' ? '—'
-                  : t.ttl_seconds <= 0 ? 'expired'
-                  : fmtTTL(t.ttl_seconds);
-        const clickable = t.app_id ? `onclick="openPanel('${t.app_id}',null)" style="cursor:pointer"` : '';
-        const scope = (t.scope || '—');
-        return `<tr ${clickable}>
-            <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text)">${esc(t.id)}</span>${t.note?`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">${esc(t.note)}</div>`:''}</td>
-            <td style="color:var(--text-dim);font-size:12px">${esc(t.app||'—')}</td>
-            <td><span class="scope-pill" title="${esc(scope)}">${esc(scope.length>42?scope.slice(0,42)+'…':scope)}</span></td>
-            <td style="font-size:11px;color:var(--text-dim)">${esc(t.kind||'—')}</td>
-            <td>${bind}</td>
-            <td><span class="badge ${st}">${esc(t.status)}</span></td>
-            <td class="${ttl==='expired'?'exp-static':(ttl.includes&&ttl.includes('m')?'exp-soon':'exp-ok')}">${esc(ttl)}</td>
-        </tr>`;
-    }).join('');
-}
-
-function applyTokenFilter(f, btn) {
-    tokenFilter = f;
-    document.querySelectorAll('#tokens-view .flt-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    renderTokens();
-}
-
-function fmtTTL(s) {
-    if (s >= 86400) return Math.floor(s/86400)+'d left';
-    if (s >= 3600)  return Math.floor(s/3600)+'h left';
-    if (s >= 60)    return Math.floor(s/60)+'m left';
-    return s+'s left';
-}
-
 // ── Token Monitor (native grant inventory) ───────────────────────────────────
 let grantSourcesLoaded = false;
 let grantSearchTimer = null;
@@ -2471,6 +1923,7 @@ async function loadGrants() {
     const ty = document.getElementById('grant-type').value;   if (ty) params.set('type', ty);
     const rk = document.getElementById('grant-risk').value;   if (rk) params.set('risk', rk);
     const q  = document.getElementById('grant-search').value; if (q) params.set('search', q);
+    if (window._monitorPlatform) params.set('platform', window._monitorPlatform);
     if (document.getElementById('grant-inactive').checked) params.set('include_inactive', 'true');
 
     let d = null;
@@ -2488,7 +1941,16 @@ async function loadGrants() {
     document.getElementById('grant-count').textContent = (d.rows || []).length;
     renderGrantStats(d.stats || {}, d.activity_available);
     renderGrantsTable(d.rows || []);
+    // active platform filter chip (set when arriving from a dashboard KPI)
+    const chipHost = document.getElementById('grant-active-filter');
+    if (chipHost) {
+        if (window._monitorPlatform) {
+            chipHost.innerHTML = `<span class="sig-badge" style="background:rgba(59,130,246,.16);color:var(--blue-bright)">platform: ${esc(window._monitorPlatform)} <span style="cursor:pointer;font-weight:800" onclick="clearMonitorPlatform()">×</span></span>`;
+        } else chipHost.innerHTML = '';
+    }
 }
+
+function clearMonitorPlatform() { window._monitorPlatform = null; loadGrants(); }
 
 function renderGrantStats(stats, activityAvail) {
     const chips = [];
@@ -2512,7 +1974,7 @@ function renderGrantsTable(rows) {
         const perms = (r.permissions || []).map(p => `<code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);display:block">${esc(p)}</code>`).join('');
         const sigs = (r.risk_signals || []).map(s => `<span class="sig-badge" title="${esc(s.key)}">${esc(s.label)}</span>`).join(' ');
         const warn = (r.risk_signals && r.risk_signals.length) ? ' <span style="color:var(--amber)">⚠</span>' : '';
-        return `<tr style="cursor:pointer" onclick="openGrantDetail(${r.id})">
+        return `<tr style="cursor:pointer" onclick="openGrantDetail('${esc(r.id)}')">
             <td><div style="font-weight:600;color:var(--text)">${esc(r.vendor)}${warn}</div>
                 <div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">${esc((r.app_id||'').slice(0,10))}…</div></td>
             <td><span style="font-size:11px;color:var(--text-dim)">${r.type === 'application' ? 'app' : 'del'}</span></td>
@@ -2576,6 +2038,19 @@ function renderGrantDetail(d) {
         <div class="ev-meta"><span class="ev-kind ev-${esc((e.type||'').replace('_','-'))}">${esc(e.type)}</span><span>${e.date ? new Date(e.date).toLocaleDateString() : ''}</span></div>
         ${e.detail ? `<div style="color:var(--text-dim)">${esc(e.detail)}</div>` : ''}</div>`).join('') || '<div style="font-size:12px;color:var(--text-muted)">No events.</div>';
 
+    // GitHub revoke action (when this is a GitHub connection)
+    let ghAction = '';
+    if (d.github) {
+        const g = d.github;
+        const apiBtn = g.can_api_revoke
+            ? `<button class="demo-btn bad" onclick="revokeGitHub('${esc(d.id)}')">Revoke installation (API)</button>`
+            : '';
+        ghAction = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            ${apiBtn}
+            <a class="demo-btn" href="${esc(g.settings_url)}" target="_blank" rel="noopener">Open GitHub revoke page ↗</a>
+        </div>`;
+    }
+
     document.getElementById('detail-body').innerHTML = `
         ${signalsHtml}
         <div class="detail-section"><h4>Identity</h4>${dl(idRows)}</div>
@@ -2583,10 +2058,22 @@ function renderGrantDetail(d) {
         <div class="detail-section"><h4>Permissions (${(d.permissions||[]).length})</h4>${permHtml}</div>
         <div class="detail-section"><h4>Event history</h4>${evHtml}</div>
         <div class="detail-section"><h4>Revoke access</h4>
-            <div style="font-size:11px;color:var(--text-muted);line-height:1.7">${esc(d.revoke_caveat||'')}</div></div>`;
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.7">${esc(d.revoke_caveat||'')}</div>
+            ${ghAction}</div>`;
+}
+
+async function revokeGitHub(appId) {
+    if (!confirm('Revoke this GitHub installation? This deletes it from the org and cuts access immediately.')) return;
+    try {
+        const r = await fetch(`${API}/api/tokens/revoke`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token_id:appId})});
+        const d = await r.json();
+        toast(d.status === 'success' ? `✓ ${d.message}` : `⚠ ${d.message||'revoke failed'}`, d.status==='success'?'success':'warn');
+    } catch(_) { toast('❌ GitHub revoke failed','danger'); }
+    closePanel(); await loadGrants(); loadSessions();
 }
 
 // ── Connectors view ──────────────────────────────────────────────────────────
+let companies = [];
 async function loadConnectors() {
     if (!apiOnline) await checkHealth();
     if (!connectorTypes.length) {
@@ -2596,31 +2083,69 @@ async function loadConnectors() {
     }
     let conns = [];
     try { const r = await fetch(`${API}/api/connectors`); conns = await r.json(); } catch(_) {}
-    renderConnectors(conns);
+    try { const r = await fetch(`${API}/api/companies`); companies = await r.json(); } catch(_) { companies = []; }
+    window._connectorCount = (conns||[]).length;
+    populateCompanySelect();
+    renderConnectorsGrouped(conns);
 }
 
-function renderConnectors(conns) {
-    const grid = document.getElementById('connectors-grid');
-    if (!grid) return;
-    if (!conns || !conns.length) {
-        grid.innerHTML = `<div style="grid-column:1/-1;color:var(--text-muted);font-size:13px;padding:16px">No sources connected yet. Use ⚡ Quick-connect demo, or add one below.</div>`;
+function populateCompanySelect() {
+    const sel = document.getElementById('conn-company');
+    if (sel) sel.innerHTML = `<option value="">Unassigned</option>` +
+        companies.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+}
+
+function connCard(c) {
+    return `<div class="conn-card">
+        <div style="display:flex;align-items:center;gap:8px">
+            <span class="conn-dot ${c.connected?'conn-on':'conn-off'}"></span>
+            <strong style="font-size:13px">${esc(c.display_name)}</strong>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);min-height:28px">${esc(c.status_detail||'')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${c.connected
+                ? `<button class="demo-btn" onclick="syncConn('${c.id}')">Sync</button>
+                   <button class="demo-btn" onclick="disconnectConn('${c.id}')">Disconnect</button>`
+                : `<button class="demo-btn good" onclick="connectConn('${c.id}')">Connect</button>`}
+            <button class="demo-btn bad" onclick="removeConn('${c.id}')">Remove</button>
+        </div></div>`;
+}
+
+function renderConnectorsGrouped(conns) {
+    const host = document.getElementById('connectors-grouped');
+    if (!host) return;
+    conns = conns || [];
+    // group: each company (even if empty) + an Unassigned bucket if needed
+    const groups = companies.map(co => ({ id: co.id, name: co.name,
+        items: conns.filter(c => c.company === co.id) }));
+    const unassigned = conns.filter(c => !c.company || !companies.find(co => co.id === c.company));
+    if (unassigned.length) groups.push({ id: null, name: 'Unassigned', items: unassigned });
+
+    if (!groups.length) {
+        host.innerHTML = `<div style="color:var(--text-muted);font-size:13px;padding:16px;border:1px dashed var(--border);border-radius:10px">No companies yet. Click <strong>+ Add Company</strong>, or use ⚡ Quick-connect demo.</div>`;
         return;
     }
-    grid.innerHTML = conns.map(c => `
-        <div class="conn-card">
-            <div style="display:flex;align-items:center;gap:8px">
-                <span class="conn-dot ${c.connected?'conn-on':'conn-off'}"></span>
-                <strong style="font-size:13px">${esc(c.display_name)}</strong>
+    host.innerHTML = groups.map(g => `
+        <div style="margin-bottom:18px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <svg width="15" height="15" fill="none" stroke="var(--text-dim)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3m4-14h2m-2 4h2m6-4h2m-2 4h2"/></svg>
+                <strong style="font-size:13px;color:var(--text)">${esc(g.name)}</strong>
+                <span style="font-size:11px;color:var(--text-muted)">${g.items.length} connector${g.items.length===1?'':'s'}</span>
             </div>
-            <div style="font-size:11px;color:var(--text-muted);min-height:28px">${esc(c.status_detail||'')}</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-                ${c.connected
-                    ? `<button class="demo-btn" onclick="syncConn('${c.id}')">Sync</button>
-                       <button class="demo-btn" onclick="disconnectConn('${c.id}')">Disconnect</button>`
-                    : `<button class="demo-btn good" onclick="connectConn('${c.id}')">Connect</button>`}
-                <button class="demo-btn bad" onclick="removeConn('${c.id}')">Remove</button>
+            <div class="grid-3" style="gap:14px">
+                ${g.items.length ? g.items.map(connCard).join('')
+                    : `<div style="grid-column:1/-1;color:var(--text-muted);font-size:12px;padding:10px 0">No connectors in this company yet — add one below.</div>`}
             </div>
         </div>`).join('');
+}
+
+async function addCompanyPrompt() {
+    const name = prompt('Company name:');
+    if (!name || !name.trim()) return;
+    try { await fetch(`${API}/api/companies`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name.trim()})});
+        toast(`🏢 Company "${name.trim()}" added`,'success');
+    } catch(_) { toast('❌ Could not add company','danger'); }
+    await loadConnectors();
 }
 
 function renderConnectorForm() {
@@ -2636,10 +2161,11 @@ function renderConnectorForm() {
 
 async function addConnector() {
     const sel = document.getElementById('conn-type'); const kind = sel.value;
+    const company = (document.getElementById('conn-company')||{}).value || null;
     const config = {};
     document.querySelectorAll('#conn-form [data-field]').forEach(i => { if (i.value.trim()) config[i.dataset.field] = i.value.trim(); });
     try {
-        const r = await fetch(`${API}/api/connectors`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,config})});
+        const r = await fetch(`${API}/api/connectors`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,config,company})});
         const d = await r.json();
         toast(d.connected ? `🔗 Connected ${kind}` : `⚠ ${d.message||'connect failed'}`, d.connected?'success':'warn');
     } catch(e) { toast('❌ Connect failed — check console','danger'); }
@@ -2659,60 +2185,124 @@ async function quickConnectDemo() {
     await loadConnectors(); await loadAll();
 }
 
-// ── Security demo view ───────────────────────────────────────────────────────
-async function loadDemo() {
-    if (!apiOnline) await checkHealth();
-    let apps = [];
-    try { const r = await fetch(`${API}/api/apps`); apps = await r.json(); } catch(_) {}
-    const bindable = (apps||[]).filter(a => a.governable && a.holds_key && !a.revoked);
-    const sel = document.getElementById('demo-app');
-    if (sel) sel.innerHTML = bindable.length
-        ? bindable.map(a => `<option value="${a.id}">${esc(a.name)} — ${esc(a.platform)}</option>`).join('')
-        : `<option value="">No governable connections — connect the demo vendor first</option>`;
+// ── Gateway view (restored circuit-flow inline DPoP demo) ────────────────────
+const GW = { appId: null, last: null, busy: false, apps: [] };
+
+// circuit glyph — closed=bound, open=bearer, broken=revoked (ported from 1 main)
+function circuit(state) {
+    const col = state === 'closed' ? 'var(--green)' : state === 'broken' ? 'var(--red-bright)' : 'var(--amber)';
+    const mid = state === 'closed'
+        ? '<path d="M14 6 h5 a3 3 0 0 1 0 0 v0 a3 3 0 0 1 -6 0 a3 3 0 0 1 6 0 M19 6 h7" fill="none"/>'
+        : state === 'broken'
+        ? '<path d="M14 6 h3 M23 6 h3 M17 3 l3 6 M20 3 l-3 6" fill="none"/>'
+        : '<circle cx="16.5" cy="6" r="3" fill="none"/><circle cx="23.5" cy="6" r="3" fill="none"/>';
+    return `<svg class="circuit" viewBox="0 0 40 12" width="40" height="12" stroke="${col}" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M0 6 h13"/>${mid}<path d="M26 6 h14"/></svg>`;
 }
 
-async function runDemo(mode, kind) {
-    const sel = document.getElementById('demo-app'); const appId = sel && sel.value;
-    if (!appId) { toast('Connect the demo vendor first (Connectors → Quick-connect demo).','warn'); return; }
-    const res = document.getElementById('demo-result');
-    res.innerHTML = '<div style="padding:14px;color:var(--text-muted);font-size:12px">Running…</div>';
-    let url, label;
-    if (mode === 'legit')        { url = `${API}/api/simulate/legit/${appId}`;   label = 'Legit vendor request (signed DPoP proof)'; }
-    else if (mode === 'gateway') { url = `${API}/api/simulate/gateway/${appId}`; label = 'Routed through the inline Fuse gateway'; }
-    else                         { url = `${API}/api/simulate/attack/${appId}?kind=${kind}`; label = 'Attacker: ' + kind.replace('_',' '); }
-    let d = null;
-    try { const r = await fetch(url, {method:'POST'}); d = await r.json(); }
-    catch(e){ res.innerHTML = '<div style="padding:14px;color:var(--red-bright)">Request failed — is the demo connected?</div>'; return; }
-    renderDemoResult(label, mode, d);
+async function loadGateway() {
+    if (!apiOnline) await checkHealth();
+    try { const r = await fetch(`${API}/api/apps`); GW.apps = await r.json(); } catch(_) { GW.apps = []; }
+    renderGatewayDonut();
+    renderGateway();
+}
+
+function gwCandidates() { return (GW.apps||[]).filter(a => a.governable && a.holds_key && !a.revoked); }
+
+function gwNode(role, state, name, sub) {
+    const glyph = state === 'pass' ? circuit('closed') : (state === 'fail' || state === 'breach') ? circuit('broken') : circuit('open');
+    return `<div class="gw-node ${state}"><div class="gw-node-role">${esc(role)}</div>
+        <div class="gw-node-glyph">${glyph}</div><div class="gw-node-name">${esc(name)}</div>
+        <div class="gw-node-sub">${esc(sub)}</div></div>`;
+}
+function gwWire(state, label) {
+    return `<div class="gw-wire ${state}"><span class="gw-current"></span><span class="gw-wire-label">${esc(label)}</span></div>`;
+}
+
+function renderGateway() {
+    const host = document.getElementById('gateway-host');
+    if (!host) return;
+    const cands = gwCandidates();
+    if (!cands.length) {
+        host.innerHTML = `<div class="empty" style="color:var(--text-muted);padding:40px;text-align:center;border:1px dashed var(--border);border-radius:13px">
+            <b style="color:var(--text)">No bindable connection yet.</b><br>
+            Connect the Demo Vendor (Connectors → Quick-connect demo). The gateway only governs connections whose vendor holds a key.</div>`;
+        return;
+    }
+    if (!GW.appId || !cands.find(a => a.id === GW.appId)) GW.appId = cands[0].id;
+    const a = cands.find(x => x.id === GW.appId);
+    const L = GW.last;
+
+    let vState='idle', g='idle', coState='idle', w1='idle', w2='idle', vName=a.name, vSub='holds its private key';
+    if (L) {
+        if (L.actor === 'attacker') { vState='breach'; vName='Attacker'; vSub='has the stolen token, not the key'; }
+        else { vState='pass'; vSub='signed a fresh proof with its key'; }
+        w1='live';
+        if (L.reached_company) { g='pass'; coState='pass'; w2='pass'; }
+        else { g='fail'; coState='dark'; w2='broken'; }
+    }
+    const coSub = L ? (L.reached_company ? `returned ${L.count ?? '?'} records` : 'never reached — stopped at the gateway') : 'holds the sensitive data';
+    const gSub = L ? (L.reached_company ? 'proof verified · forwarded' : 'binding check tripped') : 'verifies the proof on every call';
+
+    const banner = L ? (L.reached_company
+        ? `<div class="gw-banner ok"><b>Verified at the gateway, then forwarded.</b> ${L.count ?? '?'} records reached the company. Every request that arrives here must carry a valid sender-bound proof.</div>`
+        : `<div class="gw-banner bad"><b>Blocked at the gateway — ${esc(L.reason||'binding check failed')}.</b> The company was never touched. A stolen token alone is useless here.</div>`)
+        : `<div class="gw-banner idle">Pick a run below. The vendor's request travels <em>through Fuse</em>; only proofs signed by the bound key get forwarded.</div>`;
+
+    const checks = (L && L.checks && L.checks.length)
+        ? `<div class="gw-checks">${L.checks.map(c => `<div class="gw-check ${c.ok?'ok':'bad'}"><span class="gw-tick">${c.ok?'✓':'✕'}</span><span class="gw-cname">${esc(c.name)}</span><span class="gw-cdetail">${esc(c.detail||'')}</span></div>`).join('')}</div>`
+        : `<div style="padding:8px 2px;color:var(--text-muted);font-size:12px">Run a request to see each binding gate light up.</div>`;
+
+    const disabled = GW.busy ? 'disabled' : '';
+    host.innerHTML = `
+        <div class="gw-bar">
+            <div class="gw-pick"><label>Connection</label>
+                <select class="settings-select" onchange="gwSelect(this.value)">
+                    ${cands.map(c => `<option value="${c.id}" ${c.id===GW.appId?'selected':''}>${esc(c.name)} · ${esc(c.platform)}</option>`).join('')}
+                </select></div>
+            <div class="gw-pick gw-bindrow"><label>Require binding</label>
+                <div class="gw-toggle ${a.bound?'on':''}" onclick="gwBind('${a.id}',${!a.bound})" title="The gateway rejects any token that isn't sender-bound"></div>
+                <span class="gw-bindnote">${a.bound?'enforced':'off — gateway will reject as "not sender-bound"'}</span></div>
+        </div>
+        <div class="gw-actions">
+            <button class="demo-btn good" ${disabled} onclick="gwLegit('${a.id}')">Run legit request</button>
+            <span class="gw-atk-label">Attacker runs →</span>
+            <button class="demo-btn bad" ${disabled} onclick="gwAttack('${a.id}','bearer_replay')">Replay stolen token</button>
+            <button class="demo-btn bad" ${disabled} onclick="gwAttack('${a.id}','forged_proof')">Forge a proof</button>
+            <button class="demo-btn bad" ${disabled} onclick="gwAttack('${a.id}','proof_replay')">Replay captured proof</button>
+        </div>
+        ${a.bound ? '' : `<div class="gw-offnote">Binding is off for this connection, so the gateway will reject even the legit run as "not sender-bound." Turn on <b>Require binding</b> above to forward it.</div>`}
+        <div class="gw-flow">
+            ${gwNode('Vendor', vState, vName, vSub)}
+            ${gwWire(w1, 'signed request')}
+            ${gwNode('Fuse gateway', g, 'Fuse', gSub)}
+            ${gwWire(w2, L && !L.reached_company ? 'stopped' : 'forwarded')}
+            ${gwNode('Company', coState, 'Company API', coSub)}
+        </div>
+        ${banner}
+        <div class="gw-checks-head">Gateway checks${L?` · ${L.reached_company?'all passed':'stopped at first failure'}`:''}</div>
+        ${checks}`;
+}
+
+const gwSelect = id => { GW.appId = id; GW.last = null; renderGateway(); };
+async function gwBind(id, on) {
+    await fetch(`${API}/api/apps/${id}/policy`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({binding_required:on})});
+    GW.last = null;
+    await loadGateway();
     loadSessions();
 }
-
-function renderDemoResult(label, mode, d) {
-    const data = d.data || d;                 // legit/attack nest under .data; gateway is flat
-    const checks = data.checks || d.checks || [];
-    const reason = data.reason || d.reason;
-    const reached = (data.reached_company !== undefined) ? data.reached_company : undefined;
-    let verdict, color;
-    if (mode === 'attack') {
-        const breach = !!data.allowed;
-        verdict = breach ? 'BREACH — data exfiltrated' : 'BLOCKED';
-        color = breach ? 'var(--red-bright)' : 'var(--green)';
-    } else {
-        const allowed = (d.ok === true) || (data.allowed === true) || reached === true;
-        verdict = allowed ? 'ALLOWED' : 'DENIED';
-        color = allowed ? 'var(--green)' : 'var(--amber)';
-    }
-    const showCount = (data.count !== undefined && verdict === 'ALLOWED');
-    document.getElementById('demo-result').innerHTML = `
-        <div style="margin-top:8px;padding:14px;border-radius:10px;border:1px solid ${color};background:rgba(255,255,255,.02)">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <strong style="font-size:13px">${esc(label)}</strong>
-                <span style="font-weight:800;color:${color}">${esc(verdict)}</span>
-            </div>
-            ${reason?`<div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">${esc(reason)}</div>`:''}
-            ${showCount?`<div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">${data.count} records returned${reached?' · reached company':''}</div>`:''}
-            <div class="checks-grid">${checks.map(c=>`<div class="check-line"><span class="${c.ok?'check-ok':'check-bad'}">${c.ok?'✓':'✗'}</span><span>${esc(c.name)}${c.detail?' — '+esc(c.detail):''}</span></div>`).join('')}</div>
-        </div>`;
+async function gwRun(url) {
+    GW.busy = true; renderGateway();
+    try { const r = await fetch(url, {method:'POST'}); GW.last = await r.json(); }
+    catch(_) { GW.last = { reached_company:false, reason:'request failed', checks:[] }; }
+    finally { GW.busy = false; }
+    // ensure actor flag for styling on attacks
+    renderGateway();
+    loadSessions();
+}
+async function gwLegit(id) { await gwRun(`${API}/api/simulate/gateway/${id}`); }
+function gwAttack(id, kind) {
+    // mark the run as an attacker run for the circuit (server reply also carries actor)
+    return gwRun(`${API}/api/simulate/gateway-attack/${id}?kind=${kind}`);
 }
 </script>
 </body>
