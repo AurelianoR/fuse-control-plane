@@ -1,0 +1,2719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuse | Multi-Cloud Governance Control Plane</title>
+    <meta name="description" content="Fuse — real-time multi-cloud identity brokering, token usage visibility and compliance governance across AWS, Azure and GCP.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* ── Reset & Base ─────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg:          #0b0f1a;
+            --surface:     #111827;
+            --surface2:    #1a2235;
+            --surface3:    #1f2d44;
+            --border:      #1e2d45;
+            --border2:     #2d3f5c;
+            --text:        #e2e8f0;
+            --text-muted:  #64748b;
+            --text-dim:    #94a3b8;
+            --blue:        #3b82f6;
+            --blue-bright: #60a5fa;
+            --green:       #22c55e;
+            --amber:       #f59e0b;
+            --red:         #ef4444;
+            --red-bright:  #f87171;
+            --purple:      #a855f7;
+            --aws:         #FF9900;
+            --azure:       #0089D6;
+            --gcp:         #EA4335;
+            --sidebar-w:   260px;
+        }
+
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ── Scrollbar ────────────────────────────────────────────────── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+        /* ── Sidebar ──────────────────────────────────────────────────── */
+        #sidebar {
+            width: var(--sidebar-w);
+            min-width: var(--sidebar-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .sidebar-logo {
+            height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo-mark {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 13px; color: white;
+        }
+        .logo-text { font-weight: 800; font-size: 18px; letter-spacing: 3px; color: #60a5fa; }
+        .logo-ver  { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+        nav { flex: 1; padding: 16px 12px; }
+        .nav-section-label {
+            font-size: 10px; font-weight: 700;
+            color: var(--text-muted); letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 12px 4px;
+        }
+        .nav-link {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px; border-radius: 8px;
+            font-size: 13px; font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer; text-decoration: none;
+            transition: all 0.15s;
+            margin-bottom: 2px;
+        }
+        .nav-link:hover { background: var(--surface2); color: var(--text); }
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(59,130,246,0.18), rgba(59,130,246,0.05));
+            color: var(--blue-bright);
+            border-left: 2px solid var(--blue);
+            padding-left: 10px;
+        }
+        .nav-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .nav-badge {
+            margin-left: auto; font-size: 10px; font-weight: 700;
+            padding: 1px 6px; border-radius: 999px;
+            background: rgba(239,68,68,0.2); color: var(--red-bright);
+        }
+
+        /* ── API Status ───────────────────────────────────────────────── */
+        .api-status-bar {
+            margin: 0 12px 8px;
+            padding: 10px 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 11px;
+        }
+        .api-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+        .api-dot.online  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .api-dot.offline { background: var(--red); animation: pulse-dot 1.5s infinite; }
+        .api-dot.pending { background: var(--amber); }
+        @keyframes pulse-dot { 0%,100%{opacity:1}50%{opacity:.3} }
+
+        /* ── User card ────────────────────────────────────────────────── */
+        .user-card {
+            padding: 14px 16px;
+            border-top: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .user-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; color: white; flex-shrink: 0;
+        }
+        .user-name  { font-size: 12px; font-weight: 600; color: var(--text); }
+        .user-role  { font-size: 11px; color: var(--text-muted); }
+
+        /* ── Main layout ──────────────────────────────────────────────── */
+        #main { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+        /* ── Topbar ───────────────────────────────────────────────────── */
+        #topbar {
+            height: 64px; flex-shrink: 0;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+        .topbar-title { font-size: 16px; font-weight: 700; color: var(--text); }
+        .topbar-sub   { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+        .topbar-actions { display: flex; align-items: center; gap: 10px; }
+        .icon-btn {
+            width: 36px; height: 36px; border-radius: 8px;
+            background: var(--surface2); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--text-muted); position: relative;
+            transition: all 0.15s;
+        }
+        .icon-btn:hover { background: var(--surface3); color: var(--text); }
+        .icon-btn svg { width: 16px; height: 16px; }
+        .alert-pip {
+            position: absolute; top: 6px; right: 6px;
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--red); border: 1.5px solid var(--surface);
+            animation: pulse-dot 1.5s infinite;
+        }
+        .topbar-user {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: 8px;
+            background: var(--surface2); border: 1px solid var(--border);
+            font-size: 12px; color: var(--text-dim);
+        }
+        .online-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+
+        /* ── Scrollable content area ──────────────────────────────────── */
+        #content { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+        /* ── Section title ────────────────────────────────────────────── */
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .section-title { font-size: 13px; font-weight: 700; color: var(--text-dim); letter-spacing: .5px; text-transform: uppercase; }
+        .section-action {
+            font-size: 11px; color: var(--blue); cursor: pointer; font-weight: 600;
+        }
+        .section-action:hover { color: var(--blue-bright); }
+
+        /* ── Grid helpers ─────────────────────────────────────────────── */
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+        /* ── Cards ────────────────────────────────────────────────────── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card-sm { padding: 16px; }
+
+        /* ── KPI Card ─────────────────────────────────────────────────── */
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative; overflow: hidden;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .kpi-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+        .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; }
+        .kpi-value { font-size: 36px; font-weight: 900; color: var(--text); margin: 8px 0 4px; line-height: 1; }
+        .kpi-sub   { font-size: 11px; color: var(--text-muted); }
+        .kpi-trend { position: absolute; top: 16px; right: 16px; }
+        .kpi-glow {
+            position: absolute; bottom: -20px; right: -20px;
+            width: 80px; height: 80px; border-radius: 50%; opacity: 0.06;
+            filter: blur(20px);
+        }
+        .kpi-border-azure { border-left: 3px solid var(--azure); }
+        .kpi-border-aws   { border-left: 3px solid var(--aws); }
+        .kpi-border-gcp   { border-left: 3px solid var(--gcp); }
+        .kpi-border-purple{ border-left: 3px solid var(--purple); }
+        .kpi-border-green { border-left: 3px solid var(--green); }
+
+        /* ── Donut chart ──────────────────────────────────────────────── */
+        .donut-ring { transform: rotate(-90deg); }
+        .donut-track { fill: none; stroke: var(--border2); stroke-width: 8; }
+        .donut-seg   { fill: none; stroke-width: 8; stroke-linecap: round;
+                       transition: stroke-dasharray 1s ease; }
+        .donut-label-val  { font-size: 18px; font-weight: 800; fill: var(--text); text-anchor: middle; }
+        .donut-label-sub  { font-size: 9px;  font-weight: 500; fill: var(--text-muted); text-anchor: middle; }
+
+        /* ── Provider badge ───────────────────────────────────────────── */
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 10px; border-radius: 999px;
+            font-size: 10px; font-weight: 700; letter-spacing: .6px;
+        }
+        .badge-aws   { background: rgba(255,153,0,.15); color: var(--aws); border: 1px solid rgba(255,153,0,.25); }
+        .badge-azure { background: rgba(0,137,214,.15); color: #38bdf8; border: 1px solid rgba(0,137,214,.25); }
+        .badge-gcp   { background: rgba(234,67,53,.15);  color: var(--red-bright); border: 1px solid rgba(234,67,53,.25); }
+
+        /* ── Risk chip ────────────────────────────────────────────────── */
+        .risk-low    { background: rgba(34,197,94,.12);  color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
+        .risk-medium { background: rgba(245,158,11,.12); color: #fbbf24; border: 1px solid rgba(245,158,11,.2); }
+        .risk-high   { background: rgba(239,68,68,.12);  color: var(--red-bright); border: 1px solid rgba(239,68,68,.2); }
+        .risk-critical { background: rgba(239,68,68,.2); color: var(--red-bright); border: 1px solid var(--red); font-weight: 800; }
+
+        /* ── Usage bar ────────────────────────────────────────────────── */
+        .usage-track { height: 5px; border-radius: 999px; background: var(--surface3); overflow: hidden; }
+        .usage-fill  { height: 100%; border-radius: 999px; transition: width .8s ease; }
+        .usage-low   { background: linear-gradient(90deg, #22c55e, #4ade80); }
+        .usage-med   { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .usage-high  { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+        /* ── Compliance meter ─────────────────────────────────────────── */
+        .meter-bar { height: 8px; border-radius: 999px; background: var(--surface3); overflow: hidden; margin: 6px 0; }
+        .meter-fill { height: 100%; border-radius: 999px; transition: width 1s ease; }
+
+        /* ── Table ────────────────────────────────────────────────────── */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th {
+            font-size: 10px; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: .8px;
+            padding: 10px 16px; text-align: left;
+            border-bottom: 1px solid var(--border); white-space: nowrap;
+        }
+        .data-table td {
+            padding: 13px 16px; vertical-align: middle;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px; color: var(--text);
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: rgba(30,45,68,.5); }
+        .data-table .row-revoked td { opacity: .35; text-decoration: line-through; pointer-events: none; }
+        .data-table tr.crit-row td { background: rgba(239,68,68,.04); }
+
+        /* ── Scope pill ───────────────────────────────────────────────── */
+        .scope-pill {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px; font-weight: 600;
+            background: var(--surface3);
+            color: var(--text-dim);
+            padding: 3px 8px; border-radius: 5px;
+            display: inline-block; max-width: 200px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .scope-pill.danger { background: rgba(239,68,68,.12); color: var(--red-bright); }
+
+        /* ── Expire text ──────────────────────────────────────────────── */
+        .exp-ok     { color: var(--green); font-weight: 600; }
+        .exp-soon   { color: var(--amber); font-weight: 600; }
+        .exp-static { color: var(--red-bright); font-weight: 700; animation: pulse-dot 2s infinite; }
+
+        /* ── Action btn ───────────────────────────────────────────────── */
+        .act-btn {
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            padding: 4px 0; border: none; background: none; transition: .15s;
+        }
+        .act-manage     { color: var(--blue); }
+        .act-manage:hover { color: var(--blue-bright); }
+        .act-investigate { color: var(--red-bright); }
+        .act-investigate:hover { color: white; }
+
+        /* ── Critical pulse dot ───────────────────────────────────────── */
+        @keyframes pulse-glow {
+            0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}
+            50%{box-shadow:0 0 0 5px rgba(239,68,68,0)}
+        }
+        .crit-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--red); margin-right: 6px; animation: pulse-glow 2s infinite; flex-shrink: 0; }
+
+        /* ── Filter buttons ───────────────────────────────────────────── */
+        .filter-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .filter-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; margin-right: 4px; }
+        .flt-btn {
+            font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 999px; cursor: pointer;
+            border: 1px solid var(--border2); background: var(--surface2);
+            color: var(--text-muted); transition: all .15s;
+        }
+        .flt-btn:hover { color: var(--text); border-color: var(--blue); }
+        .flt-btn.active { background: var(--blue); border-color: var(--blue); color: white; }
+        .flt-btn.active-aws  { background: rgba(255,153,0,.2); border-color: var(--aws); color: var(--aws); }
+        .flt-btn.active-azure{ background: rgba(0,137,214,.2); border-color: var(--azure); color: #38bdf8; }
+        .flt-btn.active-gcp  { background: rgba(234,67,53,.2); border-color: var(--gcp); color: var(--red-bright); }
+        .flt-btn.active-crit { background: rgba(239,68,68,.2); border-color: var(--red); color: var(--red-bright); }
+
+        /* ── Side panel ───────────────────────────────────────────────── */
+        #side-panel, #compliance-side-panel {
+            position: fixed; top: 0; right: 0; height: 100%;
+            width: 400px;
+            background: var(--surface);
+            border-left: 1px solid var(--border2);
+            display: flex; flex-direction: column;
+            transform: translateX(100%);
+            transition: transform .3s cubic-bezier(.4,0,.2,1);
+            z-index: 200;
+        }
+        #side-panel.open, #compliance-side-panel.open { transform: translateX(0); }
+        #panel-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,.5);
+            backdrop-filter: blur(2px); z-index: 199;
+            opacity: 0; pointer-events: none; transition: opacity .3s;
+        }
+        #panel-backdrop.show { opacity: 1; pointer-events: all; }
+
+        .panel-header {
+            padding: 20px 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .panel-body { flex: 1; overflow-y: auto; padding: 24px; }
+        .panel-footer { padding: 20px 24px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+        .field-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+        .field-value { font-size: 14px; color: var(--text); font-weight: 600; }
+
+        .panel-divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+        .crit-banner {
+            background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
+            border-radius: 10px; padding: 14px 16px;
+            display: flex; gap: 12px; align-items: flex-start;
+        }
+        .crit-banner svg { color: var(--red-bright); flex-shrink: 0; margin-top: 1px; width: 18px; height: 18px; }
+
+        .revoke-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white; font-size: 13px; font-weight: 800;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            border: none; border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 20px rgba(220,38,38,.4);
+            transition: all .2s;
+        }
+        .revoke-btn:hover { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 6px 28px rgba(220,38,38,.6); transform: translateY(-1px); }
+        .revoke-btn:active { transform: scale(.98); }
+        .revoke-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+        /* ── Toast ────────────────────────────────────────────────────── */
+        #toast-host {
+            position: fixed; bottom: 28px; left: 50%;
+            transform: translateX(-50%); z-index: 999;
+            display: flex; flex-direction: column; gap: 8px; align-items: center;
+            pointer-events: none;
+        }
+        .toast {
+            padding: 10px 20px; border-radius: 10px;
+            font-size: 13px; font-weight: 600;
+            box-shadow: 0 8px 32px rgba(0,0,0,.4);
+            opacity: 0; transform: translateY(12px);
+            transition: all .3s; pointer-events: auto; white-space: nowrap;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .t-success { background: #166534; color: #4ade80; border: 1px solid #15803d; }
+        .t-danger  { background: #7f1d1d; color: var(--red-bright); border: 1px solid #991b1b; }
+        .t-info    { background: #1e3a5f; color: #60a5fa; border: 1px solid #1d4ed8; }
+        .t-warn    { background: #78350f; color: #fbbf24; border: 1px solid #92400e; }
+
+        /* ── Skeleton ─────────────────────────────────────────────────── */
+        @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+        .skel {
+            background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+            background-size: 400px 100%; animation: shimmer 1.4s infinite; border-radius: 6px;
+        }
+
+        /* ── Audit log ────────────────────────────────────────────────── */
+        .audit-entry {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px; color: var(--text-muted);
+            padding: 8px 12px; border-radius: 6px;
+            background: var(--surface2); margin-bottom: 6px;
+            border-left: 2px solid var(--red);
+        }
+
+        /* ── Compliance legend ────────────────────────────────────────── */
+        .comp-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .comp-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateX(4px);
+        }
+        .comp-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .comp-name { font-size: 12px; font-weight: 700; color: var(--text); }
+        .comp-sub  { font-size: 10px; color: var(--text-muted); }
+
+        /* ── Trend chip ───────────────────────────────────────────────── */
+        .trend-up   { font-size: 10px; font-weight: 700; color: var(--green); }
+        .trend-down { font-size: 10px; font-weight: 700; color: var(--red-bright); }
+        .trend-flat { font-size: 10px; font-weight: 700; color: var(--text-muted); }
+
+        /* ── Empty state ──────────────────────────────────────────────── */
+        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px; }
+
+        /* ── Settings styles ──────────────────────────────────────────── */
+        .settings-container { max-width: 800px; margin: 0 auto; }
+        .settings-input, .settings-select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            width: 100%;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            margin-top: 6px;
+            box-sizing: border-box;
+        }
+        .settings-input:focus, .settings-select:focus {
+            border-color: var(--blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .settings-label {
+            font-size: 11px; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: .8px;
+            display: block; margin-top: 14px;
+        }
+        .settings-checkbox-container {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-radius: 8px;
+            background: var(--surface2); border: 1px solid var(--border);
+            cursor: pointer; transition: all 0.15s;
+        }
+        .settings-checkbox-container:hover {
+            border-color: var(--border2);
+            background: var(--surface3);
+        }
+        .settings-checkbox-container input {
+            width: 16px; height: 16px; accent-color: var(--blue);
+            cursor: pointer;
+        }
+        .settings-checkbox-container span {
+            font-size: 13px; color: var(--text); font-weight: 500;
+        }
+        .settings-section-title {
+            font-size: 14px; font-weight: 700; color: var(--blue-bright);
+            margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+        }
+        .settings-section {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 24px;
+        }
+        .settings-footer {
+            display: flex; justify-content: flex-end; margin-top: 8px; margin-bottom: 40px;
+        }
+        .settings-save-btn {
+            background: linear-gradient(135deg, var(--blue), #4f46e5);
+            color: white; font-size: 13px; font-weight: 700;
+            padding: 12px 28px; border: none; border-radius: 8px;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+        }
+        .settings-save-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            filter: brightness(1.1);
+        }
+        .settings-save-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ── Submenu styles ───────────────────────────────────────────── */
+        .settings-submenu {
+            display: none;
+            padding-left: 28px;
+            margin-bottom: 8px;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .settings-submenu.open {
+            display: flex;
+        }
+        .settings-sub-link {
+            font-size: 12px !important;
+            padding: 7px 12px !important;
+            color: var(--text-muted) !important;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            border-radius: 6px;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .settings-sub-link.active-sub {
+            color: var(--blue-bright) !important;
+            background: rgba(59, 130, 246, 0.08) !important;
+        }
+        .settings-sub-link:hover {
+            color: var(--text) !important;
+            background: var(--surface2) !important;
+        }
+        .settings-arrow {
+            margin-left: auto;
+            width: 10px; height: 10px;
+            transition: transform 0.2s ease;
+            color: var(--text-muted);
+        }
+        .settings-arrow.rotated {
+            transform: rotate(90deg);
+        }
+    </style>
+    <style>
+        /* ── Merge additions: real-domain provider badges + detail panel ──── */
+        .badge-github    { background: rgba(201,209,222,.14); color: #d7dde6; }
+        .badge-salesforce{ background: rgba(0,161,224,.16);  color: #58c4f5; }
+        .badge-saas      { background: rgba(168,85,247,.16);  color: #c084fc; }
+        .prov-dot.azure      { background: var(--azure); }
+        .prov-dot.github     { background: #c9d1d9; }
+        .prov-dot.salesforce { background: #00A1E0; }
+        .prov-dot.saas       { background: var(--purple); }
+
+        .risk-card { background: rgba(239,68,68,.06); border:1px solid rgba(239,68,68,.25);
+                     border-radius:10px; padding:14px; margin-bottom:16px; }
+        .sig-badges { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+        .sig-badge { font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px;
+                     background: rgba(245,158,11,.16); color:#fbbf24; text-transform:uppercase; letter-spacing:.4px; }
+        .sig-explain { font-size:11px; color:var(--text-dim); line-height:1.7; }
+        .sig-explain p { margin-bottom:4px; }
+        .detail-section { margin-bottom:18px; }
+        .detail-section h4 { font-size:11px; font-weight:700; color:var(--text-muted);
+                     text-transform:uppercase; letter-spacing:.7px; margin-bottom:8px; }
+        .dl-row { display:flex; justify-content:space-between; gap:10px; padding:5px 0;
+                  border-bottom:1px solid var(--border); font-size:12px; }
+        .dl-row:last-child { border-bottom:none; }
+        .dl-row dt { color:var(--text-muted); }
+        .dl-row dd { color:var(--text); text-align:right; font-family:'JetBrains Mono',monospace;
+                     font-size:11px; word-break:break-all; max-width:60%; }
+        .perm-row { display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12px;
+                    border-bottom:1px solid var(--border); }
+        .perm-row code { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim); }
+        .ev-row { padding:8px 0; border-bottom:1px solid var(--border); font-size:11px; }
+        .ev-row:last-child { border-bottom:none; }
+        .ev-meta { display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:3px; }
+        .ev-kind { font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+        .ev-allow  { color: var(--green); }
+        .ev-deny, .ev-blocked { color: var(--amber); }
+        .ev-breach, .ev-attack { color: var(--red-bright); }
+        .ev-revoke { color: var(--red-bright); }
+        .ev-policy, .ev-connector, .ev-sync { color: var(--blue-bright); }
+        .checks-grid { margin-top:6px; display:flex; flex-direction:column; gap:3px; }
+        .check-line { display:flex; gap:6px; font-size:10px; color:var(--text-muted); }
+        .check-ok { color: var(--green); }
+        .check-bad { color: var(--red-bright); }
+        .demo-btns { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+        .demo-btn { font-size:12px; font-weight:600; padding:8px 14px; border-radius:8px; cursor:pointer;
+                    border:1px solid var(--border2); background:var(--surface2); color:var(--text); }
+        .demo-btn:hover { border-color: var(--blue); }
+        .demo-btn.good { background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.4); color:#86efac; }
+        .demo-btn.bad  { background: rgba(239,68,68,.10); border-color: rgba(239,68,68,.35); color:#fca5a5; }
+        .conn-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px;
+                     padding:16px; display:flex; flex-direction:column; gap:8px; }
+        .conn-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+        .conn-on { background: var(--green); } .conn-off { background: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════ SIDEBAR ══════════════════════════════════════ -->
+<aside id="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-mark">F</div>
+        <div>
+            <div class="logo-text">FUSE</div>
+        </div>
+        <div class="logo-ver" style="margin-left:auto">v2.4</div>
+    </div>
+
+    <nav>
+        <div class="nav-section-label">Control Plane</div>
+        <a href="#" class="nav-link active" onclick="showView('dashboard', this);return false;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Dashboard
+        </a>
+        <a href="#" class="nav-link" onclick="showView('connectors', this);return false;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+            </svg>
+            Connectors
+        </a>
+        <a href="#" class="nav-link" onclick="showView('monitor', this);return false;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Token Monitor
+            <span class="nav-badge">grants</span>
+        </a>
+        <a href="#" class="nav-link" onclick="showView('security', this);return false;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Gateway
+            <span class="nav-badge">DPoP</span>
+        </a>
+        <a href="presentation.html" target="_blank" class="nav-link">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            Product Presentation ↗
+        </a>
+
+        <div class="nav-section-label" style="margin-top:12px">Admin</div>
+        <a href="#" class="nav-link" id="settings-nav-btn" onclick="toggleSettingsMenu(this);return false;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span>Settings</span>
+            <span class="settings-arrow" id="settings-arrow">▶</span>
+        </a>
+        <div class="settings-submenu" id="settings-submenu">
+            <a href="#" class="settings-sub-link" onclick="showSettingsSubView('token', this);return false;">
+                Token Configuration
+            </a>
+            <a href="#" class="settings-sub-link" onclick="showSettingsSubView('cloud', this);return false;">
+                Cloud Access Configuration
+            </a>
+            <a href="#" class="settings-sub-link" onclick="showSettingsSubView('compliance', this);return false;">
+                Compliance Configuration
+            </a>
+        </div>
+    </nav>
+
+    <!-- API Status -->
+    <div class="api-status-bar">
+        <span id="api-dot" class="api-dot pending"></span>
+        <span id="api-label" style="color:var(--text-muted)">Connecting to API…</span>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px;font-family:'JetBrains Mono',monospace" id="api-url-label">fuse · same-origin</div>
+    </div>
+
+    <!-- User -->
+    <div class="user-card">
+        <div class="user-avatar">SA</div>
+        <div>
+            <div class="user-name">SecOps Admin</div>
+            <div class="user-role">Cloud Governance Team</div>
+        </div>
+    </div>
+</aside>
+
+<!-- ══════════════════════ MAIN ═══════════════════════════════════════════ -->
+<div id="main">
+
+    <!-- Topbar -->
+    <header id="topbar">
+        <div>
+            <div class="topbar-title">Third-Party Token Governance</div>
+            <div class="topbar-sub" id="topbar-sub">See, monitor and lock down every vendor token — with sender-bound (DPoP) enforcement</div>
+        </div>
+        <div class="topbar-actions">
+            <div class="icon-btn" onclick="loadAll()" title="Refresh" id="refresh-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+            </div>
+            <div class="icon-btn" title="Alerts" onclick="toast('⚠ 1 critical risk alert — External Dev Agency static key.','warn')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="alert-pip" id="alert-pip"></span>
+            </div>
+            <div class="icon-btn" title="Export report" onclick="toast('📋 Report queued for export.','info')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <div class="topbar-user">
+                <span class="online-dot"></span>
+                Cloud SecOps Admin
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div id="content">
+        <div id="dashboard-view" class="view-panel">
+
+        <!-- ── Row 1: KPI Cards ──────────────────────────────────────── -->
+        <div class="section-header">
+            <div class="section-title">Live Session Overview</div>
+            <div class="section-action" id="last-updated">—</div>
+        </div>
+        <div class="grid-4" style="margin-bottom:24px">
+
+            <div class="kpi-card kpi-border-azure">
+                <div class="kpi-label">Azure / Entra Apps</div>
+                <div class="kpi-value" id="kpi-azure">—</div>
+                <div class="kpi-sub">Entra ID · Service Principals</div>
+                <div class="kpi-trend"><span class="trend-up" id="trend-azure">↑</span></div>
+                <div class="kpi-glow" style="background:var(--azure)"></div>
+            </div>
+
+            <div class="kpi-card kpi-border-aws">
+                <div class="kpi-label">GitHub Apps</div>
+                <div class="kpi-value" id="kpi-github">—</div>
+                <div class="kpi-sub">Installations · OAuth · PATs</div>
+                <div class="kpi-trend"><span class="trend-up" id="trend-github">↑</span></div>
+                <div class="kpi-glow" style="background:#c9d1d9"></div>
+            </div>
+
+            <div class="kpi-card kpi-border-gcp">
+                <div class="kpi-label">Bound Tokens</div>
+                <div class="kpi-value" style="color:var(--green)" id="kpi-bound">—</div>
+                <div class="kpi-sub">Sender-constrained (DPoP)</div>
+                <div class="kpi-trend"><span class="trend-flat" id="trend-bound">🔒</span></div>
+                <div class="kpi-glow" style="background:var(--green)"></div>
+            </div>
+
+            <div class="kpi-card kpi-border-purple">
+                <div class="kpi-label">High-Risk Connections</div>
+                <div class="kpi-value" style="color:var(--red-bright)" id="kpi-critical">—</div>
+                <div class="kpi-sub">Over-scoped, unbound or stale</div>
+                <div class="kpi-trend"><span class="trend-down" id="trend-crit">⚠</span></div>
+                <div class="kpi-glow" style="background:var(--red)"></div>
+            </div>
+        </div>
+
+        <!-- ── Row 2: Donut + Usage monitor + Compliance ────────────── -->
+        <div class="grid-3" style="margin-bottom:24px">
+
+            <!-- Donut: Short-lived tokens -->
+            <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px">Token Binding Posture</div>
+                <svg width="130" height="130" viewBox="0 0 100 100">
+                    <g class="donut-ring">
+                        <circle class="donut-track" cx="50" cy="50" r="36"/>
+                        <!-- bound: green -->
+                        <circle id="donut-seg-bound" class="donut-seg" cx="50" cy="50" r="36" stroke="#22c55e"
+                            stroke-dasharray="0 100" stroke-dashoffset="0"/>
+                        <!-- bearer (governable, unbound): amber -->
+                        <circle id="donut-seg-bearer" class="donut-seg" cx="50" cy="50" r="36" stroke="#f59e0b"
+                            stroke-dasharray="0 100" stroke-dashoffset="0"/>
+                        <!-- visibility-only bearer: red -->
+                        <circle id="donut-seg-stale" class="donut-seg" cx="50" cy="50" r="36" stroke="#ef4444"
+                            stroke-dasharray="0 100" stroke-dashoffset="0"/>
+                    </g>
+                    <text x="50" y="46" class="donut-label-val" id="donut-val">—</text>
+                    <text x="50" y="57" class="donut-label-sub">BOUND</text>
+                </svg>
+                <div style="display:flex;gap:16px;margin-top:12px">
+                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted)">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e"></span> Bound
+                    </div>
+                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted)">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b"></span> Bearer
+                    </div>
+                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted)">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444"></span> Visibility
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Token Usage Monitor -->
+            <div class="card" style="grid-column: span 1">
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px">
+                    Risk Exposure
+                    <span style="font-size:10px;color:var(--text-muted);font-weight:400;margin-left:6px;text-transform:none">per connection</span>
+                </div>
+                <div id="usage-bars-panel" style="display:flex;flex-direction:column;gap:12px">
+                    <div class="skel" style="height:38px"></div>
+                    <div class="skel" style="height:38px"></div>
+                    <div class="skel" style="height:38px"></div>
+                </div>
+            </div>
+
+            <!-- Compliance status -->
+            <div class="card">
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px">Compliance Posture</div>
+                <div id="dashboard-compliance-list" style="display:flex; flex-direction:column; gap:12px;">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Row 3: Main table ──────────────────────────────────────── -->
+        <div class="section-header">
+            <div class="section-title">Discovered Connections</div>
+            <span style="font-size:11px;color:var(--text-muted)"><span id="row-count">—</span> connections</span>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <span class="filter-label">Filter:</span>
+            <button class="flt-btn active" id="flt-all"      onclick="applyFilter('all',this)">All</button>
+            <button class="flt-btn" id="flt-azure"   onclick="applyFilter('azure',this)">
+                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--azure);margin-right:4px;vertical-align:middle"></span>Azure
+            </button>
+            <button class="flt-btn" id="flt-github"     onclick="applyFilter('github',this)">
+                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#c9d1d9;margin-right:4px;vertical-align:middle"></span>GitHub
+            </button>
+            <button class="flt-btn" id="flt-salesforce"     onclick="applyFilter('salesforce',this)">
+                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#00A1E0;margin-right:4px;vertical-align:middle"></span>Salesforce
+            </button>
+            <button class="flt-btn" id="flt-critical" onclick="applyFilter('critical',this)">⚠ High-Risk Only</button>
+        </div>
+
+        <div class="card card-sm" style="padding:0;overflow:hidden;margin-bottom:24px">
+            <div style="overflow-x:auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Vendor / App</th>
+                            <th>Platform</th>
+                            <th>Source</th>
+                            <th>Scope</th>
+                            <th>Risk Exposure</th>
+                            <th>Token Lifetime</th>
+                            <th>Risk</th>
+                            <th style="text-align:right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessions-tbody">
+                        <tr>
+                            <td colspan="8">
+                                <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;color:var(--text-muted);font-size:13px">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:spin .8s linear infinite">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                    Loading connections…
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="empty-state" class="empty-state" style="display:none">
+                    <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--border2);margin:0 auto 10px">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    No integrations match the current filter.
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Row 4: Audit log ───────────────────────────────────────── -->
+        <div class="section-header">
+            <div class="section-title">Activity & Audit Log</div>
+            <div class="section-action" onclick="loadAudit()">Refresh</div>
+        </div>
+        <div class="card" style="margin-bottom:24px">
+            <div id="audit-log-panel">
+                <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px">
+                    No revocations recorded this session.
+                </div>
+            </div>
+        </div><!-- /card -->
+    </div><!-- /dashboard-view -->
+
+
+        <!-- ── Settings View ─────────────────────────────────────────── -->
+        <div id="settings-view" class="view-panel" style="display: none;">
+            <div class="settings-container">
+                <div class="section-header">
+                    <div class="section-title" style="font-size:16px;" id="settings-title">System Governance Settings</div>
+                </div>
+
+                <!-- Section 1: Token Configuration -->
+                <div id="settings-token-view" class="settings-sub-view" style="display: block;">
+                    <div class="settings-section">
+                        <div class="settings-section-title">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle; margin-right:4px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            Token Governance Policy
+                        </div>
+                        <div class="grid-2">
+                            <div>
+                                <label class="settings-label">Token Lifespan (Minutes)</label>
+                                <input type="number" id="token-ttl" min="1" max="60" class="settings-input" value="5">
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Short lifetimes mitigate token-replay windows drastically.</div>
+                            </div>
+                            <div>
+                                <label class="settings-label">Allowed Scopes (Comma-separated)</label>
+                                <input type="text" id="token-scopes" class="settings-input" placeholder="read-only contacts, user-profile">
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Restricts maximum privilege boundaries for brokered tokens.</div>
+                            </div>
+                        </div>
+                        <div class="grid-2" style="margin-top:16px;">
+                            <div>
+                                <label class="settings-label">Max Token Usage Limit</label>
+                                <input type="number" id="token-max-usage" min="1" class="settings-input" value="1000">
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Defines maximum requests allowed per token session.</div>
+                            </div>
+                            <div style="display: flex; align-items: center; padding-top: 14px;">
+                                <label class="settings-checkbox-container" style="margin-bottom:0; width: 100%;">
+                                    <input type="checkbox" id="token-sender-binding">
+                                    <span>Enforce Sender Binding (DPoP)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-footer">
+                        <button onclick="saveAllSettings('token')" class="settings-save-btn">
+                            Save Token Policy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Section 2: Cloud Infrastructure Environments -->
+                <div id="settings-cloud-view" class="settings-sub-view" style="display: none;">
+                    <div class="settings-section">
+                        <div class="settings-section-title">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle; margin-right:4px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                            </svg>
+                            Cloud Environment Access Boundary
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:16px;">
+                            <div class="grid-2">
+                                <div>
+                                    <label class="settings-label">Provider</label>
+                                    <select id="cloud-provider" class="settings-select" onchange="updateCloudFormFields()">
+                                        <option value="Azure">Microsoft Azure</option>
+                                        <option value="AWS">Amazon Web Services (AWS)</option>
+                                        <option value="GCP">Google Cloud Platform (GCP)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="settings-label">Environment Type</label>
+                                    <select id="cloud-env-type" class="settings-select">
+                                        <option value="Production">Production</option>
+                                        <option value="Staging">Staging</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="cloud-credentials-container">
+                                <!-- Dynamic credentials form inputs based on selected provider -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-footer">
+                        <button onclick="saveAllSettings('cloud')" class="settings-save-btn">
+                            Connect Cloud Boundary
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Section 3: Regulatory & Compliance Frameworks -->
+                <div id="settings-compliance-view" class="settings-sub-view" style="display: none;">
+                    <div class="settings-section">
+                        <div class="settings-section-title">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle; margin-right:4px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                            Regulatory & Framework Compliance
+                        </div>
+                        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                            Select security controls and framework requirements for verification:
+                        </div>
+                        <div class="grid-2" style="gap:16px;" id="compliance-checkboxes-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        
+                        <!-- Research & Add Framework Section -->
+                        <div style="margin-top:24px; border-top:1px solid var(--border); padding-top:20px;">
+                            <label class="settings-label">Research & Add Regulatory Framework</label>
+                            <div style="display:flex; gap:12px; margin-top:8px;">
+                                <input type="text" id="new-framework-name" class="settings-input" style="flex:1;" placeholder="e.g. HIPAA, PCI-DSS, GDPR, SOC2">
+                                <button type="button" onclick="researchAndAddFramework()" class="settings-save-btn" style="white-space:nowrap; margin-top:0; width:auto; padding: 0 16px;">
+                                    🔍 Research & Add
+                                </button>
+                            </div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
+                                Submits the framework name to the AI compliance analyzer to map core controls and score compliance postures.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-footer">
+                        <button onclick="saveAllSettings('compliance')" class="settings-save-btn">
+                            Save Compliance Policy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Tokens View ───────────────────────────────────────────── -->
+        <div id="tokens-view" class="view-panel" style="display:none">
+            <div class="section-header">
+                <div class="section-title">Tokens</div>
+                <span style="font-size:11px;color:var(--text-muted)"><span id="tok-count">—</span> tokens · <span class="section-action" onclick="loadTokens()">Refresh</span></span>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:820px;line-height:1.7">
+                Every token Fuse can see: the short-lived <strong style="color:var(--green)">bound</strong> tokens Fuse
+                issues (sender-constrained with DPoP) and the real <strong style="color:var(--amber)">bearer</strong>
+                tokens connectors surface — GitHub installation tokens, Azure Graph tokens. Bound = a stolen copy is
+                useless; bearer = stealable. Click a row to open its monitoring detail.
+            </div>
+            <div class="filter-bar">
+                <span class="filter-label">Filter:</span>
+                <button class="flt-btn active" id="tflt-all"     onclick="applyTokenFilter('all',this)">All</button>
+                <button class="flt-btn" id="tflt-bound"   onclick="applyTokenFilter('bound',this)">🔒 Bound</button>
+                <button class="flt-btn" id="tflt-bearer"  onclick="applyTokenFilter('bearer',this)">Bearer</button>
+                <button class="flt-btn" id="tflt-revoked" onclick="applyTokenFilter('revoked',this)">Revoked / expired</button>
+            </div>
+            <div class="card card-sm" style="padding:0;overflow:hidden;margin-bottom:24px">
+                <div style="overflow-x:auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Token</th><th>Connection</th><th>Scope</th>
+                                <th>Kind</th><th>Binding</th><th>Status</th><th>TTL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tokens-tbody">
+                            <tr><td colspan="7" style="padding:28px;text-align:center;color:var(--text-muted);font-size:13px">No tokens yet — connect a source.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Token Monitor View (native grant inventory) ───────────── -->
+        <div id="monitor-view" class="view-panel" style="display:none">
+            <div class="section-header">
+                <div class="section-title">Token Monitor — Grant Inventory</div>
+                <span style="font-size:11px;color:var(--text-muted)"><span id="grant-count">—</span> grants</span>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;max-width:900px;line-height:1.7">
+                Every OAuth grant, app install, PAT and OAuth authorization — with the full detail showing
+                <strong style="color:var(--text)">when a token was last used, by whom, the consent chain,
+                publisher verification, permissions, and the change/event history</strong>. Click any row for its detail.
+            </div>
+            <div class="card" style="margin-bottom:16px">
+                <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
+                    <div style="min-width:200px">
+                        <label class="settings-label">Source</label>
+                        <select id="grant-tenant" class="settings-select" onchange="loadGrants()"></select>
+                    </div>
+                    <div>
+                        <label class="settings-label">Type</label>
+                        <select id="grant-type" class="settings-select" onchange="loadGrants()">
+                            <option value="">All</option><option value="application">Application</option><option value="delegated">Delegated</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="settings-label">Risk</label>
+                        <select id="grant-risk" class="settings-select" onchange="loadGrants()">
+                            <option value="">All</option>
+                            <option value="write-permissions">Write permissions</option>
+                            <option value="unverified-publisher">Unverified publisher</option>
+                            <option value="user-consented">User-consented</option>
+                            <option value="never-used">Never used</option>
+                            <option value="dormant">Dormant (&gt;90d)</option>
+                            <option value="all-repos">All repositories</option>
+                            <option value="never-reconfigured">Never reconfigured</option>
+                        </select>
+                    </div>
+                    <div style="flex:1;min-width:160px">
+                        <label class="settings-label">Search vendor</label>
+                        <input id="grant-search" class="settings-input" placeholder="vendor…" oninput="grantSearchDebounced()">
+                    </div>
+                    <label class="settings-checkbox-container" style="margin-bottom:6px">
+                        <input type="checkbox" id="grant-inactive" onchange="loadGrants()"><span>Include removed</span>
+                    </label>
+                </div>
+                <div id="grant-stats" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px"></div>
+            </div>
+            <div class="card card-sm" style="padding:0;overflow:hidden;margin-bottom:24px">
+                <div style="overflow-x:auto">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Vendor app</th><th>Type</th><th>Resource</th><th>Permissions</th>
+                            <th>Consent</th><th>Last used</th><th>Risk</th><th>First seen</th>
+                        </tr></thead>
+                        <tbody id="grants-tbody">
+                            <tr><td colspan="8" style="padding:28px;text-align:center;color:var(--text-muted);font-size:13px">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Connectors View ───────────────────────────────────────── -->
+        <div id="connectors-view" class="view-panel" style="display:none">
+            <div class="section-header">
+                <div class="section-title">Cloud Connectors</div>
+                <div class="section-action" onclick="quickConnectDemo()">⚡ Quick-connect demo</div>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:760px;line-height:1.7">
+                Connect a source of visibility. Nothing auto-registers — each connector prompts for its
+                own config and connects on demand. <strong style="color:var(--text)">Quick-connect demo</strong>
+                wires the bundled company (:8010) and vendor (:8020) so the dashboard fills instantly.
+            </div>
+            <div class="grid-3" id="connectors-grid" style="gap:16px;margin-bottom:24px">
+                <div class="skel" style="height:120px"></div>
+                <div class="skel" style="height:120px"></div>
+                <div class="skel" style="height:120px"></div>
+            </div>
+
+            <div class="section-header"><div class="section-title">Add a Source</div></div>
+            <div class="card" style="margin-bottom:24px">
+                <div class="grid-2" style="gap:16px;align-items:end">
+                    <div>
+                        <label class="settings-label">Connector type</label>
+                        <select id="conn-type" class="settings-select" onchange="renderConnectorForm()"></select>
+                    </div>
+                    <div></div>
+                </div>
+                <div id="conn-form" style="margin-top:16px"></div>
+                <div class="settings-footer">
+                    <button class="settings-save-btn" onclick="addConnector()">Connect source</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Security Demo View ─────────────────────────────────────── -->
+        <div id="security-view" class="view-panel" style="display:none">
+            <div class="section-header">
+                <div class="section-title">Gateway — Inline DPoP Enforcement</div>
+                <div class="section-action" onclick="loadDemo()">Refresh</div>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:820px;line-height:1.7">
+                Pick a governable, key-holding connection and run it for real. The legit vendor signs a
+                fresh DPoP proof and is <strong style="color:var(--green)">ALLOWED</strong>. Then play the
+                attacker: a stolen bearer, a forged proof, a replayed proof — all
+                <strong style="color:var(--red-bright)">DENIED</strong>. The legacy bypass shows the breach
+                as it happens today. Every run is verified by the real four-check binding verifier.
+            </div>
+            <div class="card" style="margin-bottom:20px">
+                <div class="grid-2" style="gap:16px;align-items:end">
+                    <div>
+                        <label class="settings-label">Connection</label>
+                        <select id="demo-app" class="settings-select"></select>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted)">
+                        Only governable, key-holding connections can be bound. Connect the demo vendor first.
+                    </div>
+                </div>
+                <div class="demo-btns">
+                    <button class="demo-btn good" onclick="runDemo('legit')">▶ Run vendor request</button>
+                    <button class="demo-btn" onclick="runDemo('gateway')">▶ Run via gateway</button>
+                    <button class="demo-btn bad" onclick="runDemo('attack','bearer_replay')">Replay stolen bearer</button>
+                    <button class="demo-btn bad" onclick="runDemo('attack','forged_proof')">Forge a proof</button>
+                    <button class="demo-btn bad" onclick="runDemo('attack','proof_replay')">Replay captured proof</button>
+                    <button class="demo-btn bad" onclick="runDemo('attack','legacy_bypass')">Legacy bypass (breach)</button>
+                </div>
+                <div id="demo-result"></div>
+            </div>
+        </div>
+
+    </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ══════════════════ SIDE PANEL ════════════════════════════════════════ -->
+<div id="panel-backdrop" onclick="closePanel()"></div>
+<div id="side-panel">
+    <div class="panel-header">
+        <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text)" id="p-title">Connection Details</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px" id="p-subtitle">Token monitoring &amp; revocation</div>
+        </div>
+        <button onclick="closePanel()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted)" aria-label="Close">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="panel-body" id="detail-body">
+        <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px">Loading details…</div>
+    </div>
+
+    <div class="panel-footer">
+        <button class="revoke-btn" id="revoke-btn" onclick="doRevoke()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+            </svg>
+            Revoke Access
+        </button>
+    </div>
+</div>
+
+<!-- ══════════════════ COMPLIANCE SIDE PANEL ════════════════════════════════ -->
+<div id="compliance-side-panel">
+    <div class="panel-header">
+        <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text)" id="c-panel-title">Revise Compliance Framework</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Modify framework compliance parameters & details</div>
+        </div>
+        <button onclick="closeCompliancePanel()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted)" aria-label="Close">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="panel-body">
+        <input type="hidden" id="c-framework-id">
+        <div style="margin-bottom:16px">
+            <div class="field-label">Framework Name</div>
+            <input type="text" id="c-framework-name" class="settings-input" style="font-weight:700; background:rgba(255,255,255,0.02); color:var(--text); cursor:not-allowed;" readonly>
+        </div>
+        <div style="margin-bottom:20px">
+            <div class="field-label" style="display:flex; justify-content:space-between;">
+                <span>Compliance Posture Score</span>
+                <span id="c-score-display" style="font-weight:700; color:var(--blue);">85%</span>
+            </div>
+            <input type="range" id="c-framework-score" min="0" max="100" class="settings-input" style="padding:0; height:6px; cursor:pointer;" oninput="document.getElementById('c-score-display').textContent = this.value + '%'">
+        </div>
+        <div style="margin-bottom:16px">
+            <div class="field-label">Framework Description / Key Controls</div>
+            <textarea id="c-framework-description" class="settings-input" style="height:100px; resize:vertical; font-family:inherit;" placeholder="Describe key controls, e.g. Access control, Audit logging..."></textarea>
+        </div>
+        <div style="margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="c-framework-enabled" style="cursor:pointer; width:16px; height:16px;">
+            <label for="c-framework-enabled" class="settings-label" style="margin-top:0; cursor:pointer; font-weight:normal;">Active on dashboard posture list</label>
+        </div>
+
+        <div class="panel-divider"></div>
+
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.8;margin-bottom:16px">
+            Revising this framework will update its compliance score and description details in the database.
+            The revised values will immediately render across all user dashboards.
+        </div>
+    </div>
+
+    <div class="panel-footer">
+        <button class="revoke-btn" id="save-revision-btn" onclick="submitComplianceRevision()" style="background:var(--blue); border-color:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Save Revision
+        </button>
+    </div>
+</div>
+
+<!-- Toast host -->
+<div id="toast-host"></div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────
+// Same-origin: the SPA is served by Fuse on :8000 and calls Fuse's own API.
+const API = '';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let sessions   = [];
+let revoked    = new Set();
+let curFilter  = 'all';
+let panelToken = null;
+let panelRow   = null;
+let apiOnline  = false;
+let activeRevisionFramework = null;
+let connectorTypes = [];
+
+// ── Small helpers ────────────────────────────────────────────────────────────
+function provColorOf(p) {
+    return p === 'azure' ? 'var(--azure)'
+         : p === 'github' ? '#c9d1d9'
+         : p === 'salesforce' ? '#00A1E0'
+         : 'var(--purple)';
+}
+function esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+const RISK_BADGE = { 'Low':'risk-low','Medium':'risk-medium','High':'risk-high','Critical':'risk-critical' };
+
+// ── Startup ────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+    updateCloudFormFields();
+    loadAll();
+    setInterval(loadAll, 10_000);
+});
+
+document.addEventListener('keydown', e => { 
+    if (e.key === 'Escape') {
+        closePanel(); 
+        closeCompliancePanel();
+    }
+});
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function setNav(el) {
+    document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+    el.classList.add('active');
+}
+
+function showView(viewId, el) {
+    setNav(el);
+    
+    // Collapse settings submenu if moving to other views
+    if (viewId !== 'settings') {
+        const sub = document.getElementById('settings-submenu');
+        const arrow = document.getElementById('settings-arrow');
+        if (sub) sub.classList.remove('open');
+        if (arrow) arrow.classList.remove('rotated');
+        document.querySelectorAll('.settings-sub-link').forEach(a => a.classList.remove('active-sub'));
+    }
+    
+    // Hide all view panels
+    document.querySelectorAll('.view-panel').forEach(panel => {
+        panel.style.display = 'none';
+    });
+    
+    // Show target view panel
+    const target = document.getElementById(viewId + '-view');
+    if (target) {
+        target.style.display = 'block';
+        if (viewId === 'settings')    loadSettings();
+        if (viewId === 'connectors')  loadConnectors();
+        if (viewId === 'security')    loadDemo();
+        if (viewId === 'tokens')      loadTokens();
+        if (viewId === 'monitor')     loadGrants();
+    }
+}
+
+// ── Settings Submenu & Subviews ─────────────────────────────────────────────
+function toggleSettingsMenu(el) {
+    const sub = document.getElementById('settings-submenu');
+    const arrow = document.getElementById('settings-arrow');
+    
+    if (sub) {
+        const isOpen = sub.classList.toggle('open');
+        if (arrow) arrow.classList.toggle('rotated', isOpen);
+        
+        // Go to settings view and default to Token subview if opening
+        showView('settings', el);
+        if (isOpen) {
+            const firstSubLink = sub.querySelector('.settings-sub-link');
+            if (firstSubLink) {
+                showSettingsSubView('token', firstSubLink);
+            }
+        }
+    }
+}
+
+function showSettingsSubView(subViewId, el) {
+    // Highlight sub-link
+    document.querySelectorAll('.settings-sub-link').forEach(a => a.classList.remove('active-sub'));
+    el.classList.add('active-sub');
+    
+    // Set active header settings button styling
+    const settingsBtn = document.getElementById('settings-nav-btn');
+    if (settingsBtn) {
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+        settingsBtn.classList.add('active');
+    }
+    
+    // Show settings view (main container)
+    document.querySelectorAll('.view-panel').forEach(panel => {
+        panel.style.display = 'none';
+    });
+    const mainSettings = document.getElementById('settings-view');
+    if (mainSettings) mainSettings.style.display = 'block';
+    
+    // Switch settings sub-views
+    document.querySelectorAll('.settings-sub-view').forEach(panel => {
+        panel.style.display = 'none';
+    });
+    const subPanel = document.getElementById(`settings-${subViewId}-view`);
+    if (subPanel) {
+        subPanel.style.display = 'block';
+    }
+    
+    // Set title header dynamically
+    const titleEl = document.getElementById('settings-title');
+    if (titleEl) {
+        if (subViewId === 'token') titleEl.textContent = 'Token Policy & Lifespan Governance';
+        else if (subViewId === 'cloud') titleEl.textContent = 'Cloud Infrastructure Access Boundaries';
+        else if (subViewId === 'compliance') titleEl.textContent = 'Regulatory & Compliance Frameworks';
+    }
+    
+    loadSettings();
+}
+
+// ── Settings Panel Integration ──────────────────────────────────────────────
+// ── Settings Panel Integration ──────────────────────────────────────────────
+function updateCloudFormFields() {
+    const provider = document.getElementById('cloud-provider').value;
+    const container = document.getElementById('cloud-credentials-container');
+    if (!container) return;
+    
+    if (provider === 'Azure') {
+        container.innerHTML = `
+            <div class="grid-2">
+                <div>
+                    <label class="settings-label">Directory (Tenant) ID</label>
+                    <input type="text" id="cloud-tenant" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
+                </div>
+                <div>
+                    <label class="settings-label">Application (Client) ID</label>
+                    <input type="text" id="cloud-client" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:16px;">
+                <div>
+                    <label class="settings-label">Subscription ID</label>
+                    <input type="text" id="cloud-subscription" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="00000000-0000-0000-0000-000000000000">
+                </div>
+                <div>
+                    <label class="settings-label">Client Secret</label>
+                    <input type="password" id="cloud-client-secret" class="settings-input" placeholder="••••••••••••••••••••">
+                </div>
+            </div>
+        `;
+    } else if (provider === 'AWS') {
+        container.innerHTML = `
+            <div class="grid-3">
+                <div>
+                    <label class="settings-label">Role ARN</label>
+                    <input type="text" id="cloud-aws-role-arn" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="arn:aws:iam::123456789012:role/FuseAccess">
+                </div>
+                <div>
+                    <label class="settings-label">Access Key ID</label>
+                    <input type="text" id="cloud-aws-access-key" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="AKIAIOSFODNN7EXAMPLE">
+                </div>
+                <div>
+                    <label class="settings-label">Secret Access Key</label>
+                    <input type="password" id="cloud-aws-secret-key" class="settings-input" placeholder="••••••••••••••••••••">
+                </div>
+            </div>
+        `;
+    } else if (provider === 'GCP') {
+        container.innerHTML = `
+            <div class="grid-2">
+                <div>
+                    <label class="settings-label">Project ID</label>
+                    <input type="text" id="cloud-gcp-project" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="my-gcp-project-123">
+                </div>
+                <div>
+                    <label class="settings-label">Client Email</label>
+                    <input type="text" id="cloud-gcp-email" class="settings-input" style="font-family:monospace; font-size:11px;" placeholder="fuse-sa@my-gcp-project-123.iam.gserviceaccount.com">
+                </div>
+            </div>
+            <div style="margin-top:16px;">
+                <label class="settings-label">Service Account JSON Private Key</label>
+                <textarea id="cloud-gcp-private-key" class="settings-input" rows="4" style="font-family:monospace; font-size:11px; resize:vertical;" placeholder='{ "type": "service_account", "private_key": "-----BEGIN PRIVATE KEY-----\\n..." }'></textarea>
+            </div>
+        `;
+    }
+}
+
+async function loadSettings() {
+    try {
+        const response = await fetch(`${API}/api/dashboard/settings`);
+        if (!response.ok) throw new Error("Failed to fetch settings");
+        
+        const result = await response.json();
+        if (result.status === "success") {
+            const data = result.data;
+            
+            // Populate Token Governance
+            if (data.token_governance) {
+                document.getElementById('token-ttl').value = data.token_governance.default_ttl_minutes || 5;
+                document.getElementById('token-scopes').value = (data.token_governance.allowed_scopes || []).join(', ');
+                document.getElementById('token-max-usage').value = data.token_governance.max_token_usage_limit || 1000;
+                document.getElementById('token-sender-binding').checked = !!data.token_governance.enforce_sender_binding;
+            }
+            
+            // Populate Compliance Framework Checkboxes dynamically
+            if (data.compliance && data.compliance.frameworks) {
+                const container = document.getElementById('compliance-checkboxes-container');
+                if (container) {
+                    container.innerHTML = '';
+                    data.compliance.frameworks.forEach(f => {
+                        const label = document.createElement('label');
+                        label.className = 'settings-checkbox-container';
+                        label.title = f.description;
+                        
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.name = 'frameworks';
+                        input.value = f.name;
+                        input.checked = f.enabled;
+                        
+                        const span = document.createElement('span');
+                        span.textContent = `${f.name} (${f.score}% Score)`;
+                        
+                        label.appendChild(input);
+                        label.appendChild(span);
+                        container.appendChild(label);
+                    });
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Failed to load settings:", error);
+    }
+}
+
+async function saveAllSettings(section) {
+    try {
+        if (section === 'token') {
+            const tokenData = {
+                default_ttl_minutes: parseInt(document.getElementById('token-ttl').value) || 5,
+                allowed_scopes: document.getElementById('token-scopes').value.split(',').map(s => s.trim()).filter(Boolean),
+                enforce_sender_binding: document.getElementById('token-sender-binding').checked,
+                max_token_usage_limit: parseInt(document.getElementById('token-max-usage').value) || 1000
+            };
+            
+            const rToken = await fetch(`${API}/api/dashboard/settings/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tokenData)
+            });
+            if (!rToken.ok) throw new Error("Failed to save token governance");
+            toast("🔑 Token governance policies saved successfully!", "success");
+        }
+        
+        else if (section === 'cloud') {
+            const provider = document.getElementById('cloud-provider').value;
+            const envType = document.getElementById('cloud-env-type').value;
+            let cloudData = {
+                provider: provider,
+                environment_type: envType
+            };
+            
+            if (provider === 'Azure') {
+                cloudData.tenant_id = document.getElementById('cloud-tenant').value.trim();
+                cloudData.client_id = document.getElementById('cloud-client').value.trim();
+                cloudData.subscription_id = document.getElementById('cloud-subscription').value.trim();
+                cloudData.client_secret = document.getElementById('cloud-client-secret').value.trim();
+                
+                if (!cloudData.tenant_id || !cloudData.client_id || !cloudData.subscription_id || !cloudData.client_secret) {
+                    toast("⚠ All Azure credentials (Tenant, Client, Subscription, Client Secret) are required.", "warn");
+                    return;
+                }
+            } else if (provider === 'AWS') {
+                cloudData.aws_role_arn = document.getElementById('cloud-aws-role-arn').value.trim();
+                cloudData.aws_access_key_id = document.getElementById('cloud-aws-access-key').value.trim();
+                cloudData.aws_secret_access_key = document.getElementById('cloud-aws-secret-key').value.trim();
+                
+                if (!cloudData.aws_role_arn || !cloudData.aws_access_key_id || !cloudData.aws_secret_access_key) {
+                    toast("⚠ All AWS credentials (Role ARN, Access Key, Secret Key) are required.", "warn");
+                    return;
+                }
+            } else if (provider === 'GCP') {
+                cloudData.gcp_project_id = document.getElementById('cloud-gcp-project').value.trim();
+                cloudData.gcp_client_email = document.getElementById('cloud-gcp-email').value.trim();
+                cloudData.gcp_private_key = document.getElementById('cloud-gcp-private-key').value.trim();
+                
+                if (!cloudData.gcp_project_id || !cloudData.gcp_client_email || !cloudData.gcp_private_key) {
+                    toast("⚠ All GCP credentials (Project ID, Client Email, Service Account JSON Key) are required.", "warn");
+                    return;
+                }
+            }
+            
+            const rCloud = await fetch(`${API}/api/dashboard/settings/cloud`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cloudData)
+            });
+            if (!rCloud.ok) throw new Error("Failed to connect cloud environment");
+            
+            toast(`🔗 Connected ${cloudData.provider} (${cloudData.environment_type}) environment successfully!`, "success");
+            
+            // Re-initialize dynamic form which also clears fields
+            updateCloudFormFields();
+        }
+        
+        else if (section === 'compliance') {
+            const checkedFrameworks = Array.from(document.querySelectorAll('input[name="frameworks"]:checked'))
+                                           .map(checkbox => checkbox.value);
+            const complianceData = {
+                enabled_frameworks: checkedFrameworks,
+                audit_logging_enabled: true,
+                fail_strategy: "fail-closed"
+            };
+            
+            const rComp = await fetch(`${API}/api/dashboard/settings/compliance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(complianceData)
+            });
+            if (!rComp.ok) throw new Error("Failed to save compliance configurations");
+            toast("📋 Regulatory framework compliance parameters updated successfully!", "success");
+        }
+        
+        // Reload settings fields
+        setTimeout(loadSettings, 500);
+        
+    } catch (error) {
+        console.error("Failed to apply settings configurations:", error);
+        toast("❌ Failed to save governance rules. Check console.", "danger");
+    }
+}
+
+async function researchAndAddFramework() {
+    const inputEl = document.getElementById('new-framework-name');
+    const name = inputEl.value.trim();
+    if (!name) {
+        toast("⚠ Please enter a framework name to research.", "warn");
+        return;
+    }
+    
+    try {
+        toast(`🔍 Researching and auditing controls for ${name}...`, "info");
+        const response = await fetch(`${API}/api/dashboard/settings/compliance/research`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name })
+        });
+        
+        if (!response.ok) throw new Error("Failed to research framework");
+        
+        const result = await response.json();
+        if (result.status === 'success') {
+            toast(`✅ ${result.message}`, "success");
+            inputEl.value = '';
+            // Reload settings to update checkboxes
+            loadSettings();
+        } else {
+            toast(`⚠ ${result.message || 'Error researching framework'}`, "warn");
+        }
+    } catch (error) {
+        console.error("Framework research error:", error);
+        toast("❌ Failed to research framework. Check console.", "danger");
+    }
+}
+
+// ── Compliance Dashboard Integration ───────────────────────────────────────
+function getScoreColors(score) {
+    if (score >= 85) {
+        return {
+            text: '#4ade80',
+            stroke: '#4ade80',
+            bg: 'rgba(74,222,128,.12)',
+            gradient: 'linear-gradient(90deg,#22c55e,#4ade80)'
+        };
+    } else if (score >= 70) {
+        return {
+            text: '#fbbf24',
+            stroke: '#fbbf24',
+            bg: 'rgba(245,158,11,.12)',
+            gradient: 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+        };
+    } else {
+        return {
+            text: '#f87171',
+            stroke: '#f87171',
+            bg: 'rgba(239,68,68,.12)',
+            gradient: 'linear-gradient(90deg,#ef4444,#f87171)'
+        };
+    }
+}
+
+function renderComplianceList(frameworks) {
+    const listContainer = document.getElementById('dashboard-compliance-list');
+    if (!listContainer) return;
+    
+    const enabledFrameworks = frameworks.filter(f => f.enabled);
+    if (enabledFrameworks.length === 0) {
+        listContainer.innerHTML = `
+            <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px 0">
+                No compliance frameworks enabled. Go to Settings > Compliance to configure.
+            </div>
+        `;
+        return;
+    }
+    
+    listContainer.innerHTML = '';
+    enabledFrameworks.forEach((f, index) => {
+        const colors = getScoreColors(f.score);
+        const compRow = document.createElement('div');
+        compRow.className = 'comp-row';
+        if (index === enabledFrameworks.length - 1) {
+            compRow.style.marginBottom = '0';
+        }
+        
+        compRow.innerHTML = `
+            <div class="comp-icon" style="background:${colors.bg}">
+                <svg width="16" height="16" fill="none" stroke="${colors.stroke}" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+            </div>
+            <div style="flex:1">
+                <div style="display:flex;justify-content:space-between">
+                    <div class="comp-name">${f.name}</div>
+                    <div style="font-size:11px;font-weight:700;color:${colors.text}">${f.score}%</div>
+                </div>
+                <div class="meter-bar"><div class="meter-fill" style="width:${f.score}%;background:${colors.gradient}"></div></div>
+                <div class="comp-sub">${f.description}</div>
+            </div>
+        `;
+        
+        compRow.onclick = () => {
+            openComplianceRevisionPanel(f);
+        };
+        
+        listContainer.appendChild(compRow);
+    });
+}
+
+function openComplianceRevisionPanel(framework) {
+    activeRevisionFramework = framework;
+    
+    document.getElementById('c-framework-id').value = framework.id || '';
+    document.getElementById('c-framework-name').value = framework.name || '';
+    document.getElementById('c-framework-score').value = framework.score || 70;
+    document.getElementById('c-score-display').textContent = (framework.score || 70) + '%';
+    document.getElementById('c-framework-description').value = framework.description || '';
+    document.getElementById('c-framework-enabled').checked = framework.enabled !== false;
+    
+    // Highlight compliance row
+    document.querySelectorAll('#dashboard-compliance-list .comp-row').forEach(r => r.style.outline = '');
+    const compRows = document.querySelectorAll('#dashboard-compliance-list .comp-row');
+    compRows.forEach(row => {
+        if (row.querySelector('.comp-name').textContent === framework.name) {
+            row.style.setProperty('outline', '2px solid var(--blue)');
+        }
+    });
+
+    document.getElementById('compliance-side-panel').classList.add('open');
+    document.getElementById('panel-backdrop').classList.add('show');
+}
+
+function closeCompliancePanel() {
+    document.getElementById('compliance-side-panel').classList.remove('open');
+    document.getElementById('panel-backdrop').classList.remove('show');
+    document.querySelectorAll('#dashboard-compliance-list .comp-row').forEach(r => r.style.outline = '');
+    activeRevisionFramework = null;
+}
+
+async function submitComplianceRevision() {
+    if (!activeRevisionFramework) return;
+    
+    const id = document.getElementById('c-framework-id').value;
+    const score = parseInt(document.getElementById('c-framework-score').value, 10);
+    const description = document.getElementById('c-framework-description').value;
+    const enabled = document.getElementById('c-framework-enabled').checked;
+    
+    const saveBtn = document.getElementById('save-revision-btn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+    
+    try {
+        if (apiOnline) {
+            const response = await fetch(`${API}/api/dashboard/settings/compliance/revise`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: parseInt(id, 10),
+                    score: score,
+                    description: description,
+                    enabled: enabled
+                })
+            });
+            if (!response.ok) throw new Error("Failed to save revision to server");
+            const result = await response.json();
+            if (result.status === 'success') {
+                toast("📋 Compliance framework revision saved successfully!", "success");
+            } else {
+                throw new Error(result.message || "Server error");
+            }
+        } else {
+            // Local mockup revision fallback
+            toast("📋 Mock framework revision saved locally (offline mode)!", "success");
+        }
+        
+        closeCompliancePanel();
+        await loadComplianceDashboard();
+        
+    } catch (error) {
+        console.error("Revision error:", error);
+        toast("❌ Failed to save compliance revision", "danger");
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+    }
+}
+
+function renderMockCompliance() {
+    const mockData = [
+        { name: "ISO/IEC 27001", description: "Access control · Audit logging", score: 94, enabled: true },
+        { name: "SOC 2 Type II", description: "Security · Availability · Confidentiality", score: 88, enabled: true },
+        { name: "NIST CSF 2.0", description: "Identify · Protect · Detect", score: 76, enabled: true },
+        { name: "CIS Cloud Benchmark", description: "IAM hardening gaps detected", score: 61, enabled: true }
+    ];
+    renderComplianceList(mockData);
+}
+
+async function loadComplianceDashboard() {
+    if (!apiOnline) {
+        renderMockCompliance();
+        return;
+    }
+    try {
+        const response = await fetch(`${API}/api/dashboard/settings`);
+        if (!response.ok) throw new Error("Failed to fetch settings");
+        const result = await response.json();
+        if (result.status === "success" && result.data && result.data.compliance) {
+            const frameworks = result.data.compliance.frameworks || [];
+            renderComplianceList(frameworks);
+        }
+    } catch (e) {
+        console.error("Error loading dashboard compliance:", e);
+        renderMockCompliance();
+    }
+}
+
+// ── Load everything ────────────────────────────────────────────────────────
+async function loadAll() {
+    const icon = document.getElementById('refresh-icon');
+    icon.querySelector('svg').style.animation = 'spin .8s linear infinite';
+
+    await checkHealth();
+    await loadSessions();
+    await loadAudit();
+    await loadComplianceDashboard();
+
+    icon.querySelector('svg').style.animation = '';
+    document.getElementById('last-updated').textContent =
+        'Updated ' + new Date().toLocaleTimeString();
+}
+
+// ── Health check ───────────────────────────────────────────────────────────
+async function checkHealth() {
+    const dot = document.getElementById('api-dot');
+    const lbl = document.getElementById('api-label');
+    try {
+        const r = await fetch(`${API}/api/health`, { signal: AbortSignal.timeout(3000) });
+        if (r.ok) {
+            dot.className = 'api-dot online';
+            lbl.textContent = 'API Connected';
+            lbl.style.color = 'var(--green)';
+            apiOnline = true;
+            return;
+        }
+    } catch (_) {}
+    dot.className = 'api-dot offline';
+    lbl.textContent = 'API offline — mock data';
+    lbl.style.color = 'var(--red-bright)';
+    apiOnline = false;
+}
+
+// ── Load sessions ──────────────────────────────────────────────────────────
+async function loadSessions() {
+    let data;
+    try {
+        if (apiOnline) {
+            const r = await fetch(`${API}/api/sessions`);
+            data = await r.json();
+        } else {
+            data = mockSessions();
+        }
+    } catch (_) {
+        data = mockSessions();
+    }
+
+    // normalize so a missing field never renders as undefined / NaN
+    sessions = (data || []).filter(s => s && !revoked.has(s.id)).map(s => ({
+        id: s.id, vendor: s.vendor || '—', provider: s.provider || 'saas',
+        platform: s.platform || s.provider || 'SaaS', resource: s.resource || '—',
+        scope: s.scope || '—', expires_in: s.expires_in || '—',
+        risk_level: s.risk_level || 'Low', is_critical: !!s.is_critical,
+        last_seen: s.last_seen || null,
+        token_usage: Number.isFinite(s.token_usage) ? s.token_usage : 0,
+        usage_limit: Number.isFinite(s.usage_limit) ? s.usage_limit : 100,
+        bound: !!s.bound, token_kind: s.token_kind || 'bearer',
+        governable: !!s.governable, revoked: !!s.revoked,
+    }));
+    renderKPIs();
+    renderUsageBars();
+    renderTable();
+    applyFilter(curFilter, null, true); // silent re-filter
+}
+
+// ── Load audit ─────────────────────────────────────────────────────────────
+async function loadAudit() {
+    let entries = [];
+    if (apiOnline) {
+        try {
+            const r = await fetch(`${API}/api/audit`);
+            const d = await r.json();
+            entries = d.entries || [];
+        } catch (_) {}
+    }
+    renderAudit(entries);
+}
+
+// ── Render KPIs ────────────────────────────────────────────────────────────
+function renderKPIs() {
+    let azure=0, github=0, bound=0, highrisk=0, bearerGov=0, visibility=0;
+    sessions.forEach(s => {
+        if (s.provider === 'azure') azure++;
+        if (s.provider === 'github') github++;
+        if (s.bound) bound++;
+        else if (s.governable) bearerGov++;
+        else visibility++;
+        if (s.risk_level === 'High' || s.risk_level === 'Critical') highrisk++;
+    });
+    document.getElementById('kpi-azure').textContent    = azure;
+    document.getElementById('kpi-github').textContent   = github;
+    document.getElementById('kpi-bound').textContent    = bound;
+    document.getElementById('kpi-critical').textContent = highrisk;
+    document.getElementById('alert-pip').style.display  = highrisk > 0 ? '' : 'none';
+    renderDonut(bound, bearerGov, visibility);
+}
+
+// Token binding posture donut: bound (green) / governable-bearer (amber) / visibility (red)
+function renderDonut(bound, bearer, visibility) {
+    const total = bound + bearer + visibility;
+    const pct = total ? Math.round(bound / total * 100) : 0;
+    document.getElementById('donut-val').textContent = pct + '%';
+    const C = 100; // dasharray reference used by the existing SVG
+    const segB = total ? (bound / total) * C : 0;
+    const segR = total ? (bearer / total) * C : 0;
+    const segV = total ? (visibility / total) * C : 0;
+    const set = (id, len, off) => {
+        const el = document.getElementById(id);
+        if (el) { el.setAttribute('stroke-dasharray', `${len} ${C}`); el.setAttribute('stroke-dashoffset', off); }
+    };
+    set('donut-seg-bound',  segB, 0);
+    set('donut-seg-bearer', segR, -segB);
+    set('donut-seg-stale',  segV, -(segB + segR));
+}
+
+// ── Render usage bars (middle panel) ───────────────────────────────────────
+function renderUsageBars() {
+    const el = document.getElementById('usage-bars-panel');
+    if (!sessions.length) {
+        el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px">No active connections.</div>';
+        return;
+    }
+    const ranked = [...sessions].sort((a, b) => b.token_usage - a.token_usage);
+    const top = ranked.slice(0, 5);
+    const more = ranked.length - top.length;
+    el.innerHTML = top.map(s => {
+        const pct = Math.min(100, Math.round(s.token_usage / s.usage_limit * 100));
+        const cls = pct >= 100 ? 'usage-high' : pct >= 75 ? 'usage-med' : 'usage-low';
+        const warn = pct >= 100
+            ? '<span style="color:var(--red-bright);font-size:10px;font-weight:700;margin-left:6px">MAX RISK</span>'
+            : '';
+        const provColor = provColorOf(s.provider);
+        return `
+        <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
+                <div style="font-size:11px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px">
+                    <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${provColor}"></span>
+                    <span>${s.vendor}</span>${warn}
+                </div>
+                <div style="font-size:11px;font-weight:700;color:var(--text-dim)">${pct}%</div>
+            </div>
+            <div class="usage-track">
+                <div class="usage-fill ${cls}" style="width:${pct}%"></div>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:3px">risk exposure ${s.token_usage} / 100</div>
+        </div>`;
+    }).join('') + `<button onclick="gotoMonitor()" style="margin-top:6px;width:100%;font-size:11px;font-weight:600;padding:8px;border-radius:8px;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--blue-bright)">${more > 0 ? '+' + more + ' more · ' : ''}View all risk in Token Monitor →</button>`;
+}
+
+function gotoMonitor() {
+    const link = document.querySelector(".nav-link[onclick*=\"'monitor'\"]");
+    showView('monitor', link || document.querySelector('.nav-link'));
+}
+
+// ── Render table ───────────────────────────────────────────────────────────
+function renderTable() {
+    const tbody = document.getElementById('sessions-tbody');
+    if (!sessions.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No active sessions.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = sessions.map(s => {
+        const pct = Math.min(100, Math.round(s.token_usage / s.usage_limit * 100));
+        const cls = pct >= 100 ? 'usage-high' : pct >= 75 ? 'usage-med' : 'usage-low';
+
+        const expClass = (s.expires_in === 'Static Key' || s.expires_in === 'Revoked')
+            ? 'exp-static'
+            : (s.expires_in.includes('min') ? 'exp-soon' : 'exp-ok');
+
+        const riskClass = {
+            'Low': 'risk-low', 'Medium': 'risk-medium',
+            'High': 'risk-high', 'Critical': 'risk-critical'
+        }[s.risk_level] || 'risk-low';
+
+        const isCrit = s.is_critical;
+        const critDot = isCrit ? '<span class="crit-dot"></span>' : '';
+
+        const actLabel = isCrit ? 'Investigate' : 'Manage';
+        const actClass = isCrit ? 'act-btn act-investigate' : 'act-btn act-manage';
+
+        return `
+        <tr id="row-${s.id}" data-provider="${s.provider}" data-critical="${isCrit}" class="${isCrit ? 'crit-row' : ''}">
+            <td>
+                <div style="display:flex;align-items:center">
+                    ${critDot}
+                    <span style="font-weight:600;color:var(--text)">${s.vendor}</span>
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${s.last_seen ? 'Last seen: ' + new Date(s.last_seen).toLocaleTimeString() : ''}</div>
+            </td>
+            <td><span class="badge badge-${s.provider}">${s.provider.toUpperCase()}</span></td>
+            <td style="color:var(--text-dim);font-size:12px">${s.resource}</td>
+            <td><span class="scope-pill ${isCrit ? 'danger' : ''}" title="${s.scope}">${s.scope}</span></td>
+            <td style="min-width:140px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                    <span style="font-size:10px;color:var(--text-muted)">risk ${s.token_usage}</span>
+                    <span style="font-size:10px;font-weight:700;color:${pct>=100?'var(--red-bright)':pct>=75?'var(--amber)':'var(--green)'}">${pct}%</span>
+                </div>
+                <div class="usage-track">
+                    <div class="usage-fill ${cls}" style="width:${pct}%"></div>
+                </div>
+            </td>
+            <td class="${expClass}">${s.expires_in}</td>
+            <td><span class="badge ${riskClass}">${s.risk_level}</span></td>
+            <td style="text-align:right">
+                <button class="${actClass}"
+                    onclick="openPanel('${s.id}','row-${s.id}')">${actLabel}
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Render audit log ───────────────────────────────────────────────────────
+function renderAudit(entries) {
+    const el = document.getElementById('audit-log-panel');
+    if (!entries || !entries.length) {
+        el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px">No revocations recorded this session.</div>';
+        return;
+    }
+    el.innerHTML = entries.map(e => `<div class="audit-entry">${e}</div>`).join('');
+}
+
+// ── Filter ─────────────────────────────────────────────────────────────────
+function applyFilter(f, btnEl, silent = false) {
+    curFilter = f;
+    if (!silent) {
+        document.querySelectorAll('.flt-btn').forEach(b => {
+            b.classList.remove('active','active-aws','active-azure','active-gcp','active-crit');
+        });
+        if (btnEl) {
+            btnEl.classList.add('active');
+            if (f === 'aws')      btnEl.classList.add('active-aws');
+            if (f === 'azure')    btnEl.classList.add('active-azure');
+            if (f === 'gcp')      btnEl.classList.add('active-gcp');
+            if (f === 'critical') btnEl.classList.add('active-crit');
+        }
+    }
+
+    const rows = document.querySelectorAll('#sessions-tbody tr[data-provider]');
+    let vis = 0;
+    rows.forEach(r => {
+        const match = f === 'all'
+            || (f === 'critical' && r.dataset.critical === 'true')
+            || r.dataset.provider === f;
+        r.style.display = match ? '' : 'none';
+        if (match) vis++;
+    });
+    document.getElementById('row-count').textContent = vis;
+    document.getElementById('empty-state').style.display = vis === 0 ? 'block' : 'none';
+
+    // Close panel if its row is now hidden
+    if (panelRow) {
+        const pr = document.getElementById(panelRow);
+        if (pr && pr.style.display === 'none') closePanel();
+    }
+}
+
+// ── Detail panel (token monitoring deep-dive) ───────────────────────────────
+async function openPanel(appId, rowId) {
+    // seeded grant connections (id "g<n>") open the grant-inventory detail
+    if (/^g\d+$/.test(appId)) { return openGrantDetail(appId.slice(1)); }
+    panelToken = appId;
+    panelRow   = rowId;
+    document.getElementById('revoke-btn').parentElement.style.display = '';  // live apps can be revoked here
+
+    // Highlight row
+    document.querySelectorAll('#sessions-tbody tr').forEach(r => r.style.outline = '');
+    document.getElementById(rowId)?.style.setProperty('outline', '2px solid var(--blue)');
+
+    const body = document.getElementById('detail-body');
+    body.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px">Loading details…</div>';
+    document.getElementById('side-panel').classList.add('open');
+    document.getElementById('panel-backdrop').classList.add('show');
+
+    let d = null;
+    if (apiOnline) {
+        try { const r = await fetch(`${API}/api/apps/${encodeURIComponent(appId)}/detail`); if (r.ok) d = await r.json(); } catch(_) {}
+    }
+    if (!d) { renderDetailFromSession(sessions.find(x => x.id === appId)); return; }
+    renderDetail(d);
+}
+
+function renderDetail(d) {
+    document.getElementById('p-title').textContent = d.name;
+    document.getElementById('p-subtitle').textContent = `${d.platform} · ${d.token_kind}${d.bound ? ' · sender-bound' : ''}`;
+
+    // revoke button state
+    const rb = document.getElementById('revoke-btn');
+    rb.disabled = d.revoked;
+    rb.style.opacity = d.revoked ? '0.5' : '1';
+    rb.innerHTML = d.revoked
+        ? 'Access revoked'
+        : `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg> Revoke Access`;
+
+    const a = d.activity || {};
+    const pol = d.policy;
+    const pub = d.publisher || {};
+
+    // risk signals
+    let signalsHtml = '';
+    if (d.risk_signals && d.risk_signals.length) {
+        signalsHtml = `<div class="risk-card">
+            <strong style="font-size:12px">Risk signals</strong>
+            <div class="sig-badges">${d.risk_signals.map(s => `<span class="sig-badge" title="${esc(s.key)}">${esc(s.label)}</span>`).join('')}</div>
+            <div class="sig-explain">${d.risk_signals.map(s => `<p>⚠ <strong>${esc(s.label)}</strong> — ${esc(s.explanation)}</p>`).join('')}</div>
+        </div>`;
+    }
+
+    // identity rows
+    const idRows = [
+        ['Platform', d.platform],
+        ['Source connector', d.source],
+        ['Token kind', d.token_kind],
+        ['App / external id', d.external_id || '—'],
+        ['Bound key (jkt)', d.key_jkt ? d.key_jkt.slice(0,18)+'…' : '—'],
+        ['Governable', d.governable ? 'Yes' : 'No (visibility only)'],
+        ['Status', d.status],
+    ];
+    if (d.grant_type) idRows.push(['Grant type', d.grant_type]);
+    if (pub.client_app_id) idRows.push(['App ID (client)', pub.client_app_id]);
+    if (pub.verified !== null && pub.verified !== undefined) idRows.push(['Verified publisher', pub.verified ? '✓ Yes' : '✗ No']);
+    if (pub.publisher_tenant) idRows.push(['Publisher tenant', pub.publisher_tenant]);
+    if (pub.consent_type) idRows.push(['Consent', (pub.consent_type === 'Principal' ? 'User-consented' : 'Admin consent (all users)') + (pub.consented_by ? ' · ' + pub.consented_by : '')]);
+    if (pub.account_enabled !== null && pub.account_enabled !== undefined) idRows.push(['Account enabled', pub.account_enabled ? '✓ Yes' : '✗ Disabled']);
+
+    // policy rows
+    let polHtml = '';
+    if (pol) {
+        polHtml = `<div class="detail-section"><h4>Policy</h4>
+            ${dl([['Token lifetime', pol.lifetime_label],
+                  ['Allowed scope', pol.allowed_scope || '(full)'],
+                  ['Binding required', pol.binding_required ? 'Yes (DPoP)' : 'No']])}
+        </div>`;
+    }
+
+    // manual policy controls (only meaningful for governable connections)
+    let controlsHtml = '';
+    if (d.governable && pol) {
+        const LIFE = [[60,'1 min'],[300,'5 mins'],[900,'15 mins'],[3600,'1 hr'],[21600,'6 hrs'],[86400,'1 day']];
+        const lifeOpts = LIFE.map(([v,l]) => `<option value="${v}" ${pol.lifetime_seconds==v?'selected':''}>${l}</option>`).join('');
+        const bindAttr = d.holds_key ? '' : 'disabled';
+        controlsHtml = `<div class="detail-section"><h4>Policy controls</h4>
+            <label class="settings-checkbox-container" style="margin-bottom:12px">
+                <input type="checkbox" ${pol.binding_required?'checked':''} ${bindAttr}
+                       onchange="setPolicy('${d.id}',{binding_required:this.checked})">
+                <span>Require sender binding (DPoP)${d.holds_key?'':' — no registered key, cannot bind'}</span>
+            </label>
+            <label class="settings-label">Token lifetime</label>
+            <select class="settings-select" style="margin-bottom:12px" onchange="setPolicy('${d.id}',{lifetime_seconds:parseInt(this.value)})">${lifeOpts}</select>
+            <label class="settings-label">Allowed scope</label>
+            <div style="display:flex;gap:8px">
+                <input id="ctrl-scope-${d.id}" class="settings-input" style="flex:1" value="${esc(pol.allowed_scope||'')}" placeholder="e.g. contacts:read">
+                <button class="demo-btn" onclick="setPolicy('${d.id}',{allowed_scope:document.getElementById('ctrl-scope-${d.id}').value})">Apply</button>
+            </div>
+        </div>`;
+    } else if (!d.governable) {
+        controlsHtml = `<div class="detail-section"><h4>Policy controls</h4>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.7">Visibility only — Fuse cannot issue or bind tokens for this connection (no registered vendor key). Available action: revoke. Shorten-lifetime and scope-minimization apply through the platform's own config for real connectors.</div>
+        </div>`;
+    }
+
+    // activity rows
+    const lastUsed = a.last_activity ? `${a.last_activity_ago}  ·  ${new Date(a.last_activity).toLocaleString()}` : 'never used';
+    const actHtml = `<div class="detail-section"><h4>Activity</h4>
+        ${dl([['Last used', lastUsed],
+              ['Last used by', a.last_used_by || '—'],
+              ['First seen', a.created_ago || '—'],
+              ['Token issued by Fuse', a.last_token ? 'yes' : 'no'],
+              ['DPoP proof seen', a.last_proof ? 'yes' : 'no']])}
+    </div>`;
+
+    // permissions
+    const permHtml = `<div class="detail-section"><h4>Permissions (${(d.permissions||[]).length})</h4>
+        ${(d.permissions && d.permissions.length)
+            ? d.permissions.map(p => `<div class="perm-row"><code>${esc(p.name)}</code>${p.write ? '<span class="sig-badge" style="background:rgba(239,68,68,.16);color:#fca5a5">write</span>' : ''}</div>`).join('')
+            : '<div style="font-size:12px;color:var(--text-muted)">No scopes recorded.</div>'}
+    </div>`;
+
+    // event history
+    const evHtml = `<div class="detail-section"><h4>Event history</h4>
+        ${(d.events && d.events.length)
+            ? d.events.map(e => evRow(e)).join('')
+            : '<div style="font-size:12px;color:var(--text-muted)">No events recorded yet. Run a request from the Gateway view.</div>'}
+    </div>`;
+
+    const riskBadge = `<span class="badge ${RISK_BADGE[d.risk_level]||'risk-low'}">${d.risk_level}</span>`;
+
+    document.getElementById('detail-body').innerHTML = `
+        ${signalsHtml}
+        <div class="detail-section">
+            <h4>Overview</h4>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <span class="badge badge-${d.provider}">${esc((d.provider||'').toUpperCase())}</span>
+                ${riskBadge}
+                <span style="font-size:11px;color:var(--text-muted)">risk ${d.risk}/100</span>
+            </div>
+            <div class="scope-pill" style="max-width:100%">${esc(d.scope)}</div>
+        </div>
+        <div class="detail-section"><h4>Identity</h4>${dl(idRows)}</div>
+        ${polHtml}
+        ${controlsHtml}
+        ${actHtml}
+        ${permHtml}
+        ${evHtml}
+        <div class="detail-section">
+            <h4>Revoke access</h4>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.7">${esc(d.revoke_caveat||'')}</div>
+        </div>`;
+}
+
+function dl(rows) {
+    return rows.map(([k,v]) => `<div class="dl-row"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
+}
+function evRow(e) {
+    const kind = (e.kind||'').toLowerCase();
+    const t = e.iso ? new Date(e.iso).toLocaleTimeString() : '';
+    let checks = '';
+    if (e.checks && e.checks.length) {
+        checks = `<div class="checks-grid">${e.checks.map(c =>
+            `<div class="check-line"><span class="${c.ok?'check-ok':'check-bad'}">${c.ok?'✓':'✗'}</span><span>${esc(c.name)}${c.detail?' — '+esc(c.detail):''}</span></div>`
+        ).join('')}</div>`;
+    }
+    return `<div class="ev-row">
+        <div class="ev-meta"><span class="ev-kind ev-${esc(kind)}">${esc(kind)}</span><span>${esc(t)}</span></div>
+        <div style="color:var(--text-dim)">${esc(e.message)}</div>
+        ${checks}
+    </div>`;
+}
+// offline / fallback detail straight from the session row
+function renderDetailFromSession(s) {
+    if (!s) { document.getElementById('detail-body').innerHTML = '<div style="padding:24px;color:var(--text-muted)">No detail available offline.</div>'; return; }
+    renderDetail({
+        name: s.vendor, platform: s.platform || s.provider, provider: s.provider, source: s.resource,
+        token_kind: s.token_kind || (s.bound ? 'bound' : 'bearer'), external_id: s.id, key_jkt: null,
+        governable: s.governable, status: s.revoked ? 'revoked' : 'active', revoked: !!s.revoked, bound: !!s.bound,
+        risk: s.token_usage, risk_level: s.risk_level, is_critical: s.is_critical, scope: s.scope,
+        policy: null, publisher: {}, risk_signals: [],
+        activity: { created_ago: '—', last_activity_ago: s.last_seen ? new Date(s.last_seen).toLocaleString() : '—' },
+        permissions: (s.scope === '—' ? [] : s.scope.split(' ').map(x => ({name:x, write:/write|export|full|admin|:all/i.test(x)}))),
+        events: [], revoke_caveat: 'Offline — connect to Fuse to act on this connection.'
+    });
+}
+
+function closePanel() {
+    document.getElementById('side-panel').classList.remove('open');
+    document.getElementById('panel-backdrop').classList.remove('show');
+    document.querySelectorAll('#sessions-tbody tr').forEach(r => r.style.outline = '');
+    panelToken = panelRow = null;
+}
+
+// ── Revoke ─────────────────────────────────────────────────────────────────
+async function doRevoke() {
+    const s = sessions.find(x => x.id === panelToken);
+    const name = s ? s.vendor : 'this connection';
+    if (!panelToken) return;
+
+    if (!confirm(`Revoke access for "${name}"?\n\nThis cuts the outstanding token now (and at the source for real Azure/GitHub connectors). The action is logged in the activity & audit trail.`)) return;
+
+    const btn = document.getElementById('revoke-btn');
+    btn.disabled = true;
+    btn.textContent = 'Revoking…';
+
+    let msg = 'Access revoked';
+    try {
+        if (apiOnline) {
+            const r = await fetch(`${API}/api/tokens/revoke`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token_id: panelToken })
+            });
+            const d = await r.json();
+            if (d && d.message) msg = d.message;
+        }
+    } catch (_) {}
+
+    closePanel();
+    toast(`✓ ${msg}`, 'success');
+    await loadSessions();
+    await loadAudit();
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+    const map = { success:'t-success', danger:'t-danger', info:'t-info', warn:'t-warn' };
+    const host = document.getElementById('toast-host');
+    const el = document.createElement('div');
+    el.className = `toast ${map[type] || 't-info'}`;
+    el.textContent = msg;
+    host.appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+    setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 400);
+    }, 3800);
+}
+
+// ── Mock data (offline fallback, real-domain) ───────────────────────────────
+function mockSessions() {
+    const now = new Date().toISOString();
+    return [
+        { id:'mock-pipelinecrm', vendor:'PipelineCRM', provider:'salesforce', platform:'Salesforce',
+          resource:'Demo Vendor', scope:'contacts:read opportunities:read',
+          expires_in:'5 mins', risk_level:'Low', is_critical:false, last_seen:now,
+          token_usage:15, usage_limit:100, bound:true, token_kind:'bound', governable:true, revoked:false },
+        { id:'mock-datadrift', vendor:'DataDrift', provider:'salesforce', platform:'Salesforce',
+          resource:'Demo Vendor', scope:'contacts:read full:export',
+          expires_in:'1 day', risk_level:'High', is_critical:true, last_seen:now,
+          token_usage:70, usage_limit:100, bound:false, token_kind:'bearer', governable:true, revoked:false },
+        { id:'mock-insightsurvey', vendor:'InsightSurvey', provider:'azure', platform:'Azure',
+          resource:'Demo Company Platform', scope:'mail:read contacts:export',
+          expires_in:'Static Key', risk_level:'High', is_critical:true, last_seen:now,
+          token_usage:60, usage_limit:100, bound:false, token_kind:'bearer', governable:false, revoked:false },
+        { id:'mock-calendarsync', vendor:'CalendarSync', provider:'azure', platform:'Azure',
+          resource:'Demo Company Platform', scope:'calendar:read',
+          expires_in:'Static Key', risk_level:'Low', is_critical:false, last_seen:now,
+          token_usage:15, usage_limit:100, bound:false, token_kind:'bearer', governable:false, revoked:false }
+    ];
+}
+// ── Per-connection policy (binding / lifetime / scope) ───────────────────────
+async function setPolicy(appId, patch) {
+    try {
+        const r = await fetch(`${API}/api/apps/${encodeURIComponent(appId)}/policy`, {
+            method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(patch)
+        });
+        if (!r.ok) { const e = await r.json().catch(()=>({})); toast('⚠ '+(e.error||'policy update failed'),'warn'); }
+        else {
+            const what = 'binding_required' in patch ? (patch.binding_required?'Binding required':'Binding disabled')
+                       : 'lifetime_seconds' in patch ? 'Lifetime updated'
+                       : 'Scope updated';
+            toast('✓ '+what, 'success');
+        }
+    } catch(_) { toast('❌ policy update failed','danger'); }
+    if (panelToken === appId) openPanel(appId, panelRow);   // refresh the panel
+    loadSessions();
+}
+
+// ── Tokens view ──────────────────────────────────────────────────────────────
+let tokens = [];
+let tokenFilter = 'all';
+
+async function loadTokens() {
+    if (!apiOnline) await checkHealth();
+    try { const r = await fetch(`${API}/api/tokens`); tokens = await r.json(); } catch(_) { tokens = []; }
+    renderTokens();
+}
+
+function renderTokens() {
+    const tbody = document.getElementById('tokens-tbody');
+    const c = document.getElementById('tok-count');
+    if (c) c.textContent = tokens.length;
+    if (!tbody) return;
+    const rows = tokens.filter(t => {
+        if (tokenFilter === 'bound')   return t.sender_bound;
+        if (tokenFilter === 'bearer')  return !t.sender_bound && t.status === 'active';
+        if (tokenFilter === 'revoked') return t.status !== 'active';
+        return true;
+    });
+    if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="padding:28px;text-align:center;color:var(--text-muted);font-size:13px">No tokens match. Connect a source (Connectors → Quick-connect demo) or run a request in Security Demo.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = rows.map(t => {
+        const bind = t.sender_bound
+            ? '<span class="badge risk-low">🔒 bound</span>'
+            : '<span class="badge risk-high">bearer</span>';
+        const st = t.status === 'active' ? 'risk-low' : t.status === 'expired' ? 'risk-medium' : 'risk-critical';
+        const ttl = (t.ttl_seconds == null) ? '—'
+                  : t.status !== 'active' ? '—'
+                  : t.ttl_seconds <= 0 ? 'expired'
+                  : fmtTTL(t.ttl_seconds);
+        const clickable = t.app_id ? `onclick="openPanel('${t.app_id}',null)" style="cursor:pointer"` : '';
+        const scope = (t.scope || '—');
+        return `<tr ${clickable}>
+            <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text)">${esc(t.id)}</span>${t.note?`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">${esc(t.note)}</div>`:''}</td>
+            <td style="color:var(--text-dim);font-size:12px">${esc(t.app||'—')}</td>
+            <td><span class="scope-pill" title="${esc(scope)}">${esc(scope.length>42?scope.slice(0,42)+'…':scope)}</span></td>
+            <td style="font-size:11px;color:var(--text-dim)">${esc(t.kind||'—')}</td>
+            <td>${bind}</td>
+            <td><span class="badge ${st}">${esc(t.status)}</span></td>
+            <td class="${ttl==='expired'?'exp-static':(ttl.includes&&ttl.includes('m')?'exp-soon':'exp-ok')}">${esc(ttl)}</td>
+        </tr>`;
+    }).join('');
+}
+
+function applyTokenFilter(f, btn) {
+    tokenFilter = f;
+    document.querySelectorAll('#tokens-view .flt-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderTokens();
+}
+
+function fmtTTL(s) {
+    if (s >= 86400) return Math.floor(s/86400)+'d left';
+    if (s >= 3600)  return Math.floor(s/3600)+'h left';
+    if (s >= 60)    return Math.floor(s/60)+'m left';
+    return s+'s left';
+}
+
+// ── Token Monitor (native grant inventory) ───────────────────────────────────
+let grantSourcesLoaded = false;
+let grantSearchTimer = null;
+function grantSearchDebounced() { clearTimeout(grantSearchTimer); grantSearchTimer = setTimeout(loadGrants, 300); }
+
+async function loadGrants() {
+    const tbody = document.getElementById('grants-tbody');
+    const srcSel = document.getElementById('grant-tenant');
+    const params = new URLSearchParams();
+    params.set('source', (srcSel && srcSel.value) ? srcSel.value : 'all');
+    const ty = document.getElementById('grant-type').value;   if (ty) params.set('type', ty);
+    const rk = document.getElementById('grant-risk').value;   if (rk) params.set('risk', rk);
+    const q  = document.getElementById('grant-search').value; if (q) params.set('search', q);
+    if (document.getElementById('grant-inactive').checked) params.set('include_inactive', 'true');
+
+    let d = null;
+    try { const r = await fetch(`${API}/api/grants?${params}`); d = await r.json(); } catch(_) {}
+    if (!d || d.available === false) {
+        tbody.innerHTML = `<tr><td colspan="8" style="padding:28px;text-align:center;color:var(--text-muted)">Grant inventory unavailable.</td></tr>`;
+        return;
+    }
+    // populate the source selector once (All sources · Live connectors · each tenant)
+    if (!grantSourcesLoaded && (d.sources || []).length) {
+        grantSourcesLoaded = true;
+        srcSel.innerHTML = d.sources.map(s => `<option value="${s.id}">${esc(s.name)}${(s.platform && s.platform !== 'mixed') ? ' · ' + esc(s.platform) : ''}</option>`).join('');
+        srcSel.value = d.source || 'all';
+    }
+    document.getElementById('grant-count').textContent = (d.rows || []).length;
+    renderGrantStats(d.stats || {}, d.activity_available);
+    renderGrantsTable(d.rows || []);
+}
+
+function renderGrantStats(stats, activityAvail) {
+    const chips = [];
+    if (stats.total != null) chips.push(`${stats.total} grants`);
+    if (stats.delegated != null) chips.push(`${stats.delegated} delegated · ${stats.application} application`);
+    const risk = stats.risk || {};
+    const order = [['write-permissions','Write'],['unverified-publisher','Unverified'],['user-consented','User-consented'],['never-used','Never used'],['dormant','Dormant'],['all-repos','All repos'],['never-reconfigured','Never reconfigured']];
+    const el = document.getElementById('grant-stats');
+    el.innerHTML = chips.map(c => `<span style="font-size:11px;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 9px">${esc(c)}</span>`).join('')
+      + order.filter(([k]) => risk[k]).map(([k,lbl]) => `<span class="sig-badge">${esc(lbl)}: ${risk[k]}</span>`).join('')
+      + (activityAvail === false ? `<span style="font-size:11px;color:var(--text-muted)">activity needs Entra P1/P2</span>` : '');
+}
+
+function renderGrantsTable(rows) {
+    const tbody = document.getElementById('grants-tbody');
+    if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="8" style="padding:28px;text-align:center;color:var(--text-muted)">No grants match the filter.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = rows.map(r => {
+        const perms = (r.permissions || []).map(p => `<code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);display:block">${esc(p)}</code>`).join('');
+        const sigs = (r.risk_signals || []).map(s => `<span class="sig-badge" title="${esc(s.key)}">${esc(s.label)}</span>`).join(' ');
+        const warn = (r.risk_signals && r.risk_signals.length) ? ' <span style="color:var(--amber)">⚠</span>' : '';
+        return `<tr style="cursor:pointer" onclick="openGrantDetail(${r.id})">
+            <td><div style="font-weight:600;color:var(--text)">${esc(r.vendor)}${warn}</div>
+                <div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">${esc((r.app_id||'').slice(0,10))}…</div></td>
+            <td><span style="font-size:11px;color:var(--text-dim)">${r.type === 'application' ? 'app' : 'del'}</span></td>
+            <td style="font-size:12px;color:var(--text-dim)">${esc(r.resource)}</td>
+            <td>${perms || '—'}</td>
+            <td><span style="font-size:11px;color:var(--text-dim)">${esc(r.consent)}${r.consented_by ? '<br><span style="color:var(--text-muted);font-size:10px">'+esc(r.consented_by)+'</span>' : ''}</span></td>
+            <td style="font-size:11px;color:var(--text-dim)">${esc(r.last_used_ago)}</td>
+            <td style="max-width:200px">${sigs || '<span style="color:var(--text-muted);font-size:11px">—</span>'}</td>
+            <td style="font-size:11px;color:var(--text-muted)">${esc(r.first_seen || '—')}</td>
+        </tr>`;
+    }).join('');
+}
+
+async function openGrantDetail(gid) {
+    const body = document.getElementById('detail-body');
+    document.getElementById('p-title').textContent = 'Grant detail';
+    document.getElementById('p-subtitle').textContent = 'Token monitoring deep-dive';
+    document.getElementById('revoke-btn').parentElement.style.display = 'none';  // grant revoke is platform-side
+    body.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px">Loading…</div>';
+    document.getElementById('side-panel').classList.add('open');
+    document.getElementById('panel-backdrop').classList.add('show');
+    let d = null;
+    try { const r = await fetch(`${API}/api/grant/${gid}`); d = await r.json(); } catch(_) {}
+    if (!d || d.error) { body.innerHTML = '<div style="padding:24px;color:var(--text-muted)">Detail unavailable.</div>'; return; }
+    renderGrantDetail(d);
+}
+
+function renderGrantDetail(d) {
+    document.getElementById('p-title').textContent = d.vendor;
+    document.getElementById('p-subtitle').textContent = `${d.platform} · ${d.type}${d.tenant ? ' · ' + d.tenant : ''}`;
+    const pub = d.publisher || {}, a = d.activity || {};
+
+    let signalsHtml = '';
+    if (d.risk_signals && d.risk_signals.length) {
+        signalsHtml = `<div class="risk-card"><strong style="font-size:12px">Risk signals</strong>
+            <div class="sig-badges">${d.risk_signals.map(s => `<span class="sig-badge" title="${esc(s.key)}">${esc(s.label)}</span>`).join('')}</div>
+            <div class="sig-explain">${d.risk_signals.map(s => `<p>⚠ <strong>${esc(s.label)}</strong> — ${esc(s.explanation)}</p>`).join('')}</div></div>`;
+    }
+    const idRows = [
+        ['App ID (client)', d.app_id],
+        ['Service principal', d.sp_id],
+        ['Grant type', d.type],
+        ['Resource', d.resource],
+        ['Consent', d.consent + (d.consented_by ? ' · ' + d.consented_by : '')],
+        ['Verified publisher', pub.verified == null ? '—' : (pub.verified ? '✓ Yes' : '✗ No')],
+        ['Publisher tenant', pub.tenant || '—'],
+        ['Account enabled', pub.account_enabled == null ? '—' : (pub.account_enabled ? '✓ Yes' : '✗ Disabled')],
+        ['Created', d.created_at ? new Date(d.created_at).toLocaleDateString() : '—'],
+        ['First seen', d.first_seen ? new Date(d.first_seen).toLocaleDateString() : '—'],
+        ['Status', d.is_active ? 'active' : 'removed'],
+    ];
+    const actRows = [['Last sign-in (any)', a.last_sign_in_iso ? `${a.last_sign_in_ago} · ${new Date(a.last_sign_in_iso).toLocaleString()}` : (a.last_sign_in_ago || '—')]];
+    if (d.type === 'application') actRows.push(['Last app-only (client)', a.last_app_only_ago || '—']);
+    else actRows.push(['Last delegated (client)', a.last_delegated_ago || '—']);
+    if (a.last_modified_ago) actRows.push(['Last modified', a.last_modified_ago]);
+
+    const permHtml = (d.permissions || []).map(p =>
+        `<div class="perm-row"><code>${esc(p.name)}</code>${p.write ? '<span class="sig-badge" style="background:rgba(239,68,68,.16);color:#fca5a5">write</span>' : ''}</div>`).join('') || '<div style="font-size:12px;color:var(--text-muted)">None</div>';
+
+    const evHtml = (d.events || []).map(e => `<div class="ev-row">
+        <div class="ev-meta"><span class="ev-kind ev-${esc((e.type||'').replace('_','-'))}">${esc(e.type)}</span><span>${e.date ? new Date(e.date).toLocaleDateString() : ''}</span></div>
+        ${e.detail ? `<div style="color:var(--text-dim)">${esc(e.detail)}</div>` : ''}</div>`).join('') || '<div style="font-size:12px;color:var(--text-muted)">No events.</div>';
+
+    document.getElementById('detail-body').innerHTML = `
+        ${signalsHtml}
+        <div class="detail-section"><h4>Identity</h4>${dl(idRows)}</div>
+        <div class="detail-section"><h4>Activity — when & by whom</h4>${dl(actRows)}</div>
+        <div class="detail-section"><h4>Permissions (${(d.permissions||[]).length})</h4>${permHtml}</div>
+        <div class="detail-section"><h4>Event history</h4>${evHtml}</div>
+        <div class="detail-section"><h4>Revoke access</h4>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.7">${esc(d.revoke_caveat||'')}</div></div>`;
+}
+
+// ── Connectors view ──────────────────────────────────────────────────────────
+async function loadConnectors() {
+    if (!apiOnline) await checkHealth();
+    if (!connectorTypes.length) {
+        try { const r = await fetch(`${API}/api/connector-types`); connectorTypes = await r.json(); } catch(_) { connectorTypes = []; }
+        const sel = document.getElementById('conn-type');
+        if (sel) { sel.innerHTML = connectorTypes.map(t => `<option value="${esc(t.kind)}">${esc(t.display_name)}</option>`).join(''); renderConnectorForm(); }
+    }
+    let conns = [];
+    try { const r = await fetch(`${API}/api/connectors`); conns = await r.json(); } catch(_) {}
+    renderConnectors(conns);
+}
+
+function renderConnectors(conns) {
+    const grid = document.getElementById('connectors-grid');
+    if (!grid) return;
+    if (!conns || !conns.length) {
+        grid.innerHTML = `<div style="grid-column:1/-1;color:var(--text-muted);font-size:13px;padding:16px">No sources connected yet. Use ⚡ Quick-connect demo, or add one below.</div>`;
+        return;
+    }
+    grid.innerHTML = conns.map(c => `
+        <div class="conn-card">
+            <div style="display:flex;align-items:center;gap:8px">
+                <span class="conn-dot ${c.connected?'conn-on':'conn-off'}"></span>
+                <strong style="font-size:13px">${esc(c.display_name)}</strong>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);min-height:28px">${esc(c.status_detail||'')}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                ${c.connected
+                    ? `<button class="demo-btn" onclick="syncConn('${c.id}')">Sync</button>
+                       <button class="demo-btn" onclick="disconnectConn('${c.id}')">Disconnect</button>`
+                    : `<button class="demo-btn good" onclick="connectConn('${c.id}')">Connect</button>`}
+                <button class="demo-btn bad" onclick="removeConn('${c.id}')">Remove</button>
+            </div>
+        </div>`).join('');
+}
+
+function renderConnectorForm() {
+    const sel = document.getElementById('conn-type'); const form = document.getElementById('conn-form');
+    if (!sel || !form) return;
+    const t = connectorTypes.find(x => x.kind === sel.value);
+    if (!t) { form.innerHTML = ''; return; }
+    form.innerHTML = `<div class="grid-2" style="gap:16px">` + t.config_fields.map(f =>
+        `<div><label class="settings-label">${esc(f.label)}</label>
+            <input type="${f.secret?'password':'text'}" class="settings-input" data-field="${esc(f.name)}" placeholder="${esc(f.label)}"></div>`
+    ).join('') + `</div>`;
+}
+
+async function addConnector() {
+    const sel = document.getElementById('conn-type'); const kind = sel.value;
+    const config = {};
+    document.querySelectorAll('#conn-form [data-field]').forEach(i => { if (i.value.trim()) config[i.dataset.field] = i.value.trim(); });
+    try {
+        const r = await fetch(`${API}/api/connectors`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,config})});
+        const d = await r.json();
+        toast(d.connected ? `🔗 Connected ${kind}` : `⚠ ${d.message||'connect failed'}`, d.connected?'success':'warn');
+    } catch(e) { toast('❌ Connect failed — check console','danger'); }
+    await loadConnectors(); await loadAll();
+}
+
+async function connectConn(id){ try{await fetch(`${API}/api/connectors/${id}/connect`,{method:'POST'}); toast('🔗 Connected','success');}catch(_){ } await loadConnectors(); await loadAll(); }
+async function syncConn(id){ try{await fetch(`${API}/api/connectors/${id}/sync`,{method:'POST'}); toast('↻ Synced','info');}catch(_){ } await loadConnectors(); await loadAll(); }
+async function disconnectConn(id){ try{await fetch(`${API}/api/connectors/${id}/disconnect`,{method:'POST'}); toast('Disconnected','info');}catch(_){ } await loadConnectors(); await loadAll(); }
+async function removeConn(id){ try{await fetch(`${API}/api/connectors/${id}`,{method:'DELETE'}); toast('Removed','info');}catch(_){ } await loadConnectors(); await loadAll(); }
+
+async function quickConnectDemo() {
+    toast('⚡ Wiring demo company + vendor…','info');
+    try { const r = await fetch(`${API}/api/demo/quick-connect`,{method:'POST'}); const d = await r.json();
+        toast(d.ok ? '✓ Demo connected — dashboard populated' : '⚠ Partial connect (are :8010 / :8020 running?)', d.ok?'success':'warn');
+    } catch(e){ toast('❌ Quick-connect failed','danger'); }
+    await loadConnectors(); await loadAll();
+}
+
+// ── Security demo view ───────────────────────────────────────────────────────
+async function loadDemo() {
+    if (!apiOnline) await checkHealth();
+    let apps = [];
+    try { const r = await fetch(`${API}/api/apps`); apps = await r.json(); } catch(_) {}
+    const bindable = (apps||[]).filter(a => a.governable && a.holds_key && !a.revoked);
+    const sel = document.getElementById('demo-app');
+    if (sel) sel.innerHTML = bindable.length
+        ? bindable.map(a => `<option value="${a.id}">${esc(a.name)} — ${esc(a.platform)}</option>`).join('')
+        : `<option value="">No governable connections — connect the demo vendor first</option>`;
+}
+
+async function runDemo(mode, kind) {
+    const sel = document.getElementById('demo-app'); const appId = sel && sel.value;
+    if (!appId) { toast('Connect the demo vendor first (Connectors → Quick-connect demo).','warn'); return; }
+    const res = document.getElementById('demo-result');
+    res.innerHTML = '<div style="padding:14px;color:var(--text-muted);font-size:12px">Running…</div>';
+    let url, label;
+    if (mode === 'legit')        { url = `${API}/api/simulate/legit/${appId}`;   label = 'Legit vendor request (signed DPoP proof)'; }
+    else if (mode === 'gateway') { url = `${API}/api/simulate/gateway/${appId}`; label = 'Routed through the inline Fuse gateway'; }
+    else                         { url = `${API}/api/simulate/attack/${appId}?kind=${kind}`; label = 'Attacker: ' + kind.replace('_',' '); }
+    let d = null;
+    try { const r = await fetch(url, {method:'POST'}); d = await r.json(); }
+    catch(e){ res.innerHTML = '<div style="padding:14px;color:var(--red-bright)">Request failed — is the demo connected?</div>'; return; }
+    renderDemoResult(label, mode, d);
+    loadSessions();
+}
+
+function renderDemoResult(label, mode, d) {
+    const data = d.data || d;                 // legit/attack nest under .data; gateway is flat
+    const checks = data.checks || d.checks || [];
+    const reason = data.reason || d.reason;
+    const reached = (data.reached_company !== undefined) ? data.reached_company : undefined;
+    let verdict, color;
+    if (mode === 'attack') {
+        const breach = !!data.allowed;
+        verdict = breach ? 'BREACH — data exfiltrated' : 'BLOCKED';
+        color = breach ? 'var(--red-bright)' : 'var(--green)';
+    } else {
+        const allowed = (d.ok === true) || (data.allowed === true) || reached === true;
+        verdict = allowed ? 'ALLOWED' : 'DENIED';
+        color = allowed ? 'var(--green)' : 'var(--amber)';
+    }
+    const showCount = (data.count !== undefined && verdict === 'ALLOWED');
+    document.getElementById('demo-result').innerHTML = `
+        <div style="margin-top:8px;padding:14px;border-radius:10px;border:1px solid ${color};background:rgba(255,255,255,.02)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <strong style="font-size:13px">${esc(label)}</strong>
+                <span style="font-weight:800;color:${color}">${esc(verdict)}</span>
+            </div>
+            ${reason?`<div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">${esc(reason)}</div>`:''}
+            ${showCount?`<div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">${data.count} records returned${reached?' · reached company':''}</div>`:''}
+            <div class="checks-grid">${checks.map(c=>`<div class="check-line"><span class="${c.ok?'check-ok':'check-bad'}">${c.ok?'✓':'✗'}</span><span>${esc(c.name)}${c.detail?' — '+esc(c.detail):''}</span></div>`).join('')}</div>
+        </div>`;
+}
+</script>
+</body>
+</html>

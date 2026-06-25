@@ -7,6 +7,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+  <style>
+    /* When embedded in the Fuse console iframe, drop our own chrome so it
+       reads as one app (no UI-within-UI). */
+    html.embedded #sidebar { display: none !important; }
+    html.embedded #topbar  { display: none !important; }
+    html.embedded #content { padding-top: 20px; }
+  </style>
+  <script>if (window.self !== window.top) document.documentElement.classList.add('embedded');</script>
 </head>
 <body>
 
