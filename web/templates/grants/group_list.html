@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}{{ group.display_name }} — Fuse{% endblock %}
+
+{% block topbar_title %}{{ group.display_name }}{% endblock %}
+
+{% block content %}
+{# ── Stats bar ─────────────────────────────────────────────────────────────── #}
+<div class="stats-bar">
+  <div class="stats-counts">
+    <span class="stat">
+      <strong>{{ stats.total }}</strong> grants
+    </span>
+    <span class="stat text-muted">{{ stats.delegated }} delegated · {{ stats.application }} application</span>
+    <span class="stat text-muted">across {{ group.tenants|length }} connector{{ 's' if group.tenants|length != 1 }}</span>
+  </div>
+
+  {% if stats.risk %}
+  <div class="stats-risk">
+    {% for signal, count in stats.risk.items() %}
+    <a href="?type={{ filter_type }}&risk={{ signal }}&resource={{ filter_resource }}&search={{ filter_search }}{% if filter_include_inactive %}&include_inactive=true{% endif %}"
+       class="badge badge-risk {% if filter_risk == signal %}active{% endif %}">
+      {{ risk_signal_labels.get(signal, signal) }}: {{ count }}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="stats-actions">
+    {% for t in group.tenants %}
+    {% if t.last_run %}
+    <span class="text-muted" style="font-size: 0.85rem">
+      {{ t.display_name }}: <span class="badge badge-{{ t.last_run.status }}">{{ t.last_run.status }}</span>
+      {{ t.last_run.started_at | timeago }}
+    </span>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+{# ── Activity unavailable notice ───────────────────────────────────────────── #}
+{% if not activity_available and stats.total > 0 %}
+<div class="notice notice-info">
+  Activity data not available — requires Entra ID P1/P2 for Azure tenants. Risk signals
+  <code>never-used</code> and <code>dormant</code> are suppressed.
+</div>
+{% endif %}
+
+{# ── Filters ───────────────────────────────────────────────────────────────── #}
+<form method="get" class="filter-bar" id="filter-form">
+  <select name="type" data-autosubmit>
+    <option value="" {% if not filter_type %}selected{% endif %}>All types</option>
+    <option value="delegated" {% if filter_type == "delegated" %}selected{% endif %}>Delegated</option>
+    <option value="application" {% if filter_type == "application" %}selected{% endif %}>Application</option>
+  </select>
+
+  <select name="resource" data-autosubmit>
+    <option value="">All resources</option>
+    {% for sp_id, display in resources %}
+    <option value="{{ sp_id }}" {% if filter_resource == sp_id %}selected{% endif %}>{{ display }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="risk" data-autosubmit>
+    <option value="">All risks</option>
+    {% for signal, label in risk_signal_labels.items() %}
+    <option value="{{ signal }}" {% if filter_risk == signal %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <input type="search" name="search" value="{{ filter_search }}" placeholder="Search vendor…">
+
+  <label>
+    <input type="checkbox" name="include_inactive" value="true" {% if filter_include_inactive %}checked{% endif %} data-autosubmit>
+    Include removed
+  </label>
+
+  <button type="submit">Filter</button>
+  {% if filter_type or filter_risk or filter_resource or filter_search or filter_include_inactive %}
+  <a href="{{ request.url_for('group_grants_list', gid=group.id) }}" class="outline btn-sm">Clear</a>
+  {% endif %}
+</form>
+
+{# ── Grant table ───────────────────────────────────────────────────────────── #}
+{% if rows %}
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr>
+      <th>Vendor app</th>
+      <th>Source</th>
+      <th>Type</th>
+      <th>Resource</th>
+      <th>Permissions</th>
+      <th>Consent</th>
+      <th>Last used</th>
+      <th>Risk</th>
+      <th>First seen</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    {% set g = row.primary_grant %}
+    {% set src = tenant_by_id[g.tenant_fk] %}
+    <tr {% if not g.is_active %}class="row-inactive"{% endif %}>
+      <td>
+        <a href="{{ request.url_for('grants_detail', id=g.tenant_fk, gid=g.id) }}">
+          {{ g.client_display_name }}
+        </a>
+        {% if not g.client_verified_publisher %}
+        <span class="badge badge-warn" title="Publisher not verified by Microsoft">⚠</span>
+        {% endif %}
+        {% if not g.is_active %}
+        <span class="badge badge-removed">removed</span>
+        {% endif %}
+        <br><small class="text-muted">{{ g.client_app_id[:8] }}…</small>
+      </td>
+      <td>
+        {% if (src.platform or 'azure') == 'github' %}
+        <span class="badge badge-info" title="{{ src.display_name }}">GitHub</span>
+        {% else %}
+        <span class="badge badge-muted" title="{{ src.display_name }}">Azure</span>
+        {% endif %}
+      </td>
+      <td><span class="badge badge-type-{{ g.grant_type }}">{{ g.grant_type[:3] }}</span></td>
+      <td>{{ g.resource_display_name }}</td>
+      <td>
+        {% set perms = row.permissions %}
+        {% if perms|length <= 3 %}
+          {% for p in perms %}<code class="perm">{{ p }}</code><br>{% endfor %}
+        {% else %}
+          {% for p in perms[:3] %}<code class="perm">{{ p }}</code><br>{% endfor %}
+          <details>
+            <summary>+{{ perms|length - 3 }} more</summary>
+            {% for p in perms[3:] %}<code class="perm">{{ p }}</code><br>{% endfor %}
+          </details>
+        {% endif %}
+      </td>
+      <td>
+        {% if g.consent_type == "Principal" %}
+          <span class="badge badge-warn" title="User-consented">User</span>
+        {% else %}
+          <span class="text-muted">Admin</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if row.activity and row.activity.last_sign_in %}
+          <span class="last-used-{{ row.activity.last_sign_in | timeago_class }}">
+            {{ row.activity.last_sign_in | timeago }}
+          </span>
+        {% elif row.primary_grant.last_modified_at %}
+          <small class="text-muted" title="Last permission/config change">mod: {{ row.primary_grant.last_modified_at | timeago }}</small>
+        {% else %}
+          <span class="text-muted">—</span>
+        {% endif %}
+      </td>
+      <td>
+        {% for sig in row.risk_signals %}
+        <span class="badge badge-risk" title="{{ sig }}">{{ sig | normalize_risk }}</span>
+        {% endfor %}
+      </td>
+      <td><small>{{ g.first_seen_at.strftime('%Y-%m-%d') if g.first_seen_at else '—' }}</small></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{# ── Pagination ────────────────────────────────────────────────────────────── #}
+{% if total_pages > 1 %}
+<nav class="pagination">
+  {% set qs = "type=" ~ filter_type ~ "&risk=" ~ filter_risk ~ "&resource=" ~ filter_resource ~ "&search=" ~ filter_search ~ ("&include_inactive=true" if filter_include_inactive else "") %}
+  {% if page > 1 %}
+  <a href="?page={{ page - 1 }}&{{ qs }}">&laquo; Prev</a>
+  {% endif %}
+  <span>Page {{ page }} of {{ total_pages }} ({{ total }} total)</span>
+  {% if page < total_pages %}
+  <a href="?page={{ page + 1 }}&{{ qs }}">Next &raquo;</a>
+  {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p class="text-muted" style="text-align:center; padding: 2rem 0">
+  {% if filter_type or filter_risk or filter_resource or filter_search %}
+  No grants match the current filters.
+  {% elif group.tenants|length == 0 %}
+  No connectors in this group. Edit a tenant in <a href="{{ request.url_for('tenants_list') }}">Settings</a> to assign it here.
+  {% else %}
+  No active grants found. Run collection for each connector in
+  <a href="{{ request.url_for('tenants_list') }}">Settings</a>.
+  {% endif %}
+</p>
+{% endif %}
+
+{% endblock %}

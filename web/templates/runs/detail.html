@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Run #{{ run.id }} — {{ tenant.display_name }} — Fuse{% endblock %}
+
+{% block topbar_title %}Run #{{ run.id }}{% endblock %}
+
+{% block content %}
+<p><a href="{{ request.url_for('grants_list', id=tenant.id) }}">← Back to grants</a></p>
+
+<h2>Collection run #{{ run.id }}</h2>
+
+{# ── Running / pending state — poller target ───────────────────────────────── #}
+{% if run.status in ("pending", "running") %}
+<div id="run-status-container" data-poll-url="{{ poll_url }}" data-run-status="{{ run.status }}">
+  <div class="loading-box">
+    <strong>Collection {{ run.status }}…</strong>
+    <span class="text-muted">Started {{ run.started_at | timeago }}. This page will refresh when done.</span>
+  </div>
+</div>
+
+{# ── Completed / failed state ──────────────────────────────────────────────── #}
+{% else %}
+<div class="run-header">
+  <span class="badge badge-{{ run.status }} badge-lg">{{ run.status }}</span>
+  <span class="text-muted">
+    Started {{ run.started_at.strftime('%Y-%m-%d %H:%M UTC') }}
+    {% if run.finished_at %}
+    · Finished {{ run.finished_at.strftime('%H:%M UTC') }}
+    {% if run.duration_seconds is not none %}
+    · {{ run.duration_seconds }}s
+    {% endif %}
+    {% endif %}
+  </span>
+  {% if run.activity_available %}
+  <span class="badge badge-info" title="Activity data (last-used timestamps) was collected">activity ✓</span>
+  {% else %}
+  <span class="badge badge-muted" title="Entra ID P1/P2 required for activity data">activity —</span>
+  {% endif %}
+</div>
+
+{% if run.status == "failed" and run.error_message %}
+<div class="notice notice-error">
+  <strong>Error:</strong> {{ run.error_message }}
+</div>
+{% endif %}
+
+{% if run.total_grants is not none %}
+<div class="run-summary">
+  <span><strong>{{ run.total_grants }}</strong> active grants</span>
+  <span class="text-success"><strong>+{{ run.new_grants or 0 }}</strong> new</span>
+  <span class="text-error"><strong>-{{ run.removed_grants or 0 }}</strong> removed</span>
+  <span class="text-warn"><strong>~{{ run.changed_grants or 0 }}</strong> changed</span>
+</div>
+{% endif %}
+
+{% if not new_events and not removed_events and not changed_events %}
+<p class="text-muted" style="text-align:center; padding: 2rem 0">
+  No changes detected in this run.
+</p>
+{% endif %}
+
+{# ── New grants ────────────────────────────────────────────────────────────── #}
+{% if new_events %}
+<h3 class="text-success">+ {{ new_events | length }} new grant{{ 's' if new_events|length > 1 }}</h3>
+<table class="compact">
+  <thead>
+    <tr><th>Vendor app</th><th>Type</th><th>Resource</th><th>Permissions</th><th>Consent</th></tr>
+  </thead>
+  <tbody>
+    {% for g in new_events %}
+    <tr class="row-new">
+      <td>
+        <a href="{{ request.url_for('grants_detail', id=tenant.id, gid=g.id) }}">{{ g.client_display_name }}</a>
+        {% if not g.client_verified_publisher %}<span class="badge badge-warn" title="Unverified publisher">⚠</span>{% endif %}
+      </td>
+      <td><span class="badge badge-type-{{ g.grant_type }}">{{ g.grant_type[:3] }}</span></td>
+      <td>{{ g.resource_display_name }}</td>
+      <td>
+        {% for p in (g.permissions or [])[:3] %}<code class="perm">{{ p }}</code><br>{% endfor %}
+        {% if (g.permissions or [])|length > 3 %}<small>+{{ g.permissions|length - 3 }} more</small>{% endif %}
+      </td>
+      <td>{{ 'User' if g.consent_type == 'Principal' else 'Admin' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{# ── Removed grants ────────────────────────────────────────────────────────── #}
+{% if removed_events %}
+<h3 class="text-error">− {{ removed_events | length }} removed grant{{ 's' if removed_events|length > 1 }}</h3>
+<table class="compact">
+  <thead>
+    <tr><th>Vendor app</th><th>Type</th><th>Resource</th><th>Last permissions</th></tr>
+  </thead>
+  <tbody>
+    {% for g in removed_events %}
+    <tr class="row-removed">
+      <td>
+        <a href="{{ request.url_for('grants_detail', id=tenant.id, gid=g.id) }}">{{ g.client_display_name }}</a>
+      </td>
+      <td><span class="badge badge-type-{{ g.grant_type }}">{{ g.grant_type[:3] }}</span></td>
+      <td>{{ g.resource_display_name }}</td>
+      <td>
+        {% for p in (g.permissions or [])[:3] %}<code class="perm">{{ p }}</code><br>{% endfor %}
+        {% if (g.permissions or [])|length > 3 %}<small>+{{ g.permissions|length - 3 }} more</small>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{# ── Changed grants (permission diff) ─────────────────────────────────────── #}
+{% if changed_events %}
+<h3 class="text-warn">~ {{ changed_events | length }} permission change{{ 's' if changed_events|length > 1 }}</h3>
+<table class="compact">
+  <thead>
+    <tr><th>Vendor app</th><th>Resource</th><th>Added</th><th>Removed</th></tr>
+  </thead>
+  <tbody>
+    {% for item in changed_events %}
+    {% set ev = item.event %}
+    {% set g = item.grant %}
+    <tr>
+      <td><a href="{{ request.url_for('grants_detail', id=tenant.id, gid=g.id) }}">{{ g.client_display_name }}</a></td>
+      <td>{{ g.resource_display_name }}</td>
+      <td>
+        {% if ev.event_type == "permission_added" and ev.detail %}
+          {% for p in ev.detail.permissions %}<code class="perm text-success">+{{ p }}</code><br>{% endfor %}
+        {% endif %}
+      </td>
+      <td>
+        {% if ev.event_type == "permission_removed" and ev.detail %}
+          {% for p in ev.detail.permissions %}<code class="perm text-error">-{{ p }}</code><br>{% endfor %}
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% endif %}{# end completed state #}
+{% endblock %}
