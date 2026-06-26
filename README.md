@@ -93,9 +93,17 @@ sequenceDiagram
 
 ## The console
 
-**Token Monitor** — every grant, app install and token across your sources, risk-scored (Critical → Low) from scope breadth, publisher trust, consent and activity. Click any row for the full detail.
+**Connectors** — organize sources under **companies**; each connector (Azure/Entra, GitHub App, or the demo vendor + company) prompts for its own config. Quick-connect demo wires the bundled mock company and vendor in one click.
+
+![Connectors](docs/screenshots/connectors.png)
+
+**Token Monitor** — every grant, app install and token across your sources, risk-scored (Critical → Low) from scope breadth, publisher trust, consent and activity.
 
 ![Token Monitor](docs/screenshots/token-monitor.png)
+
+**Token detail** — click any row for the full-screen deep-dive: a **compliance checklist** (sender-bound, short-lived, least privilege, recently used), risk signals with explanations, identity, activity (when & by whom), permissions, event history, and revoke.
+
+![Token detail — compliance checklist & risk signals](docs/screenshots/token-detail.png)
 
 **Gateway** — the inline DPoP demo. The legitimate vendor call is forwarded; the three attacker runs (stolen token, forged proof, replayed proof) are blocked at the gateway, with each binding check shown.
 
