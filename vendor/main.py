@@ -126,4 +126,6 @@ async def gateway_call(vendor: str, request: Request):
     return {"status": r.status_code, "allowed": bool(data.get("allowed")),
             "count": data.get("count"), "reason": data.get("reason"),
             "stage": data.get("stage"), "checks": data.get("checks"),
+            "reached_company": data.get("reached_company"),
+            "binding_enforced": data.get("binding_enforced"),
             "token": token, "proof": proof, "via": "fuse-gateway"}

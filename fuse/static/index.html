@@ -2048,21 +2048,37 @@ function renderGateway() {
     const a = cands.find(x => x.id === GW.appId);
     const L = GW.last;
 
+    const isAttacker = L && L.actor === 'attacker';
+    const reached    = L && L.reached_company;
+    const breach     = isAttacker && reached;   // attacker got through (binding off)
+
     let vState='idle', g='idle', coState='idle', w1='idle', w2='idle', vName=a.name, vSub='holds its private key';
     if (L) {
-        if (L.actor === 'attacker') { vState='breach'; vName='Attacker'; vSub='has the stolen token, not the key'; }
+        if (isAttacker) { vState='breach'; vName='Attacker'; vSub='has the stolen token, not the key'; }
         else { vState='pass'; vSub='signed a fresh proof with its key'; }
         w1='live';
-        if (L.reached_company) { g='pass'; coState='pass'; w2='pass'; }
-        else { g='fail'; coState='dark'; w2='broken'; }
+        if (reached) {
+            // forwarded — green for a legit pass, red for a breach (binding off)
+            g = breach ? 'fail' : 'pass';
+            coState = breach ? 'breach' : 'pass';
+            w2 = breach ? 'broken' : 'pass';
+        } else {
+            g='pass'; coState='dark'; w2='broken';   // gateway blocked it — good
+        }
     }
-    const coSub = L ? (L.reached_company ? `returned ${L.count ?? '?'} records` : 'never reached — stopped at the gateway') : 'holds the sensitive data';
-    const gSub = L ? (L.reached_company ? 'proof verified · forwarded' : 'binding check tripped') : 'verifies the proof on every call';
+    const coSub = L ? (reached ? `returned ${L.count ?? '?'} records` : 'never reached — stopped at the gateway') : 'holds the sensitive data';
+    const gSub = L
+        ? (reached ? (breach ? 'binding OFF · forwarded unchecked' : 'proof verified · forwarded') : 'request stopped at the gateway')
+        : 'verifies the proof when binding is on';
 
-    const banner = L ? (L.reached_company
-        ? `<div class="gw-banner ok"><b>Verified at the gateway, then forwarded.</b> ${L.count ?? '?'} records reached the company. Every request that arrives here must carry a valid sender-bound proof.</div>`
-        : `<div class="gw-banner bad"><b>Blocked at the gateway — ${esc(L.reason||'binding check failed')}.</b> The company was never touched. A stolen token alone is useless here.</div>`)
-        : `<div class="gw-banner idle">Pick a run below. The vendor's request travels <em>through Fuse</em>; only proofs signed by the bound key get forwarded.</div>`;
+    let banner;
+    if (!L) banner = `<div class="gw-banner idle">Pick a run below. The vendor's request travels <em>through Fuse</em>. With binding <b>on</b>, only proofs signed by the bound key are forwarded; with binding <b>off</b>, the gateway forwards everything (today's world).</div>`;
+    else if (breach) banner = `<div class="gw-banner bad"><b>Breach — binding is OFF.</b> The stolen token was forwarded and ${L.count ?? '?'} records reached the company. Turn on <b>Require binding</b> to make the gateway demand a valid proof and block this.</div>`;
+    else if (isAttacker) banner = `<div class="gw-banner ok"><b>Blocked at the gateway — ${esc(L.reason||'binding check failed')}.</b> The company was never touched. A stolen token alone is useless once binding is on.</div>`;
+    else if (reached) banner = (L.binding_enforced === false)
+        ? `<div class="gw-banner bad"><b>Forwarded without binding.</b> ${L.count ?? '?'} records reached the company, but no proof was checked — a stolen token would work too. Turn on <b>Require binding</b>.</div>`
+        : `<div class="gw-banner ok"><b>Verified at the gateway, then forwarded.</b> ${L.count ?? '?'} records reached the company. Every request carried a valid sender-bound proof.</div>`;
+    else banner = `<div class="gw-banner bad"><b>Legit request blocked — ${esc(L.reason||'gateway error')}.</b></div>`;
 
     const checks = (L && L.checks && L.checks.length)
         ? `<div class="gw-checks">${L.checks.map(c => `<div class="gw-check ${c.ok?'ok':'bad'}"><span class="gw-tick">${c.ok?'✓':'✕'}</span><span class="gw-cname">${esc(c.name)}</span><span class="gw-cdetail">${esc(c.detail||'')}</span></div>`).join('')}</div>`
@@ -2076,8 +2092,8 @@ function renderGateway() {
                     ${cands.map(c => `<option value="${c.id}" ${c.id===GW.appId?'selected':''}>${esc(c.name)} · ${esc(c.platform)}</option>`).join('')}
                 </select></div>
             <div class="gw-pick gw-bindrow"><label>Require binding</label>
-                <div class="gw-toggle ${a.bound?'on':''}" onclick="gwBind('${a.id}',${!a.bound})" title="The gateway rejects any token that isn't sender-bound"></div>
-                <span class="gw-bindnote">${a.bound?'enforced':'off — gateway will reject as "not sender-bound"'}</span></div>
+                <div class="gw-toggle ${a.bound?'on':''}" onclick="gwBind('${a.id}',${!a.bound})" title="On: the gateway enforces DPoP. Off: it forwards everything (today's world)."></div>
+                <span class="gw-bindnote">${a.bound?'enforced — DPoP required':'off — gateway forwards everything (a stolen token works)'}</span></div>
         </div>
         <div class="gw-actions">
             <button class="demo-btn good" ${disabled} onclick="gwLegit('${a.id}')">Run legit request</button>
@@ -2086,7 +2102,9 @@ function renderGateway() {
             <button class="demo-btn bad" ${disabled} onclick="gwAttack('${a.id}','forged_proof')">Forge a proof</button>
             <button class="demo-btn bad" ${disabled} onclick="gwAttack('${a.id}','proof_replay')">Replay captured proof</button>
         </div>
-        ${a.bound ? '' : `<div class="gw-offnote">Binding is off for this connection, so the gateway will reject even the legit run as "not sender-bound." Turn on <b>Require binding</b> above to forward it.</div>`}
+        ${a.bound
+            ? `<div class="gw-offnote" style="color:var(--green)">Binding is <b>on</b>: the legit run is forwarded, and every attacker run is blocked at the gateway.</div>`
+            : `<div class="gw-offnote">Binding is <b>off</b> (today's world): the gateway forwards every token without checking a proof, so the attacker runs <b>reach the company</b>. Turn on <b>Require binding</b> to block them.</div>`}
         <div class="gw-flow">
             ${gwNode('Vendor', vState, vName, vSub)}
             ${gwWire(w1, 'signed request')}

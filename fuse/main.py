@@ -970,72 +970,9 @@ def _gw_deny(checks, reason, app_id=None, reached_company=False):
                          "checks": checks}, status_code=401)
 
 
-@app.get("/gateway/contacts")
-async def gateway_contacts(request: Request):
-    """INLINE gateway (the plan's rare fallback): the vendor sends its DPoP-bound
-    request HERE, Fuse verifies the proof itself, and forwards only verified
-    requests to the company with a signed gateway assertion the company trusts.
-
-    Every gate is reported back as a named check so the console can show the
-    request being admitted or stopped *at the gateway*, before the company is
-    ever touched. That is the visible proof that binding is enforced here."""
-    checks: list = []
-
-    def gate(name, ok, detail):
-        checks.append({"name": name, "ok": ok, "detail": detail})
-
-    auth = request.headers.get("authorization", "")
-    proof = request.headers.get("dpop")
-
-    # Gate 1: the caller must present a DPoP-scheme token, not a plain bearer.
-    if not auth.lower().startswith("dpop "):
-        gate("DPoP scheme", False, "caller sent a bearer token, not a bound DPoP token")
-        return _gw_deny(checks, "bound DPoP token required at gateway")
-    gate("DPoP scheme", True, "caller presented a DPoP-bound token")
-    token = auth.split(" ", 1)[1]
-
-    # Gate 2: the token must be a real, unexpired Fuse token.
-    try:
-        claims = crypto.verify_access_token(crypto.public_pem(STATE.key), token)
-        gate("token valid", True, "signed by Fuse, unexpired")
-    except Exception:
-        gate("token valid", False, "token invalid or expired")
-        return _gw_deny(checks, "token invalid/expired")
-
-    app_obj = STATE.apps.get(claims.get("sub"))
-    name = app_obj.name if app_obj else claims.get("sub")
-
-    # Gate 3: revocation.
-    if claims.get("jti") in STATE.revoked_jti or (app_obj and app_obj.status == "revoked"):
-        gate("not revoked", False, "this connection has been cut")
-        return _gw_deny(checks, "token revoked", app_id=claims.get("sub"))
-    gate("not revoked", True, "connection is live")
-
-    # Gate 4: the token must actually be sender-bound (carry a cnf.jkt).
-    expected_jkt = (claims.get("cnf") or {}).get("jkt")
-    if not expected_jkt:
-        gate("sender-bound", False, "token has no bound key (cnf.jkt)")
-        return _gw_deny(checks, "token is not sender-bound", app_id=claims.get("sub"))
-    gate("sender-bound", True, f"bound to key {expected_jkt[:10]}...")
-
-    # Gate 5: a proof must be present at all.
-    if not proof:
-        gate("proof present", False, "no DPoP proof sent - a stolen token alone is useless here")
-        return _gw_deny(checks, "DPoP proof required at gateway", app_id=claims.get("sub"))
-    gate("proof present", True, "a fresh DPoP proof accompanied the request")
-
-    # Gates 6-9: the binding proof itself (key match, signature, request, freshness/replay).
-    fwd_proto = request.headers.get("x-forwarded-proto")
-    fwd_host = request.headers.get("x-forwarded-host") or request.headers.get("host")
-    htu = f"{fwd_proto}://{fwd_host}{request.url.path}" if (fwd_proto and fwd_host) else str(request.url).split("?")[0]
-    ok, summary, proof_checks = crypto.verify_dpop_proof(
-        proof, htm="GET", htu=htu, expected_jkt=expected_jkt,
-        seen_jti=_gateway_seen, access_token=token, max_age_seconds=120)
-    checks.extend(proof_checks)
-    if not ok:
-        return _gw_deny(checks, summary, app_id=claims.get("sub"))
-
-    # Verified inline. Forward to the company with a signed gateway assertion.
+async def _gw_forward(claims, name, checks, *, verified: bool):
+    """Forward a request to the company with a signed gateway assertion. `verified`
+    distinguishes a binding-enforced pass from an unprotected (binding-off) pass."""
     assertion = crypto.sign_fuse_jwt(crypto.private_pem(STATE.key), STATE.kid, {
         "iss": "fuse", "aud": company_url(), "sub": claims.get("sub"),
         "scope": claims.get("scope"), "purpose": "gateway",
@@ -1047,11 +984,98 @@ async def gateway_contacts(request: Request):
             data = r.json()
         except Exception:
             data = {"raw": r.text}
-    gate("forwarded", True, f"verified inline, forwarded to company ({data.get('count','?')} records)")
-    STATE.emit("allow", f"gateway: {name} verified inline, forwarded ({data.get('count','?')} records)", app_id=claims.get("sub"), checks=checks)
+    n = data.get("count", "?")
+    if verified:
+        checks.append({"name": "forwarded", "ok": True, "detail": f"verified inline, forwarded to company ({n} records)"})
+        STATE.emit("allow", f"gateway: {name} verified inline, forwarded ({n} records)", app_id=claims.get("sub"), checks=checks)
+    else:
+        checks.append({"name": "forwarded", "ok": False, "detail": f"binding OFF — token forwarded unchecked, reached company ({n} records)"})
+        STATE.emit("blocked", f"gateway: {name} forwarded WITHOUT binding — {n} records reached the company", app_id=claims.get("sub"), checks=checks)
     data.update({"stage": "forwarded", "via": "fuse-gateway",
-                 "reached_company": True, "checks": checks})
+                 "reached_company": True, "binding_enforced": verified, "checks": checks})
     return data
+
+
+@app.get("/gateway/contacts")
+async def gateway_contacts(request: Request):
+    """INLINE gateway. Whether DPoP is enforced depends on the connection's
+    binding policy:
+
+      binding OFF  -> today's world: the gateway forwards the bearer token
+                      without checking a proof, so a stolen token works.
+      binding ON   -> Fuse verifies the four DPoP checks and forwards only
+                      proof-carrying requests; a stolen token alone is useless.
+
+    Every gate is reported back as a named check so the console can show the
+    request being admitted or stopped *at the gateway*."""
+    checks: list = []
+
+    def gate(name, ok, detail):
+        checks.append({"name": name, "ok": ok, "detail": detail})
+
+    auth = request.headers.get("authorization", "")
+    proof = request.headers.get("dpop")
+
+    # Accept a DPoP- or Bearer-scheme token (binding-off connections use bearer).
+    if not (auth.lower().startswith("dpop ") or auth.lower().startswith("bearer ")):
+        gate("token present", False, "no token presented")
+        return _gw_deny(checks, "a token is required at the gateway")
+    token = auth.split(" ", 1)[1]
+
+    # The token must be a real, unexpired Fuse token.
+    try:
+        claims = crypto.verify_access_token(crypto.public_pem(STATE.key), token)
+        gate("token valid", True, "signed by Fuse, unexpired")
+    except Exception:
+        gate("token valid", False, "token invalid or expired")
+        return _gw_deny(checks, "token invalid/expired")
+
+    app_obj = STATE.apps.get(claims.get("sub"))
+    name = app_obj.name if app_obj else claims.get("sub")
+
+    # Revocation always applies, bound or not.
+    if claims.get("jti") in STATE.revoked_jti or (app_obj and app_obj.status == "revoked"):
+        gate("not revoked", False, "this connection has been cut")
+        return _gw_deny(checks, "token revoked", app_id=claims.get("sub"))
+    gate("not revoked", True, "connection is live")
+
+    # Does this connection require sender binding? The toggle drives everything.
+    pol = STATE.policies.get(app_obj.id) if app_obj else None
+    binding_required = bool(pol and pol.binding_required and app_obj and app_obj.holds_key)
+
+    if not binding_required:
+        # Today's world: no proof is checked, so even a stolen token is forwarded.
+        gate("binding enforced", False,
+             "binding is OFF — the gateway forwards this token without a DPoP proof (a stolen token works here)")
+        return await _gw_forward(claims, name, checks, verified=False)
+
+    gate("binding enforced", True, "binding is ON — a valid sender-bound proof is required")
+
+    # The token must actually be sender-bound (carry a cnf.jkt).
+    expected_jkt = (claims.get("cnf") or {}).get("jkt")
+    if not expected_jkt:
+        gate("sender-bound", False, "token has no bound key (cnf.jkt)")
+        return _gw_deny(checks, "token is not sender-bound", app_id=claims.get("sub"))
+    gate("sender-bound", True, f"bound to key {expected_jkt[:10]}...")
+
+    # A proof must be present at all.
+    if not proof:
+        gate("proof present", False, "no DPoP proof sent - a stolen token alone is useless here")
+        return _gw_deny(checks, "DPoP proof required at gateway", app_id=claims.get("sub"))
+    gate("proof present", True, "a fresh DPoP proof accompanied the request")
+
+    # The binding proof itself (key match, signature, request, freshness/replay).
+    fwd_proto = request.headers.get("x-forwarded-proto")
+    fwd_host = request.headers.get("x-forwarded-host") or request.headers.get("host")
+    htu = f"{fwd_proto}://{fwd_host}{request.url.path}" if (fwd_proto and fwd_host) else str(request.url).split("?")[0]
+    ok, summary, proof_checks = crypto.verify_dpop_proof(
+        proof, htm="GET", htu=htu, expected_jkt=expected_jkt,
+        seen_jti=_gateway_seen, access_token=token, max_age_seconds=120)
+    checks.extend(proof_checks)
+    if not ok:
+        return _gw_deny(checks, summary, app_id=claims.get("sub"))
+
+    return await _gw_forward(claims, name, checks, verified=True)
 
 
 @app.post("/api/simulate/gateway/{app_id}")
@@ -1079,10 +1103,12 @@ async def simulate_gateway(app_id: str):
         STATE.last_gw_token[app_id] = data["token"]
     if data.get("proof"):
         STATE.last_gw_proof[app_id] = data["proof"]
-    return {"ok": data.get("allowed", False), "actor": "legit",
-            "stage": data.get("stage", "forwarded" if data.get("allowed") else "gateway"),
+    reached = bool(data.get("reached_company") or data.get("allowed"))
+    return {"ok": reached, "actor": "legit",
+            "stage": data.get("stage", "forwarded" if reached else "gateway"),
             "reason": data.get("reason"), "count": data.get("count"),
-            "reached_company": bool(data.get("allowed")), "checks": data.get("checks", [])}
+            "binding_enforced": data.get("binding_enforced"),
+            "reached_company": reached, "checks": data.get("checks", [])}
 
 
 @app.post("/api/simulate/gateway-attack/{app_id}")
@@ -1127,9 +1153,13 @@ async def simulate_gateway_attack(app_id: str, kind: str):
         except Exception:
             data = {"raw": r.text}
     reached = bool(data.get("reached_company"))
+    reason = data.get("reason")
+    if reached and not reason:
+        reason = "binding OFF — the stolen token was forwarded to the company"
     return {"ok": False, "actor": "attacker", "stage": data.get("stage", "gateway"),
-            "reason": data.get("reason", "blocked"), "reached_company": reached,
-            "checks": data.get("checks", [])}
+            "reason": reason or "blocked", "reached_company": reached,
+            "binding_enforced": data.get("binding_enforced"),
+            "count": data.get("count"), "checks": data.get("checks", [])}
 
 
 @app.get("/api/apps/{app_id}/inspect")
