@@ -6,18 +6,18 @@ A local demo of third-party token governance — visibility, policy, and cryptog
 
 ## The problem
 
-When you grant a SaaS vendor an OAuth token, they store it. If they're breached, the attacker can replay that token against your APIs — bypassing MFA and firewalls, because the token was legitimately issued and nothing flags it as stolen.
+When you grant a SaaS vendor an OAuth token, they store it. Those tokens are usually **long-lived bearer tokens** — usable by anyone who holds the string. If the vendor is breached, the attacker replays that token straight against your APIs, **bypassing MFA and your firewall**, because the token is proof that authentication already happened and nothing flags it as stolen. The breach window is as long as the token's lifetime — often months.
 
 ```mermaid
 flowchart LR
-    P["Your Platform"]
-    V["SaaS Vendor\n(stores your token)"]
-    B(["breach"])
-    A["Attacker\n(has your token)"]
+    P["Your platform<br/>(Salesforce · M365 · Google)"]
+    V["SaaS vendor<br/>(stores your token)"]
+    B(["vendor breached"])
+    A["Attacker<br/>(has your token)"]
 
     P -- "grants OAuth token" --> V
     V --> B --> A
-    A -- "token replay · no MFA triggered" --> P
+    A -- "token replay · MFA &amp; firewall bypassed" --> P
 
     style B fill:#fee2e2,stroke:#c2341c,color:#c2341c
     style A fill:#fee2e2,stroke:#c2341c,color:#991b1b
@@ -25,15 +25,52 @@ flowchart LR
     style V fill:#f1f5f9,stroke:#94a3b8
 ```
 
-## Three ways to reduce the damage
+Identity providers (Okta, Entra) don't help here — they secure human *login*. These are machine-to-machine tokens a vendor holds, with no human in the loop.
 
-**1. Visibility** — see every token you've granted: scope, age, last used, who consented, whether the publisher is verified. Most orgs don't have this picture.
+### This is not hypothetical
 
-**2. Policy** — set lifetimes and allowed scopes per vendor, revoke on demand. Cuts the useful window from months to hours.
+- **Salesloft / Drift (Aug 2025)** — attackers ([UNC6395](https://cloud.google.com/blog/topics/threat-intelligence/data-theft-salesforce-instances-via-salesloft-drift)) stole OAuth tokens from the Drift integration and replayed them across **700+ organizations'** Salesforce (and Google Workspace) tenants to harvest secrets — AWS keys, Snowflake tokens, passwords. ([The Hacker News](https://thehackernews.com/2025/09/salesloft-takes-drift-offline-after.html))
+- **Okta support-system breach (Oct 2023)** — session tokens lifted from uploaded HAR files were replayed to hijack admin sessions at **BeyondTrust, 1Password and Cloudflare**. ([BeyondTrust disclosure](https://www.beyondtrust.com/blog/entry/okta-support-unit-breach) · [Cloudflare write-up](https://blog.cloudflare.com/how-cloudflare-mitigated-yet-another-okta-compromise/))
+- **Microsoft "Midnight Blizzard" (Jan 2024)** — a legacy **OAuth application** with elevated access was abused to read senior leadership's corporate mailboxes. ([Microsoft MSRC](https://www.microsoft.com/en-us/msrc/blog/2024/01/microsoft-actions-following-attack-by-nation-state-actor-midnight-blizzard) · [response guidance](https://www.microsoft.com/en-us/security/blog/2024/01/25/midnight-blizzard-guidance-for-responders-on-nation-state-attack/))
 
-**3. Cryptographic binding (DPoP)** — tie a token to a private key that never leaves the vendor's machine. A stolen token without the matching key is rejected at the gateway. Requires vendor adoption.
+In every case the credential was *legitimately issued* — the platform saw a valid token and let it through.
 
-Tiers 1 and 2 need nothing from any vendor.
+## The solution
+
+Fuse reduces the damage in three tiers. The first two need nothing from any vendor, so you get value on day one; the third is reserved for the connections worth the effort.
+
+**1. Visibility** — inventory every token you've granted: scope, age, last used, who consented, whether the publisher is verified, and a risk score. Most orgs can't answer "what can our vendors reach right now, and how do I cut one off?" — Fuse answers it immediately. *(→ Token Monitor, Dashboard)*
+
+**2. Policy** — set token lifetimes and allowed scopes per connection or per company, and revoke on demand. Short lifetimes cut the useful window from months to minutes; revoke kills a connection on the spot (and where Fuse can't cut at source, it links you straight to the provider's revoke screen). *(→ Policy, Compliance)*
+
+**3. Cryptographic binding (DPoP)** — for high-value connections, tie the token to a private key that **never leaves the vendor's machine** ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)). On every call the vendor sends a freshly signed proof; the gateway runs four checks — **token valid · key thumbprint matches · request matches · proof is fresh & unreplayed**. A stolen token without the matching key is rejected. *(→ Gateway)*
+
+```mermaid
+flowchart TB
+    subgraph sources["Sources (connect read-only)"]
+        AZ["Azure / Entra<br/>Graph"]
+        GH["GitHub App"]
+        DM["Demo vendor<br/>+ company"]
+    end
+    subgraph fuse["Fuse · :8000"]
+        INV["Inventory<br/>+ risk scoring"]
+        POL["Policy engine<br/>lifetime · scope · binding"]
+        GW["DPoP gateway<br/>4 binding checks"]
+    end
+    OUT["Your dashboards,<br/>policy &amp; audit log"]
+
+    AZ --> INV
+    GH --> INV
+    DM --> INV
+    INV --> POL --> OUT
+    POL -. "bind high-value" .-> GW --> OUT
+
+    style fuse fill:#0b1120,stroke:#2563eb,color:#e2e8f0
+    style GW fill:#052e1a,stroke:#22c55e,color:#bbf7d0
+    style OUT fill:#dbeafe,stroke:#2563eb
+```
+
+### How binding stops a replay
 
 ```mermaid
 sequenceDiagram
