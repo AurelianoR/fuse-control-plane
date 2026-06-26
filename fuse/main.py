@@ -1177,11 +1177,26 @@ _RISK_EXPLAIN = {
     "user-consented": "A regular user (not an admin) granted these permissions. May exceed intended access.",
     "write-permissions": "This grant includes permissions that can modify, export or delete data.",
     "all-repos": "Access to all repositories in the org, including any created in future.",
+    "broad-read": "Can read across the whole directory/org (e.g. *.Read.All) — sensitive even without write.",
+    "many-permissions": "Holds a large set of permissions — a wide blast radius if the token is stolen.",
     "sp-disabled": "The service principal is disabled. No new tokens can be issued.",
     "never-used": "No sign-in activity has ever been recorded for this grant.",
     "dormant": "No activity recorded in over 90 days. Consider revoking if no longer needed.",
     "never-reconfigured": "Installed over 90 days ago and never changed. Confirm it still needs this access.",
 }
+
+_SIG_FALLBACK_LABELS = {"broad-read": "Broad read access", "many-permissions": "Many permissions"}
+
+
+def _perm_signals(perms):
+    """Permission-derived display signals (read breadth / count) so seeded grants
+    get them too — the collector's signal logic only flags write."""
+    out = []
+    if any(risk.is_broad_read_scope(p) for p in (perms or [])):
+        out.append({"key": "broad-read", "label": "Broad read access"})
+    if len(perms or []) >= 5:
+        out.append({"key": "many-permissions", "label": "Many permissions"})
+    return out
 
 
 def _iso_dt(dt):
@@ -1210,9 +1225,10 @@ def _compliance_checks(signal_keys, *, bound, lifetime_seconds=None, verified=No
     else:
         add("Short-lived token", False,
             "Long-lived / static credential with no enforced lifetime.")
-    add("Least privilege (no write-all)", "write-permissions" not in sk and "all-repos" not in sk,
-        "No write/export/admin or all-repository access." if ("write-permissions" not in sk and "all-repos" not in sk)
-        else "Holds write/export/admin (or all-repo) permissions — over-privileged.")
+    _least_priv = not (sk & {"write-permissions", "all-repos", "broad-read"})
+    add("Least privilege", _least_priv,
+        "No write/export/admin or broad directory-wide read access." if _least_priv
+        else "Holds write/admin, all-repo, or broad *.Read.All access — over-privileged.")
     if verified is not None:
         add("Verified publisher", verified,
             "Publisher is verified by the platform." if verified else "Publisher is not verified.")
@@ -1234,7 +1250,8 @@ def _compliance_checks(signal_keys, *, bound, lifetime_seconds=None, verified=No
 
 
 def _sig_label(s):
-    return _wu.RISK_SIGNAL_LABELS.get(_wu.normalize_risk_signal(s), s)
+    n = _wu.normalize_risk_signal(s)
+    return _wu.RISK_SIGNAL_LABELS.get(n) or _SIG_FALLBACK_LABELS.get(n, s)
 
 
 def _consent_label(g, short=False):
@@ -1249,15 +1266,26 @@ def _latest_run(db, tenant_id):
             .order_by(_wm.CollectionRun.finished_at.desc()).first())
 
 
-def _grant_risk_score(signals) -> int:
+def _grant_risk_score(signals, perms=None) -> int:
+    """Risk score from the connection's signals AND its actual permissions, so a
+    broad-read or many-permission token is never scored as 'safe'."""
+    sigs = set(signals or [])
+    perms = list(perms or [])
     s = 0
-    if "write-permissions" in signals: s += 40
-    if "all-repos" in signals: s += 15
-    if "unverified-publisher" in signals: s += 20
-    if "user-consented" in signals: s += 10
-    if "never-used" in signals: s += 20
-    if any(x.startswith("dormant") for x in signals): s += 15
-    if "sp-disabled" in signals: s += 5
+    has_write = any(risk.is_write_scope(p) for p in perms) or "write-permissions" in sigs
+    has_broad = any(risk.is_broad_read_scope(p) for p in perms) or "all-repos" in sigs
+    has_read = any(risk.is_read_scope(p) for p in perms)
+    if has_write:      s += 45
+    if has_broad:      s += 30
+    elif has_read:     s += 12          # narrow read only
+    if len(perms) >= 5: s += 12
+    elif len(perms) >= 3: s += 6
+    if "unverified-publisher" in sigs: s += 20
+    if "user-consented" in sigs:       s += 12
+    if "never-used" in sigs:           s += 18
+    if any(str(x).startswith("dormant") for x in sigs): s += 12
+    if "unbound-bearer" in sigs:       s += 10
+    if "sp-disabled" in sigs:          s += 5
     return min(s, 100)
 
 
@@ -1285,7 +1313,7 @@ def _seeded_sessions():
     try:
         for t, r in _iter_seeded_rows(db):
             g = r.primary_grant
-            score = _grant_risk_score(r.risk_signals)
+            score = _grant_risk_score(list(r.risk_signals), r.permissions)
             last = r.activity.last_sign_in if r.activity else None
             plat = "github" if (t.platform or "azure") == "github" else "azure"
             out.append({
@@ -1322,6 +1350,8 @@ def _live_grant_rows():
             "consented_by": meta.get("consented_by"),
             "last_used_ago": risk.timeago(last) if last else "—",
             "risk_signals": [{"key": s["key"], "label": s["label"]} for s in sigs],
+            "risk": (_lr := _grant_risk_score([s["key"] for s in sigs], app_obj.scopes)),
+            "risk_level": _risk_level(_lr),
             "first_seen": datetime.fromtimestamp(app_obj.created_at, tz=timezone.utc).strftime("%Y-%m-%d"),
             "_source": cid or "unassigned",
             "_kind": "live",
@@ -1357,6 +1387,8 @@ def api_grants(source: str = "all", type: str = "", risk: str = "",
             for t, r in _iter_seeded_rows(db):
                 g = r.primary_grant
                 last = r.activity.last_sign_in if r.activity else None
+                _seeded_sigs = [{"key": s, "label": _sig_label(s)} for s in r.risk_signals] + _perm_signals(r.permissions)
+                _all_keys = [s["key"] for s in _seeded_sigs]
                 all_rows.append({
                     "id": str(g.id), "vendor": g.client_display_name, "app_id": g.client_app_id,
                     "type": g.grant_type, "resource": g.resource_display_name,
@@ -1364,7 +1396,9 @@ def api_grants(source: str = "all", type: str = "", risk: str = "",
                     "permissions": r.permissions,
                     "consent": _consent_label(g, short=True), "consented_by": g.consented_by_user_id,
                     "last_used_ago": _wu.timeago(last),
-                    "risk_signals": [{"key": s, "label": _sig_label(s)} for s in r.risk_signals],
+                    "risk_signals": _seeded_sigs,
+                    "risk": (_sr := _grant_risk_score(_all_keys, r.permissions)),
+                    "risk_level": _risk_level(_sr),
                     "first_seen": g.first_seen_at.strftime("%Y-%m-%d") if g.first_seen_at else None,
                     "_source": f"t{t.id}",
                     "_kind": "seeded",
@@ -1536,6 +1570,12 @@ def api_grant_detail(gid: str):
             for s in siblings:
                 all_perms += list(s.permissions or [])
         all_perms = sorted(set(all_perms))
+
+        # augment the collector's signals with permission-derived ones (read
+        # breadth / count) so the detail matches the Token Monitor row + score
+        for _ps in _perm_signals(all_perms):
+            if _ps["key"] not in risk_signals:
+                risk_signals.append(_ps["key"])
 
         gids = [g.id] + [s.id for s in siblings]
         ev_rows = (db.query(_wm.GrantEvent, _wm.CollectionRun)

@@ -930,10 +930,10 @@
                     <table class="data-table">
                         <thead><tr>
                             <th>Vendor app</th><th>Type</th><th>Resource</th><th>Permissions</th>
-                            <th>Consent</th><th>Last used</th><th>Risk</th><th>First seen</th>
+                            <th>Risk</th><th>Consent</th><th>Last used</th><th>Signals</th><th>First seen</th>
                         </tr></thead>
                         <tbody id="grants-tbody">
-                            <tr><td colspan="8" style="padding:28px;text-align:center;color:var(--text-muted);font-size:13px">Loading…</td></tr>
+                            <tr><td colspan="9" style="padding:28px;text-align:center;color:var(--text-muted);font-size:13px">Loading…</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1645,22 +1645,36 @@ function renderGrantStats(stats, activityAvail) {
       + (activityAvail === false ? `<span style="font-size:11px;color:var(--text-muted)">activity needs Entra P1/P2</span>` : '');
 }
 
+// risk level → colors (badge + row accent)
+function riskStyle(level) {
+    switch (level) {
+        case 'Critical': return { c:'var(--red-bright)', bg:'rgba(239,68,68,.16)', row:'rgba(239,68,68,.07)', bar:'var(--red)' };
+        case 'High':     return { c:'var(--red-bright)', bg:'rgba(239,68,68,.12)', row:'rgba(239,68,68,.05)', bar:'var(--red)' };
+        case 'Medium':   return { c:'var(--amber)',      bg:'rgba(245,158,11,.14)', row:'rgba(245,158,11,.04)', bar:'var(--amber)' };
+        default:         return { c:'var(--green)',      bg:'rgba(34,197,94,.12)',  row:'transparent', bar:'var(--green)' };
+    }
+}
+
 function renderGrantsTable(rows) {
     const tbody = document.getElementById('grants-tbody');
     if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="8" style="padding:28px;text-align:center;color:var(--text-muted)">No grants match the filter.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="padding:28px;text-align:center;color:var(--text-muted)">No grants match the filter.</td></tr>`;
         return;
     }
     tbody.innerHTML = rows.map(r => {
+        const lvl = r.risk_level || 'Low';
+        const rs = riskStyle(lvl);
         const perms = (r.permissions || []).map(p => `<code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);display:block">${esc(p)}</code>`).join('');
         const sigs = (r.risk_signals || []).map(s => `<span class="sig-badge" title="${esc(s.key)}">${esc(s.label)}</span>`).join(' ');
-        const warn = (r.risk_signals && r.risk_signals.length) ? ' <span style="color:var(--amber)">⚠</span>' : '';
-        return `<tr style="cursor:pointer" onclick="openGrantDetail('${esc(r.id)}')">
-            <td><div style="font-weight:600;color:var(--text)">${esc(r.vendor)}${warn}</div>
+        const riskBadge = `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:${rs.c};background:${rs.bg};padding:3px 9px;border-radius:999px;white-space:nowrap">
+            <span style="width:6px;height:6px;border-radius:50%;background:${rs.c}"></span>${esc(lvl)}</span>`;
+        return `<tr style="cursor:pointer;background:${rs.row};box-shadow:inset 3px 0 0 ${rs.bar}" onclick="openGrantDetail('${esc(r.id)}')">
+            <td><div style="font-weight:600;color:var(--text)">${esc(r.vendor)}</div>
                 <div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">${esc((r.app_id||'').slice(0,10))}…</div></td>
             <td><span style="font-size:11px;color:var(--text-dim)">${r.type === 'application' ? 'app' : 'del'}</span></td>
             <td style="font-size:12px;color:var(--text-dim)">${esc(r.resource)}</td>
             <td>${perms || '—'}</td>
+            <td>${riskBadge}</td>
             <td><span style="font-size:11px;color:var(--text-dim)">${esc(r.consent)}${r.consented_by ? '<br><span style="color:var(--text-muted);font-size:10px">'+esc(r.consented_by)+'</span>' : ''}</span></td>
             <td style="font-size:11px;color:var(--text-dim)">${esc(r.last_used_ago)}</td>
             <td style="max-width:200px">${sigs || '<span style="color:var(--text-muted);font-size:11px">—</span>'}</td>

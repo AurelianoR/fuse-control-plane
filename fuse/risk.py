@@ -23,7 +23,11 @@ _OAUTH_WRITE = frozenset({
     "admin:org", "admin:repo_hook", "admin:public_key", "admin:gpg_key",
     "admin:enterprise",
 })
-_WRITE_WORDS = ("write", "export", "full", "admin", "manage", "delete", ".all")
+_WRITE_WORDS = ("write", "export", "full", "manage", "delete", "admin")
+
+# broad read across a whole directory/org (sensitive even though it's "read")
+_BROAD_READ = frozenset({"all-repositories", "read:org", "read:enterprise",
+                         "read:user", "read:packages", "read:discussion"})
 
 
 def is_write_scope(scope: str) -> bool:
@@ -32,7 +36,26 @@ def is_write_scope(scope: str) -> bool:
         return True
     if ":write" in s or ":admin" in s:
         return True
+    # "ReadWrite" (e.g. Mail.ReadWrite, Files.ReadWrite.All) is write; plain
+    # ".Read.All" is broad read, handled by is_broad_read_scope (not write).
+    if "readwrite" in s:
+        return True
     return any(w in s for w in _WRITE_WORDS)
+
+
+def is_broad_read_scope(scope: str) -> bool:
+    """Tenant/org-wide read — e.g. Directory.Read.All, User.Read.All,
+    Team.ReadBasic.All, all-repositories. Sensitive exposure even without write."""
+    s = scope.lower()
+    if scope in _BROAD_READ:
+        return True
+    # any "*.All" scope that reads (but isn't ReadWrite, which is write)
+    return s.endswith(".all") and "read" in s and "readwrite" not in s
+
+
+def is_read_scope(scope: str) -> bool:
+    s = scope.lower()
+    return "read" in s or ":read" in s
 
 
 # label + explanation for every signal key we can emit. dormant-{N}d is handled
@@ -53,6 +76,15 @@ RISK_SIGNALS = {
     "all-repos": (
         "All repositories",
         "This app can reach every repository in the organization, including ones created in future.",
+    ),
+    "broad-read": (
+        "Broad read access",
+        "This connection can read across the whole directory/org (e.g. *.Read.All). "
+        "Sensitive exposure even without write.",
+    ),
+    "many-permissions": (
+        "Many permissions",
+        "This connection holds a large set of permissions — a wide blast radius if the token is stolen.",
     ),
     "unbound-bearer": (
         "Unbound bearer token",
@@ -102,6 +134,12 @@ def compute_risk_signals(app, *, policy=None, last_activity_ts: float | None = N
 
     if "all-repositories" in scopes or "all-repos" in scopes:
         keys.append("all-repos")
+
+    if any(is_broad_read_scope(s) for s in scopes):
+        keys.append("broad-read")
+
+    if len(scopes) >= 5:
+        keys.append("many-permissions")
 
     # the signature risk for this domain: a stealable, unbound bearer token
     bound = bool(policy and policy.binding_required and app.holds_key)
