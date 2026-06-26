@@ -130,6 +130,23 @@ async def sync_connector(cid: str):
     return {"ok": True}
 
 
+@app.post("/api/connectors/sync-all")
+async def sync_all_connectors():
+    """Re-fetch from every connected connector (real HTTP for Azure/GitHub)."""
+    synced = 0
+    errors = []
+    for cid, conn in list(STATE.connectors.items()):
+        if not conn.connected:
+            continue
+        try:
+            await STATE.sync_connector(cid)
+            synced += 1
+        except Exception as e:  # one bad source shouldn't block the rest
+            errors.append(f"{conn.display_name}: {e}")
+    return {"ok": not errors, "synced": synced, "errors": errors,
+            "apps": len(STATE.apps)}
+
+
 @app.post("/api/connectors/{cid}/disconnect")
 def disconnect_connector(cid: str):
     conn = STATE.connectors.get(cid)
@@ -257,7 +274,7 @@ def policy_overview():
     tenants appear as read-only groups so every connection is represented."""
     companies = {c["id"]: {"id": c["id"], "name": c["name"], "kind": "company",
                            "governable_count": 0, "connections": []} for c in STATE.companies}
-    unassigned = {"id": None, "name": "Unassigned", "kind": "company",
+    unassigned = {"id": "unassigned", "name": "Unassigned", "kind": "company",
                   "governable_count": 0, "connections": []}
 
     for app_obj in STATE.apps.values():

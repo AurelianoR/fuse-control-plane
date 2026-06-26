@@ -867,10 +867,11 @@
                 <div class="section-title">Policy</div>
                 <span style="font-size:11px;color:var(--text-muted)"><span class="section-action" onclick="loadPolicy()">Refresh</span></span>
             </div>
-            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:860px;line-height:1.7">
-                Govern the <strong style="color:var(--text)">sender-bound (gateway) tokens</strong> per company. Apply a
-                group policy to a whole company, or set each token's <strong style="color:var(--text)">DPoP binding</strong> and
-                <strong style="color:var(--text)">expiry time</strong> individually.
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:880px;line-height:1.7">
+                Govern access per company. <strong style="color:var(--text)">Gateway tokens</strong> (vendor holds a key) get
+                <strong style="color:var(--text)">DPoP binding</strong> + <strong style="color:var(--text)">expiry</strong> controls,
+                per token or as a group policy. <strong style="color:var(--text)">Visibility-only</strong> connections
+                (real Azure/GitHub apps — no key to bind) are listed with revoke and link to the platform for lifetime/scope.
             </div>
             <div id="policy-groups">
                 <div class="skel" style="height:120px"></div>
@@ -882,7 +883,10 @@
         <div id="monitor-view" class="view-panel" style="display:none">
             <div class="section-header">
                 <div class="section-title">Token Monitor — Grant Inventory</div>
-                <span style="font-size:11px;color:var(--text-muted)"><span id="grant-count">—</span> grants</span>
+                <span style="font-size:11px;color:var(--text-muted)">
+                    <span id="grant-count">—</span> grants ·
+                    <span class="section-action" id="grant-sync" onclick="syncTokenMonitor()">↻ Sync sources</span>
+                </span>
             </div>
             <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;max-width:900px;line-height:1.7">
                 Every OAuth grant, app install, PAT and OAuth authorization — with the full detail showing
@@ -1174,11 +1178,19 @@ async function loadPolicy() {
     if (!apiOnline) { await checkHealth(); }
     let d = { companies: [] };
     try { const r = await fetch(`${API}/api/policy/overview`); d = await r.json(); } catch(_) {}
-    // Policy governs gateway tokens only: real companies, governable + key-holding connections.
+    // Show every live-connector company: gateway tokens (DPoP + expiry) plus
+    // visibility-only connections (real Azure/GitHub) shown with revoke.
     const groups = (d.companies || [])
         .filter(g => g.kind === 'company' && g.id)
-        .map(g => ({ ...g, tokens: g.connections.filter(c => c.governable && c.holds_key && !c.revoked) }))
-        .filter(g => g.tokens.length);
+        .map(g => {
+            const live = (g.connections || []).filter(c => !c.revoked);
+            return {
+                ...g,
+                tokens: live.filter(c => c.governable && c.holds_key),   // gateway tokens
+                others: live.filter(c => !(c.governable && c.holds_key)), // visibility-only
+            };
+        })
+        .filter(g => g.tokens.length || g.others.length);
     renderPolicyGroups(groups);
 }
 
@@ -1190,32 +1202,45 @@ function renderPolicyGroups(groups) {
     const host = document.getElementById('policy-groups');
     if (!host) return;
     if (!groups.length) {
-        host.innerHTML = `<div style="color:var(--text-muted);font-size:13px;padding:16px;border:1px dashed var(--border);border-radius:10px">No gateway tokens yet. Connect the Demo Vendor (Connectors → Quick-connect demo) — only key-holding connections can be governed here.</div>`;
+        host.innerHTML = `<div style="color:var(--text-muted);font-size:13px;padding:16px;border:1px dashed var(--border);border-radius:10px">No connections yet. Connect a source in <strong>Connectors</strong> (real Azure/GitHub, or ⚡ Quick-connect demo).</div>`;
         return;
     }
     host.innerHTML = groups.map(g => {
         const open = policyExpanded[g.id] !== false;  // expanded by default
-        const groupBar = `
+        const total = g.tokens.length + g.others.length;
+        // group-policy bar only meaningful when there are governable gateway tokens
+        const groupBar = g.tokens.length ? `
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px;padding:10px;border:1px solid var(--border);border-radius:9px;background:var(--surface2)">
                 <span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">Group policy →</span>
                 <span style="font-size:11px;color:var(--text-muted)">expiry</span>
                 <select class="settings-select" id="grp-life-${g.id}" style="width:auto">${lifeOptions(300)}</select>
                 <label class="settings-checkbox-container" style="margin-bottom:0"><input type="checkbox" id="grp-bind-${g.id}" checked><span>Require DPoP</span></label>
-                <button class="demo-btn good" onclick="applyCompanyPolicy('${g.id}')">Apply to all ${g.tokens.length}</button>
-            </div>`;
-        const rows = open ? `<div>${g.tokens.map(c => policyRow(c)).join('')}</div>` : '';
+                <button class="demo-btn good" onclick="applyCompanyPolicy('${g.id}')">Apply to ${g.tokens.length} gateway token${g.tokens.length===1?'':'s'}</button>
+            </div>` : '';
+        let rows = '';
+        if (open) {
+            rows += g.tokens.map(c => policyRow(c)).join('');
+            if (g.others.length) {
+                rows += `<div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;padding:12px 12px 6px">Visibility only — ${g.others.length} connection${g.others.length===1?'':'s'}</div>`;
+                rows += g.others.map(c => policyRowReadonly(c)).join('');
+            }
+        }
+        const counts = [
+            g.tokens.length ? `${g.tokens.length} gateway` : '',
+            g.others.length ? `${g.others.length} visibility` : '',
+        ].filter(Boolean).join(' · ');
         return `<div style="margin-bottom:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
             <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:var(--surface2);cursor:pointer" onclick="togglePolicyGroup('${g.id}')">
                 <span style="font-size:11px;color:var(--text-muted)">${open?'▼':'▶'}</span>
                 <strong style="font-size:13px;color:var(--text)">${esc(g.name)}</strong>
-                <span style="font-size:11px;color:var(--text-muted)">${g.tokens.length} gateway token${g.tokens.length===1?'':'s'}</span>
+                <span style="font-size:11px;color:var(--text-muted)">${total} connection${total===1?'':'s'} · ${counts}</span>
             </div>
             <div style="padding:14px 16px">${groupBar}${rows}</div>
         </div>`;
     }).join('');
 }
 
-// per-token: DPoP toggle + expiry time
+// gateway token: DPoP toggle + expiry time
 function policyRow(c) {
     const pol = c.policy || {};
     return `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:11px 12px;border-bottom:1px solid var(--border)">
@@ -1228,6 +1253,18 @@ function policyRow(c) {
             <span style="font-size:11px;color:var(--text-muted)">expiry</span>
             <select class="settings-select" style="width:auto" onchange="setPolicy('${esc(c.id)}',{lifetime_seconds:parseInt(this.value)})">${lifeOptions(pol.lifetime_seconds)}</select>
         </div>
+        <button class="demo-btn" onclick="openGrantDetail('${esc(c.id)}')">Detail</button>
+    </div>`;
+}
+
+// visibility-only connection (real Azure/GitHub): no key, so no DPoP/expiry —
+// available actions are revoke (at source / provider) and the detail screen.
+function policyRowReadonly(c) {
+    return `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:11px 12px;border-bottom:1px solid var(--border)">
+        <div style="flex:1;min-width:150px"><span style="font-weight:600;color:var(--text);font-size:13px">${esc(c.name)}</span>
+            <span class="badge badge-${esc(c.platform)}" style="margin-left:8px">${esc((c.platform||'').toUpperCase())}</span></div>
+        <span style="font-size:11px;color:var(--text-muted)" title="No registered vendor key — Fuse can't issue or bind tokens. Lifetime &amp; scope are managed at the platform.">visibility only · revoke / manage at provider</span>
+        <button class="demo-btn bad" onclick="revokeDetail('${esc(c.id)}')">Revoke</button>
         <button class="demo-btn" onclick="openGrantDetail('${esc(c.id)}')">Detail</button>
     </div>`;
 }
@@ -1595,6 +1632,25 @@ async function setPolicy(appId, patch) {
 let grantSourcesLoaded = false;
 let grantSearchTimer = null;
 function grantSearchDebounced() { clearTimeout(grantSearchTimer); grantSearchTimer = setTimeout(loadGrants, 300); }
+
+// Re-fetch from every connected connector (real HTTP for Azure/GitHub), then reload.
+async function syncTokenMonitor() {
+    const btn = document.getElementById('grant-sync');
+    if (btn && btn.dataset.busy === '1') return;
+    if (btn) { btn.dataset.busy = '1'; btn.textContent = '↻ Syncing…'; btn.style.opacity = '.6'; }
+    let msg = 'Synced', kind = 'success';
+    try {
+        const r = await fetch(`${API}/api/connectors/sync-all`, { method: 'POST' });
+        const d = await r.json();
+        if (d.synced === 0) { msg = 'No connected sources to sync'; kind = 'warn'; }
+        else if (d.errors && d.errors.length) { msg = `Synced ${d.synced}, ${d.errors.length} error(s): ${d.errors[0]}`; kind = 'warn'; }
+        else { msg = `✓ Re-fetched ${d.synced} source(s) — ${d.apps} apps`; }
+    } catch (_) { msg = 'Sync failed — is Fuse running?'; kind = 'danger'; }
+    if (btn) { btn.dataset.busy = '0'; btn.textContent = '↻ Sync sources'; btn.style.opacity = '1'; }
+    toast(msg, kind);
+    await loadGrants();   // refresh the inventory from the freshly-synced state
+    loadSessions();       // keep the dashboard counts in step
+}
 
 async function loadGrants() {
     const tbody = document.getElementById('grants-tbody');
