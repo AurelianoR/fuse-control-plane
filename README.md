@@ -80,15 +80,15 @@ sequenceDiagram
     participant A as Attacker
 
     Note over V: holds token + private_key
-    V->>+F: request + DPoP proof (signed with key)
+    V->>F: request + DPoP proof (signed with key)
     Note over F: token valid · key thumbprint · request match · freshness
     F->>C: forwarded
-    C-->>-V: 200 OK
+    C-->>V: 200 OK
 
     Note over A: has stolen token, no key
-    A->>+F: request + stolen token
+    A->>F: request + stolen token
     Note over F: proof missing or key mismatch
-    F-->>-A: 401 Blocked
+    F-->>A: 401 Blocked
 ```
 
 ## The console
