@@ -2,6 +2,8 @@
 
 A local demo of third-party token governance — visibility, policy, and cryptographic binding for OAuth tokens your SaaS vendors hold.
 
+![Fuse dashboard](docs/screenshots/dashboard.png)
+
 ## The problem
 
 When you grant a SaaS vendor an OAuth token, they store it. If they're breached, the attacker can replay that token against your APIs — bypassing MFA and firewalls, because the token was legitimately issued and nothing flags it as stolen.
@@ -51,6 +53,20 @@ sequenceDiagram
     Note over F: proof missing or key mismatch
     F-->>-A: 401 Blocked
 ```
+
+## The console
+
+**Token Monitor** — every grant, app install and token across your sources, risk-scored (Critical → Low) from scope breadth, publisher trust, consent and activity. Click any row for the full detail.
+
+![Token Monitor](docs/screenshots/token-monitor.png)
+
+**Gateway** — the inline DPoP demo. The legitimate vendor call is forwarded; the three attacker runs (stolen token, forged proof, replayed proof) are blocked at the gateway, with each binding check shown.
+
+![Gateway — inline DPoP enforcement](docs/screenshots/gateway.png)
+
+**Compliance** — the non-compliant findings across the inventory, ranked by severity, each linking to the affected connections.
+
+![Compliance posture](docs/screenshots/compliance.png)
 
 ## Run locally
 
