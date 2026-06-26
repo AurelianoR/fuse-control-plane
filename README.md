@@ -6,6 +6,23 @@ A local demo of third-party token governance — visibility, policy, and cryptog
 
 When you grant a SaaS vendor an OAuth token, they store it. If they're breached, the attacker can replay that token against your APIs — bypassing MFA and firewalls, because the token was legitimately issued and nothing flags it as stolen.
 
+```mermaid
+flowchart LR
+    P["Your Platform"]
+    V["SaaS Vendor\n(stores your token)"]
+    B(["breach"])
+    A["Attacker\n(has your token)"]
+
+    P -- "grants OAuth token" --> V
+    V --> B --> A
+    A -- "token replay · no MFA triggered" --> P
+
+    style B fill:#fee2e2,stroke:#c2341c,color:#c2341c
+    style A fill:#fee2e2,stroke:#c2341c,color:#991b1b
+    style P fill:#dbeafe,stroke:#2563eb
+    style V fill:#f1f5f9,stroke:#94a3b8
+```
+
 ## Three ways to reduce the damage
 
 **1. Visibility** — see every token you've granted: scope, age, last used, who consented, whether the publisher is verified. Most orgs don't have this picture.
@@ -15,6 +32,25 @@ When you grant a SaaS vendor an OAuth token, they store it. If they're breached,
 **3. Cryptographic binding (DPoP)** — tie a token to a private key that never leaves the vendor's machine. A stolen token without the matching key is rejected at the gateway. Requires vendor adoption.
 
 Tiers 1 and 2 need nothing from any vendor.
+
+```mermaid
+sequenceDiagram
+    participant V as Vendor
+    participant F as Fuse Gateway
+    participant C as Company API
+    participant A as Attacker
+
+    Note over V: holds token + private_key
+    V->>+F: request + DPoP proof (signed with key)
+    Note over F: token valid · key thumbprint · request match · freshness
+    F->>C: forwarded
+    C-->>-V: 200 OK
+
+    Note over A: has stolen token, no key
+    A->>+F: request + stolen token
+    Note over F: proof missing or key mismatch
+    F-->>-A: 401 Blocked
+```
 
 ## Run locally
 
