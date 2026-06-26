@@ -662,6 +662,24 @@
         .gw-cdetail{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-dim);line-height:1.4}
         .gw-check.ok{border-left:2px solid var(--green)} .gw-check.ok .gw-tick{color:var(--green)}
         .gw-check.bad{border-left:2px solid var(--red-bright);background:#1c1219} .gw-check.bad .gw-tick{color:var(--red-bright)}
+
+        /* ── Full-screen detail overlay ── */
+        #detail-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:32px}
+        #detail-overlay .ov-scrim{position:absolute;inset:0;background:rgba(2,6,14,.74);backdrop-filter:blur(3px)}
+        #detail-overlay .ov-card{position:relative;width:min(1040px,96vw);max-height:92vh;display:flex;flex-direction:column;
+          background:var(--surface);border:1px solid var(--border2);border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.55);overflow:hidden}
+        .ov-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid var(--border);background:var(--surface)}
+        .ov-close{background:var(--surface2);border:1px solid var(--border);border-radius:9px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex:none}
+        .ov-close:hover{color:var(--text);border-color:var(--border2)}
+        .ov-body{padding:22px 24px;overflow-y:auto}
+        .ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+        @media (max-width:760px){ .ov-grid{grid-template-columns:1fr} #detail-overlay{padding:10px} }
+        .ov-comp-row{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;padding:9px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);margin-bottom:6px;font-size:12.5px}
+        .ov-comp-row.ok{border-left:2px solid var(--green)} .ov-comp-row.bad{border-left:2px solid var(--red-bright);background:#1c1219}
+        .ov-comp-tick{font-weight:700;text-align:center}
+        .ov-comp-row.ok .ov-comp-tick{color:var(--green)} .ov-comp-row.bad .ov-comp-tick{color:var(--red-bright)}
+        .ov-verdict{display:inline-flex;align-items:center;gap:7px;font-weight:800;font-size:13px;padding:6px 12px;border-radius:8px}
+        .ov-verdict.ok{background:rgba(34,197,94,.14);color:var(--green)} .ov-verdict.bad{background:rgba(239,68,68,.12);color:var(--red-bright)}
     </style>
 </head>
 <body>
@@ -673,7 +691,6 @@
         <div>
             <div class="logo-text">FUSE</div>
         </div>
-        <div class="logo-ver" style="margin-left:auto">v2.4</div>
     </div>
 
     <nav>
@@ -698,7 +715,6 @@
                     d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
             Token Monitor
-            <span class="nav-badge">grants</span>
         </a>
         <a href="#" class="nav-link" onclick="showView('gateway', this);return false;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -706,10 +722,16 @@
                     d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
             Gateway
-            <span class="nav-badge">DPoP</span>
         </a>
 
         <div class="nav-section-label" style="margin-top:12px">Governance</div>
+        <a href="#" class="nav-link" onclick="showView('policy', this);return false;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z M12 3l7 4v5c0 4-3 7-7 8-4-1-7-4-7-8V7l7-4z"/>
+            </svg>
+            Policy
+        </a>
         <a href="#" class="nav-link" onclick="showView('compliance', this);return false;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -725,40 +747,18 @@
             </svg>
             Audit Log
         </a>
-        <a href="presentation.html" target="_blank" class="nav-link">
+        <a href="/static/presentation.html" target="_blank" class="nav-link">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
             </svg>
             Product Presentation ↗
         </a>
-
-        <div class="nav-section-label" style="margin-top:12px">Admin</div>
-        <a href="#" class="nav-link" id="settings-nav-btn" onclick="showView('settings', this);return false;">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <span>Settings</span>
-        </a>
     </nav>
 
-    <!-- API Status -->
-    <div class="api-status-bar">
-        <span id="api-dot" class="api-dot pending"></span>
-        <span id="api-label" style="color:var(--text-muted)">Connecting to API…</span>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:4px;font-family:'JetBrains Mono',monospace" id="api-url-label">fuse · same-origin</div>
-    </div>
-
-    <!-- User -->
-    <div class="user-card">
-        <div class="user-avatar">SA</div>
-        <div>
-            <div class="user-name">SecOps Admin</div>
-            <div class="user-role">Cloud Governance Team</div>
-        </div>
-    </div>
+    <!-- API status (referenced by checkHealth; not shown) -->
+    <span id="api-dot" class="api-dot pending" style="display:none"></span>
+    <span id="api-label" style="display:none"></span>
 </aside>
 
 <!-- ══════════════════════ MAIN ═══════════════════════════════════════════ -->
@@ -771,28 +771,18 @@
             <div class="topbar-sub" id="topbar-sub">See, monitor and lock down every vendor token — with sender-bound (DPoP) enforcement</div>
         </div>
         <div class="topbar-actions">
-            <div class="icon-btn" onclick="loadAll()" title="Refresh" id="refresh-icon">
+            <div class="icon-btn" onclick="refreshCurrent()" title="Refresh this view" id="refresh-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
             </div>
-            <div class="icon-btn" title="Alerts" onclick="toast('⚠ 1 critical risk alert — External Dev Agency static key.','warn')">
+            <div class="icon-btn" title="View compliance findings" onclick="openAlerts()">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
                 <span class="alert-pip" id="alert-pip"></span>
-            </div>
-            <div class="icon-btn" title="Export report" onclick="toast('📋 Report queued for export.','info')">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-            </div>
-            <div class="topbar-user">
-                <span class="online-dot"></span>
-                Cloud SecOps Admin
             </div>
         </div>
     </header>
@@ -804,9 +794,15 @@
         <!-- ── KPI overview (each card routes to its detail view) ─────── -->
         <div class="section-header">
             <div class="section-title">Overview</div>
-            <div class="section-action" id="last-updated">—</div>
+            <div style="display:flex;align-items:center;gap:10px">
+                <label style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);font-family:'JetBrains Mono',monospace">Company</label>
+                <select id="company-select" class="settings-select" style="width:auto;min-width:200px" onchange="onCompanyChange(this.value)">
+                    <option value="__all">All companies</option>
+                </select>
+                <span class="section-action" id="last-updated" style="margin-left:6px">—</span>
+            </div>
         </div>
-        <div style="font-size:12px;color:var(--text-muted);margin:-6px 0 16px">Click any statistic to open its detail view.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:-6px 0 16px">Pick a company to scope the dashboard, or view all. Click any statistic to open its detail view.</div>
         <div class="grid-4" style="margin-bottom:24px">
 
             <div class="kpi-card kpi-border-azure" style="cursor:pointer" onclick="gotoView('monitor',{platform:'azure'})" title="View Azure connections in Token Monitor">
@@ -861,57 +857,23 @@
                 <div class="kpi-sub">Activity & revocations →</div>
             </div>
         </div>
+        <div id="dashboard-companies"></div>
     </div><!-- /dashboard-view -->
 
 
-        <!-- ── Settings View ─────────────────────────────────────────── -->
-        <div id="settings-view" class="view-panel" style="display: none;">
-            <div class="settings-container">
-                <div class="section-header">
-                    <div class="section-title" style="font-size:16px;" id="settings-title">Token Policy &amp; Lifespan Governance</div>
-                </div>
-
-                <!-- Section 1: Token Configuration -->
-                <div id="settings-token-view" class="settings-sub-view" style="display: block;">
-                    <div class="settings-section">
-                        <div class="settings-section-title">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-top:2px; vertical-align:middle; margin-right:4px;">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                            Token Governance Policy
-                        </div>
-                        <div class="grid-2">
-                            <div>
-                                <label class="settings-label">Token Lifespan (Minutes)</label>
-                                <input type="number" id="token-ttl" min="1" max="60" class="settings-input" value="5">
-                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Short lifetimes mitigate token-replay windows drastically.</div>
-                            </div>
-                            <div>
-                                <label class="settings-label">Allowed Scopes (Comma-separated)</label>
-                                <input type="text" id="token-scopes" class="settings-input" placeholder="read-only contacts, user-profile">
-                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Restricts maximum privilege boundaries for brokered tokens.</div>
-                            </div>
-                        </div>
-                        <div class="grid-2" style="margin-top:16px;">
-                            <div>
-                                <label class="settings-label">Max Token Usage Limit</label>
-                                <input type="number" id="token-max-usage" min="1" class="settings-input" value="1000">
-                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Defines maximum requests allowed per token session.</div>
-                            </div>
-                            <div style="display: flex; align-items: center; padding-top: 14px;">
-                                <label class="settings-checkbox-container" style="margin-bottom:0; width: 100%;">
-                                    <input type="checkbox" id="token-sender-binding">
-                                    <span>Enforce Sender Binding (DPoP)</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="settings-footer">
-                        <button onclick="saveAllSettings('token')" class="settings-save-btn">
-                            Save Token Policy
-                        </button>
-                    </div>
-                </div>
+        <!-- ── Policy View (per-company, gateway tokens only) ────────── -->
+        <div id="policy-view" class="view-panel" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">Policy</div>
+                <span style="font-size:11px;color:var(--text-muted)"><span class="section-action" onclick="loadPolicy()">Refresh</span></span>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;max-width:860px;line-height:1.7">
+                Govern the <strong style="color:var(--text)">sender-bound (gateway) tokens</strong> per company. Apply a
+                group policy to a whole company, or set each token's <strong style="color:var(--text)">DPoP binding</strong> and
+                <strong style="color:var(--text)">expiry time</strong> individually.
+            </div>
+            <div id="policy-groups">
+                <div class="skel" style="height:120px"></div>
             </div>
         </div>
 
@@ -930,7 +892,7 @@
             <div class="card" style="margin-bottom:16px">
                 <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
                     <div style="min-width:200px">
-                        <label class="settings-label">Source</label>
+                        <label class="settings-label">Company</label>
                         <select id="grant-tenant" class="settings-select" onchange="loadGrants()"></select>
                     </div>
                     <div>
@@ -1057,28 +1019,19 @@
                 <span style="font-size:11px;color:var(--text-muted)"><span id="compliance-finding-count">—</span> findings · <span class="section-action" onclick="loadCompliance()">Refresh</span></span>
             </div>
             <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;max-width:860px;line-height:1.7">
-                Negative compliance status only — the gaps that need attention: framework coverage shortfalls and
-                concrete risk findings across the connection inventory. Frameworks at full coverage are not shown.
+                Negative compliance status only — the concrete risk findings that need attention across the
+                connection inventory. Compliant connections are not shown.
             </div>
             <div id="compliance-severity-bar" style="display:flex;gap:10px;margin-bottom:16px"></div>
             <div class="section-header"><div class="section-title" style="font-size:14px">Findings</div></div>
             <div id="compliance-findings" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px"></div>
-            <div class="section-header"><div class="section-title" style="font-size:14px">Frameworks (click to revise)</div></div>
-            <div id="compliance-frameworks" style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px"></div>
-            <div class="card" style="margin-bottom:24px">
-                <label class="settings-label">Research &amp; add a regulatory framework</label>
-                <div style="display:flex;gap:12px;margin-top:8px">
-                    <input id="new-framework-name" class="settings-input" style="flex:1" placeholder="e.g. HIPAA, PCI-DSS, GDPR, SOC2">
-                    <button class="settings-save-btn" style="white-space:nowrap;margin-top:0;width:auto;padding:0 16px" onclick="researchAndAddFramework()">🔍 Research &amp; Add</button>
-                </div>
-            </div>
         </div>
 
         <!-- ── Audit Log View ────────────────────────────────────────── -->
         <div id="audit-view" class="view-panel" style="display:none">
             <div class="section-header">
                 <div class="section-title">Activity &amp; Audit Log</div>
-                <span style="font-size:11px;color:var(--text-muted)"><span id="audit-count">—</span> events · <span class="section-action" onclick="loadAuditView()">Refresh</span></span>
+                <span style="font-size:11px;color:var(--text-muted)"><span id="audit-count">—</span> events · <span class="section-action" onclick="exportAuditReport()">⬇ Export report</span> · <span class="section-action" onclick="loadAuditView()">Refresh</span></span>
             </div>
             <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;max-width:860px;line-height:1.7">
                 Every governance action Fuse recorded this session: connector syncs, policy changes, revocations,
@@ -1094,87 +1047,24 @@
     </div><!-- /content -->
 </div><!-- /main -->
 
-<!-- ══════════════════ SIDE PANEL ════════════════════════════════════════ -->
-<div id="panel-backdrop" onclick="closePanel()"></div>
-<div id="side-panel">
-    <div class="panel-header">
-        <div>
-            <div style="font-size:15px;font-weight:700;color:var(--text)" id="p-title">Connection Details</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:2px" id="p-subtitle">Token monitoring &amp; revocation</div>
-        </div>
-        <button onclick="closePanel()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted)" aria-label="Close">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    </div>
+<!-- backdrop shared by the compliance revision panel -->
 
-    <div class="panel-body" id="detail-body">
-        <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px">Loading details…</div>
-    </div>
-
-    <div class="panel-footer">
-        <button class="revoke-btn" id="revoke-btn" onclick="doRevoke()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-            </svg>
-            Revoke Access
-        </button>
-    </div>
-</div>
-
-<!-- ══════════════════ COMPLIANCE SIDE PANEL ════════════════════════════════ -->
-<div id="compliance-side-panel">
-    <div class="panel-header">
-        <div>
-            <div style="font-size:15px;font-weight:700;color:var(--text)" id="c-panel-title">Revise Compliance Framework</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Modify framework compliance parameters & details</div>
-        </div>
-        <button onclick="closeCompliancePanel()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted)" aria-label="Close">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    </div>
-
-    <div class="panel-body">
-        <input type="hidden" id="c-framework-id">
-        <div style="margin-bottom:16px">
-            <div class="field-label">Framework Name</div>
-            <input type="text" id="c-framework-name" class="settings-input" style="font-weight:700; background:rgba(255,255,255,0.02); color:var(--text); cursor:not-allowed;" readonly>
-        </div>
-        <div style="margin-bottom:20px">
-            <div class="field-label" style="display:flex; justify-content:space-between;">
-                <span>Compliance Posture Score</span>
-                <span id="c-score-display" style="font-weight:700; color:var(--blue);">85%</span>
+<!-- ══════════════════ FULL-SCREEN DETAIL OVERLAY ═══════════════════════════ -->
+<div id="detail-overlay" style="display:none">
+    <div class="ov-scrim" onclick="closeDetail()"></div>
+    <div class="ov-card" role="dialog" aria-modal="true">
+        <div class="ov-head">
+            <div>
+                <div id="ov-title" style="font-size:18px;font-weight:800;color:var(--text)">Connection</div>
+                <div id="ov-subtitle" style="font-size:12px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-top:3px">—</div>
             </div>
-            <input type="range" id="c-framework-score" min="0" max="100" class="settings-input" style="padding:0; height:6px; cursor:pointer;" oninput="document.getElementById('c-score-display').textContent = this.value + '%'">
+            <button class="ov-close" onclick="closeDetail()" aria-label="Close">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
-        <div style="margin-bottom:16px">
-            <div class="field-label">Framework Description / Key Controls</div>
-            <textarea id="c-framework-description" class="settings-input" style="height:100px; resize:vertical; font-family:inherit;" placeholder="Describe key controls, e.g. Access control, Audit logging..."></textarea>
+        <div id="ov-body" class="ov-body">
+            <div style="color:var(--text-muted);font-size:13px;text-align:center;padding:48px">Loading details…</div>
         </div>
-        <div style="margin-bottom:16px; display:flex; align-items:center; gap:8px;">
-            <input type="checkbox" id="c-framework-enabled" style="cursor:pointer; width:16px; height:16px;">
-            <label for="c-framework-enabled" class="settings-label" style="margin-top:0; cursor:pointer; font-weight:normal;">Active on dashboard posture list</label>
-        </div>
-
-        <div class="panel-divider"></div>
-
-        <div style="font-size:11px;color:var(--text-muted);line-height:1.8;margin-bottom:16px">
-            Revising this framework will update its compliance score and description details in the database.
-            The revised values will immediately render across all user dashboards.
-        </div>
-    </div>
-
-    <div class="panel-footer">
-        <button class="revoke-btn" id="save-revision-btn" onclick="submitComplianceRevision()" style="background:var(--blue); border-color:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; gap:6px;">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Save Revision
-        </button>
     </div>
 </div>
 
@@ -1190,8 +1080,6 @@ const API = '';
 let sessions   = [];
 let revoked    = new Set();
 let curFilter  = 'all';
-let panelToken = null;
-let panelRow   = null;
 let apiOnline  = false;
 let activeRevisionFramework = null;
 let connectorTypes = [];
@@ -1216,9 +1104,9 @@ window.addEventListener('DOMContentLoaded', () => {
     setInterval(loadAll, 10_000);
 });
 
-document.addEventListener('keydown', e => { 
+document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-        closePanel(); 
+        closeDetail();
         closeCompliancePanel();
     }
 });
@@ -1238,126 +1126,134 @@ function showView(viewId, el) {
     });
 
     // Show target view panel
+    window._currentView = viewId;
     const target = document.getElementById(viewId + '-view');
     if (target) {
         target.style.display = 'block';
-        if (viewId === 'settings')    loadSettings();
+        if (viewId === 'dashboard')   loadAll();
         if (viewId === 'connectors')  loadConnectors();
         if (viewId === 'gateway')     loadGateway();
-        if (viewId === 'monitor')     loadGrants();
+        if (viewId === 'monitor')     { if (!window._keepMonitorFilter) window._monitorPlatform = null; loadGrants(); }
         if (viewId === 'compliance')  loadCompliance();
         if (viewId === 'audit')       loadAuditView();
+        if (viewId === 'policy')      loadPolicy();
     }
 }
+
+// topbar refresh → reload the active view; alert → compliance findings
+function refreshCurrent() {
+    const v = window._currentView || 'dashboard';
+    const map = { dashboard:loadAll, connectors:loadConnectors, gateway:loadGateway,
+                  monitor:loadGrants, compliance:loadCompliance, audit:loadAuditView, policy:loadPolicy };
+    (map[v] || loadAll)();
+    toast('↻ Refreshed', 'info');
+}
+function openAlerts() { gotoView('compliance'); }
 
 // nav helper — jump to a view and apply an optional filter on arrival
 function gotoView(viewId, opts) {
     const link = Array.from(document.querySelectorAll('.nav-link'))
         .find(a => (a.getAttribute('onclick')||'').includes(`'${viewId}'`));
+    // when arriving with a filter, keep it through this showView (sidebar nav clears it)
+    window._keepMonitorFilter = !!(opts && (opts.platform || opts.risk));
+    if (opts && opts.platform) window._monitorPlatform = opts.platform;
     showView(viewId, link || document.querySelector('.nav-link'));
+    window._keepMonitorFilter = false;
     if (opts && viewId === 'monitor') {
         if (opts.source && document.getElementById('grant-tenant')) { document.getElementById('grant-tenant').value = opts.source; }
         if (opts.risk && document.getElementById('grant-risk')) { document.getElementById('grant-risk').value = opts.risk; }
-        if (opts.platform) { window._monitorPlatform = opts.platform; }
         loadGrants();
     }
 }
 
-// ── Settings (token policy only) ─────────────────────────────────────────────
-async function loadSettings() {
-    if (!apiOnline) await checkHealth();
-    try {
-        const response = await fetch(`${API}/api/dashboard/settings`);
-        if (!response.ok) return;
-        const result = await response.json();
-        const tg = result.data && result.data.token_governance;
-        if (tg) {
-            document.getElementById('token-ttl').value = tg.default_ttl_minutes || 5;
-            document.getElementById('token-scopes').value = (tg.allowed_scopes || []).join(', ');
-            document.getElementById('token-max-usage').value = tg.max_token_usage_limit || 1000;
-            document.getElementById('token-sender-binding').checked = !!tg.enforce_sender_binding;
-        }
-    } catch (error) { console.error("Failed to load settings:", error); }
+// ── Policy view (per-token + per-company group policy) ───────────────────────
+const POLICY_LIFE = [[60,'1 min'],[300,'5 mins'],[900,'15 mins'],[3600,'1 hr'],[21600,'6 hrs'],[86400,'1 day']];
+let policyExpanded = {};   // company id -> bool
+
+async function loadPolicy() {
+    if (!apiOnline) { await checkHealth(); }
+    let d = { companies: [] };
+    try { const r = await fetch(`${API}/api/policy/overview`); d = await r.json(); } catch(_) {}
+    // Policy governs gateway tokens only: real companies, governable + key-holding connections.
+    const groups = (d.companies || [])
+        .filter(g => g.kind === 'company' && g.id)
+        .map(g => ({ ...g, tokens: g.connections.filter(c => c.governable && c.holds_key && !c.revoked) }))
+        .filter(g => g.tokens.length);
+    renderPolicyGroups(groups);
 }
 
-async function saveAllSettings(section) {
-    try {
-        if (section === 'token') {
-            const tokenData = {
-                default_ttl_minutes: parseInt(document.getElementById('token-ttl').value) || 5,
-                allowed_scopes: document.getElementById('token-scopes').value.split(',').map(s => s.trim()).filter(Boolean),
-                enforce_sender_binding: document.getElementById('token-sender-binding').checked,
-                max_token_usage_limit: parseInt(document.getElementById('token-max-usage').value) || 1000
-            };
-            const rToken = await fetch(`${API}/api/dashboard/settings/token`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tokenData)
-            });
-            const d = await rToken.json();
-            if (!rToken.ok) throw new Error("Failed to save token governance");
-            toast(`🔑 ${d.message || 'Token policy saved'}`, "success");
-        }
-        setTimeout(loadSettings, 400);
-        loadSessions();
-    } catch (error) {
-        console.error("Failed to apply settings:", error);
-        toast("❌ Failed to save governance rules.", "danger");
-    }
+function lifeOptions(sel) {
+    return POLICY_LIFE.map(([v,l]) => `<option value="${v}" ${sel==v?'selected':''}>${l}</option>`).join('');
 }
 
-async function researchAndAddFramework() {
-    const inputEl = document.getElementById('new-framework-name');
-    const name = inputEl.value.trim();
-    if (!name) {
-        toast("⚠ Please enter a framework name to research.", "warn");
+function renderPolicyGroups(groups) {
+    const host = document.getElementById('policy-groups');
+    if (!host) return;
+    if (!groups.length) {
+        host.innerHTML = `<div style="color:var(--text-muted);font-size:13px;padding:16px;border:1px dashed var(--border);border-radius:10px">No gateway tokens yet. Connect the Demo Vendor (Connectors → Quick-connect demo) — only key-holding connections can be governed here.</div>`;
         return;
     }
-    
-    try {
-        toast(`🔍 Researching and auditing controls for ${name}...`, "info");
-        const response = await fetch(`${API}/api/dashboard/settings/compliance/research`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name })
-        });
-        
-        if (!response.ok) throw new Error("Failed to research framework");
-        
-        const result = await response.json();
-        if (result.status === 'success') {
-            toast(`✅ ${result.message}`, "success");
-            inputEl.value = '';
-            loadCompliance();
-        } else {
-            toast(`⚠ ${result.message || 'Error researching framework'}`, "warn");
-        }
-    } catch (error) {
-        console.error("Framework research error:", error);
-        toast("❌ Failed to research framework. Check console.", "danger");
-    }
+    host.innerHTML = groups.map(g => {
+        const open = policyExpanded[g.id] !== false;  // expanded by default
+        const groupBar = `
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px;padding:10px;border:1px solid var(--border);border-radius:9px;background:var(--surface2)">
+                <span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">Group policy →</span>
+                <span style="font-size:11px;color:var(--text-muted)">expiry</span>
+                <select class="settings-select" id="grp-life-${g.id}" style="width:auto">${lifeOptions(300)}</select>
+                <label class="settings-checkbox-container" style="margin-bottom:0"><input type="checkbox" id="grp-bind-${g.id}" checked><span>Require DPoP</span></label>
+                <button class="demo-btn good" onclick="applyCompanyPolicy('${g.id}')">Apply to all ${g.tokens.length}</button>
+            </div>`;
+        const rows = open ? `<div>${g.tokens.map(c => policyRow(c)).join('')}</div>` : '';
+        return `<div style="margin-bottom:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:var(--surface2);cursor:pointer" onclick="togglePolicyGroup('${g.id}')">
+                <span style="font-size:11px;color:var(--text-muted)">${open?'▼':'▶'}</span>
+                <strong style="font-size:13px;color:var(--text)">${esc(g.name)}</strong>
+                <span style="font-size:11px;color:var(--text-muted)">${g.tokens.length} gateway token${g.tokens.length===1?'':'s'}</span>
+            </div>
+            <div style="padding:14px 16px">${groupBar}${rows}</div>
+        </div>`;
+    }).join('');
 }
 
-// ── Compliance view (non-compliant findings + frameworks) ───────────────────
-function getScoreColors(score) {
-    if (score >= 85) return { text:'#4ade80', stroke:'#4ade80', bg:'rgba(74,222,128,.12)', gradient:'linear-gradient(90deg,#22c55e,#4ade80)' };
-    if (score >= 70) return { text:'#fbbf24', stroke:'#fbbf24', bg:'rgba(245,158,11,.12)', gradient:'linear-gradient(90deg,#f59e0b,#fbbf24)' };
-    return { text:'#f87171', stroke:'#f87171', bg:'rgba(239,68,68,.12)', gradient:'linear-gradient(90deg,#ef4444,#f87171)' };
+// per-token: DPoP toggle + expiry time
+function policyRow(c) {
+    const pol = c.policy || {};
+    return `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:11px 12px;border-bottom:1px solid var(--border)">
+        <div style="flex:1;min-width:150px"><span style="font-weight:600;color:var(--text);font-size:13px">${esc(c.name)}</span>
+            <span class="badge badge-${esc(c.platform)}" style="margin-left:8px">${esc((c.platform||'').toUpperCase())}</span></div>
+        <label class="settings-checkbox-container" style="margin-bottom:0">
+            <input type="checkbox" ${pol.binding_required?'checked':''}
+                   onchange="setPolicy('${esc(c.id)}',{binding_required:this.checked})"><span>DPoP binding</span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;color:var(--text-muted)">expiry</span>
+            <select class="settings-select" style="width:auto" onchange="setPolicy('${esc(c.id)}',{lifetime_seconds:parseInt(this.value)})">${lifeOptions(pol.lifetime_seconds)}</select>
+        </div>
+        <button class="demo-btn" onclick="openGrantDetail('${esc(c.id)}')">Detail</button>
+    </div>`;
 }
+
+function togglePolicyGroup(id) { policyExpanded[id] = policyExpanded[id] === false; loadPolicy(); }
+
+async function applyCompanyPolicy(companyId) {
+    const life = parseInt(document.getElementById(`grp-life-${companyId}`).value);
+    const bind = document.getElementById(`grp-bind-${companyId}`).checked;
+    try {
+        const r = await fetch(`${API}/api/policy/bulk`, {method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ filter:{ company: companyId, governable:true }, policy:{ lifetime_seconds:life, binding_required:bind } })});
+        const d = await r.json();
+        toast(`✓ Group policy applied to ${d.matched} token(s)`, 'success');
+    } catch(_) { toast('❌ Group policy failed','danger'); }
+    await loadPolicy(); loadSessions();
+}
+
+// ── Compliance view (non-compliant findings only) ───────────────────────────
 const SEV_COLOR = { high:'var(--red-bright)', medium:'var(--amber)', low:'var(--blue-bright)' };
 
 async function loadCompliance() {
     if (!apiOnline) await checkHealth();
     let findings = { total:0, by_severity:{}, findings:[] };
-    let frameworks = [];
-    try {
-        const [f, s] = await Promise.all([
-            fetch(`${API}/api/compliance/findings`).then(r=>r.json()).catch(()=>findings),
-            fetch(`${API}/api/dashboard/settings`).then(r=>r.json()).catch(()=>({data:{compliance:{frameworks:[]}}})),
-        ]);
-        findings = f || findings;
-        frameworks = (s.data && s.data.compliance && s.data.compliance.frameworks) || [];
-    } catch(_) {}
+    try { findings = await fetch(`${API}/api/compliance/findings`).then(r=>r.json()); } catch(_) {}
     renderComplianceFindings(findings);
-    renderComplianceFrameworks(frameworks);
 }
 
 function renderComplianceFindings(d) {
@@ -1393,97 +1289,9 @@ function renderComplianceFindings(d) {
     }).join('');
 }
 
-function renderComplianceFrameworks(frameworks) {
-    const el = document.getElementById('compliance-frameworks');
-    if (!el) return;
-    const enabled = frameworks.filter(f => f.enabled);
-    if (!enabled.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:14px">No frameworks enabled.</div>'; return; }
-    el.innerHTML = '';
-    enabled.forEach(f => {
-        const colors = getScoreColors(f.score);
-        const row = document.createElement('div');
-        row.className = 'comp-row';
-        row.style.cursor = 'pointer';
-        row.innerHTML = `
-            <div class="comp-icon" style="background:${colors.bg}">
-                <svg width="16" height="16" fill="none" stroke="${colors.stroke}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            </div>
-            <div style="flex:1">
-                <div style="display:flex;justify-content:space-between"><div class="comp-name">${esc(f.name)}</div><div style="font-size:11px;font-weight:700;color:${colors.text}">${f.score}%</div></div>
-                <div class="meter-bar"><div class="meter-fill" style="width:${f.score}%;background:${colors.gradient}"></div></div>
-                <div class="comp-sub">${esc(f.description)}</div>
-            </div>`;
-        row.onclick = () => openComplianceRevisionPanel(f);
-        el.appendChild(row);
-    });
-}
-
-function openComplianceRevisionPanel(framework) {
-    activeRevisionFramework = framework;
-    document.getElementById('c-framework-id').value = framework.id || '';
-    document.getElementById('c-framework-name').value = framework.name || '';
-    document.getElementById('c-framework-score').value = framework.score || 70;
-    document.getElementById('c-score-display').textContent = (framework.score || 70) + '%';
-    document.getElementById('c-framework-description').value = framework.description || '';
-    document.getElementById('c-framework-enabled').checked = framework.enabled !== false;
-    document.getElementById('compliance-side-panel').classList.add('open');
-    document.getElementById('panel-backdrop').classList.add('show');
-}
-
 function closeCompliancePanel() {
-    document.getElementById('compliance-side-panel').classList.remove('open');
-    document.getElementById('panel-backdrop').classList.remove('show');
-    activeRevisionFramework = null;
-}
-
-async function submitComplianceRevision() {
-    if (!activeRevisionFramework) return;
-    
-    const id = document.getElementById('c-framework-id').value;
-    const score = parseInt(document.getElementById('c-framework-score').value, 10);
-    const description = document.getElementById('c-framework-description').value;
-    const enabled = document.getElementById('c-framework-enabled').checked;
-    
-    const saveBtn = document.getElementById('save-revision-btn');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Saving...';
-    
-    try {
-        if (apiOnline) {
-            const response = await fetch(`${API}/api/dashboard/settings/compliance/revise`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: parseInt(id, 10),
-                    score: score,
-                    description: description,
-                    enabled: enabled
-                })
-            });
-            if (!response.ok) throw new Error("Failed to save revision to server");
-            const result = await response.json();
-            if (result.status === 'success') {
-                toast("📋 Compliance framework revision saved successfully!", "success");
-            } else {
-                throw new Error(result.message || "Server error");
-            }
-        } else {
-            // Local mockup revision fallback
-            toast("📋 Mock framework revision saved locally (offline mode)!", "success");
-        }
-        
-        closeCompliancePanel();
-        await loadCompliance();
-        loadDashboardCounts();
-
-    } catch (error) {
-        console.error("Revision error:", error);
-        toast("❌ Failed to save compliance revision", "danger");
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = originalText;
-    }
+    const p = document.getElementById('compliance-side-panel'); if (p) p.classList.remove('open');
+    const b = document.getElementById('panel-backdrop'); if (b) b.classList.remove('show');
 }
 
 // ── Load everything ────────────────────────────────────────────────────────
@@ -1566,8 +1374,43 @@ async function loadSessions() {
         usage_limit: Number.isFinite(s.usage_limit) ? s.usage_limit : 100,
         bound: !!s.bound, token_kind: s.token_kind || 'bearer',
         governable: !!s.governable, revoked: !!s.revoked,
+        company: s.company || null, company_name: s.company_name || 'Unassigned',
     }));
+    populateCompanySwitcher();
     renderKPIs();
+}
+
+// ── Company switcher (scopes Dashboard + Connectors) ─────────────────────────
+let selectedCompany = '__all';
+function companyList() {
+    const seen = new Map();
+    sessions.forEach(s => { if (!seen.has(s.company_name)) seen.set(s.company_name, s.company); });
+    (companies||[]).forEach(c => { if (!seen.has(c.name)) seen.set(c.name, c.id); });
+    return Array.from(seen, ([name, id]) => ({ name, id })).sort((a,b)=>a.name.localeCompare(b.name));
+}
+function populateCompanySwitcher() {
+    const sel = document.getElementById('company-select');
+    if (!sel) return;
+    const list = companyList();
+    const cur = selectedCompany;
+    sel.innerHTML = `<option value="__all">All companies</option>`
+        + list.map(c => `<option value="${esc(c.company_name||c.name)}">${esc(c.name)}</option>`).join('')
+        + `<option value="__add">+ Add company…</option>`;
+    sel.value = (cur === '__all' || list.some(c => (c.company_name||c.name) === cur)) ? cur : '__all';
+    selectedCompany = sel.value === '__add' ? '__all' : sel.value;
+}
+async function onCompanyChange(val) {
+    if (val === '__add') {
+        await addCompanyPrompt();
+        document.getElementById('company-select').value = selectedCompany;
+        return;
+    }
+    selectedCompany = val;   // scopes the Dashboard only
+    renderKPIs();
+}
+function scopedSessions() {
+    if (selectedCompany === '__all') return sessions;
+    return sessions.filter(s => (s.company_name || 'Unassigned') === selectedCompany);
 }
 
 // ── Audit Log view ───────────────────────────────────────────────────────────
@@ -1586,13 +1429,31 @@ async function loadAuditView() {
         return;
     }
     el.innerHTML = entries.map(e => `<div class="audit-entry">${esc(e)}</div>`).join('');
+    window._auditEntries = entries;
+}
+
+// Export the audit log as a timestamped text report (client-side download)
+async function exportAuditReport() {
+    let entries = window._auditEntries;
+    if (!entries) {
+        try { const d = await fetch(`${API}/api/audit`).then(r=>r.json()); entries = d.entries || []; } catch(_) { entries = []; }
+    }
+    if (!entries.length) { toast('No audit events to export yet.', 'warn'); return; }
+    const header = `Fuse — Activity & Audit Report\nGenerated: ${new Date().toISOString()}\nEvents: ${entries.length}\n${'='.repeat(60)}\n\n`;
+    const blob = new Blob([header + entries.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `fuse-audit-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.txt`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast('⬇ Audit report exported', 'success');
 }
 
 // ── Render KPIs (dashboard overview; each routes to its detail view) ────────
 let bindingCounts = { bound: 0, bearer: 0, visibility: 0 };
-function renderKPIs() {
+function countOf(list) {
     let azure=0, github=0, bound=0, highrisk=0, bearerGov=0, visibility=0;
-    sessions.forEach(s => {
+    list.forEach(s => {
         if (s.provider === 'azure') azure++;
         if (s.provider === 'github') github++;
         if (s.bound) bound++;
@@ -1600,16 +1461,55 @@ function renderKPIs() {
         else visibility++;
         if (s.risk_level === 'High' || s.risk_level === 'Critical') highrisk++;
     });
-    bindingCounts = { bound, bearer: bearerGov, visibility };
+    return { azure, github, bound, highrisk, bearerGov, visibility, total: list.length };
+}
+function renderKPIs() {
+    const scoped = scopedSessions();
+    const c = countOf(scoped);
+    bindingCounts = { bound: c.bound, bearer: c.bearerGov, visibility: c.visibility };
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('kpi-azure', azure);
-    set('kpi-github', github);
-    set('kpi-bound', bound);
-    set('kpi-critical', highrisk);
-    set('kpi-total', sessions.length);
+    set('kpi-azure', c.azure);
+    set('kpi-github', c.github);
+    set('kpi-bound', c.bound);
+    set('kpi-critical', c.highrisk);
+    set('kpi-total', c.total);
     set('kpi-connectors', (window._connectorCount != null ? window._connectorCount : '—'));
-    const pip = document.getElementById('alert-pip'); if (pip) pip.style.display = highrisk > 0 ? '' : 'none';
-    renderGatewayDonut();  // keep the binding donut (now on the Gateway view) in sync
+    const pip = document.getElementById('alert-pip'); if (pip) pip.style.display = c.highrisk > 0 ? '' : 'none';
+    renderGatewayDonut();
+    renderDashboardCompanies();
+}
+
+// When "All companies" is selected, show one company section after another.
+function renderDashboardCompanies() {
+    const host = document.getElementById('dashboard-companies');
+    if (!host) return;
+    if (selectedCompany !== '__all') { host.innerHTML = ''; return; }
+    const groups = companyList().map(co => ({
+        name: co.name,
+        items: sessions.filter(s => (s.company_name || 'Unassigned') === (co.company_name || co.name)),
+    })).filter(g => g.items.length);
+    if (!groups.length) { host.innerHTML = ''; return; }
+    host.innerHTML = `<div class="section-header" style="margin-top:8px"><div class="section-title">By company</div></div>`
+      + groups.map(g => {
+        const c = countOf(g.items);
+        const stat = (label, val, color) => `<div style="flex:1;min-width:90px"><div style="font-size:20px;font-weight:800;color:${color||'var(--text)'}">${val}</div><div style="font-size:10px;color:var(--text-muted)">${label}</div></div>`;
+        return `<div class="card" style="margin-bottom:14px;cursor:pointer" onclick="pickCompany('${esc(g.name)}')">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <strong style="font-size:14px;color:var(--text)">${esc(g.name)}</strong>
+                <span style="font-size:11px;color:var(--text-muted)">${g.items.length} connections →</span>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                ${stat('Azure', c.azure, 'var(--azure)')}
+                ${stat('GitHub', c.github, '#c9d1d9')}
+                ${stat('Bound', c.bound, 'var(--green)')}
+                ${stat('High-risk', c.highrisk, 'var(--red-bright)')}
+            </div></div>`;
+    }).join('');
+}
+function pickCompany(name) {
+    selectedCompany = name;
+    const sel = document.getElementById('company-select'); if (sel) sel.value = name;
+    renderKPIs();
 }
 
 // Token binding posture donut — lives on the Gateway view now
@@ -1631,228 +1531,8 @@ function renderGatewayDonut() {
     set('donut-seg-stale',  segV, -(segB + segR));
 }
 
-// ── Detail panel (token monitoring deep-dive) ───────────────────────────────
-async function openPanel(appId, rowId) {
-    // seeded grant connections (id "g<n>") open the grant-inventory detail
-    if (/^g\d+$/.test(appId)) { return openGrantDetail(appId.slice(1)); }
-    panelToken = appId;
-    panelRow   = rowId;
-    document.getElementById('revoke-btn').parentElement.style.display = '';  // live apps can be revoked here
-
-    // Highlight row
-    document.querySelectorAll('#sessions-tbody tr').forEach(r => r.style.outline = '');
-    document.getElementById(rowId)?.style.setProperty('outline', '2px solid var(--blue)');
-
-    const body = document.getElementById('detail-body');
-    body.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px">Loading details…</div>';
-    document.getElementById('side-panel').classList.add('open');
-    document.getElementById('panel-backdrop').classList.add('show');
-
-    let d = null;
-    if (apiOnline) {
-        try { const r = await fetch(`${API}/api/apps/${encodeURIComponent(appId)}/detail`); if (r.ok) d = await r.json(); } catch(_) {}
-    }
-    if (!d) { renderDetailFromSession(sessions.find(x => x.id === appId)); return; }
-    renderDetail(d);
-}
-
-function renderDetail(d) {
-    document.getElementById('p-title').textContent = d.name;
-    document.getElementById('p-subtitle').textContent = `${d.platform} · ${d.token_kind}${d.bound ? ' · sender-bound' : ''}`;
-
-    // revoke button state
-    const rb = document.getElementById('revoke-btn');
-    rb.disabled = d.revoked;
-    rb.style.opacity = d.revoked ? '0.5' : '1';
-    rb.innerHTML = d.revoked
-        ? 'Access revoked'
-        : `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg> Revoke Access`;
-
-    const a = d.activity || {};
-    const pol = d.policy;
-    const pub = d.publisher || {};
-
-    // risk signals
-    let signalsHtml = '';
-    if (d.risk_signals && d.risk_signals.length) {
-        signalsHtml = `<div class="risk-card">
-            <strong style="font-size:12px">Risk signals</strong>
-            <div class="sig-badges">${d.risk_signals.map(s => `<span class="sig-badge" title="${esc(s.key)}">${esc(s.label)}</span>`).join('')}</div>
-            <div class="sig-explain">${d.risk_signals.map(s => `<p>⚠ <strong>${esc(s.label)}</strong> — ${esc(s.explanation)}</p>`).join('')}</div>
-        </div>`;
-    }
-
-    // identity rows
-    const idRows = [
-        ['Platform', d.platform],
-        ['Source connector', d.source],
-        ['Token kind', d.token_kind],
-        ['App / external id', d.external_id || '—'],
-        ['Bound key (jkt)', d.key_jkt ? d.key_jkt.slice(0,18)+'…' : '—'],
-        ['Governable', d.governable ? 'Yes' : 'No (visibility only)'],
-        ['Status', d.status],
-    ];
-    if (d.grant_type) idRows.push(['Grant type', d.grant_type]);
-    if (pub.client_app_id) idRows.push(['App ID (client)', pub.client_app_id]);
-    if (pub.verified !== null && pub.verified !== undefined) idRows.push(['Verified publisher', pub.verified ? '✓ Yes' : '✗ No']);
-    if (pub.publisher_tenant) idRows.push(['Publisher tenant', pub.publisher_tenant]);
-    if (pub.consent_type) idRows.push(['Consent', (pub.consent_type === 'Principal' ? 'User-consented' : 'Admin consent (all users)') + (pub.consented_by ? ' · ' + pub.consented_by : '')]);
-    if (pub.account_enabled !== null && pub.account_enabled !== undefined) idRows.push(['Account enabled', pub.account_enabled ? '✓ Yes' : '✗ Disabled']);
-
-    // policy rows
-    let polHtml = '';
-    if (pol) {
-        polHtml = `<div class="detail-section"><h4>Policy</h4>
-            ${dl([['Token lifetime', pol.lifetime_label],
-                  ['Allowed scope', pol.allowed_scope || '(full)'],
-                  ['Binding required', pol.binding_required ? 'Yes (DPoP)' : 'No']])}
-        </div>`;
-    }
-
-    // manual policy controls (only meaningful for governable connections)
-    let controlsHtml = '';
-    if (d.governable && pol) {
-        const LIFE = [[60,'1 min'],[300,'5 mins'],[900,'15 mins'],[3600,'1 hr'],[21600,'6 hrs'],[86400,'1 day']];
-        const lifeOpts = LIFE.map(([v,l]) => `<option value="${v}" ${pol.lifetime_seconds==v?'selected':''}>${l}</option>`).join('');
-        const bindAttr = d.holds_key ? '' : 'disabled';
-        controlsHtml = `<div class="detail-section"><h4>Policy controls</h4>
-            <label class="settings-checkbox-container" style="margin-bottom:12px">
-                <input type="checkbox" ${pol.binding_required?'checked':''} ${bindAttr}
-                       onchange="setPolicy('${d.id}',{binding_required:this.checked})">
-                <span>Require sender binding (DPoP)${d.holds_key?'':' — no registered key, cannot bind'}</span>
-            </label>
-            <label class="settings-label">Token lifetime</label>
-            <select class="settings-select" style="margin-bottom:12px" onchange="setPolicy('${d.id}',{lifetime_seconds:parseInt(this.value)})">${lifeOpts}</select>
-            <label class="settings-label">Allowed scope</label>
-            <div style="display:flex;gap:8px">
-                <input id="ctrl-scope-${d.id}" class="settings-input" style="flex:1" value="${esc(pol.allowed_scope||'')}" placeholder="e.g. contacts:read">
-                <button class="demo-btn" onclick="setPolicy('${d.id}',{allowed_scope:document.getElementById('ctrl-scope-${d.id}').value})">Apply</button>
-            </div>
-        </div>`;
-    } else if (!d.governable) {
-        controlsHtml = `<div class="detail-section"><h4>Policy controls</h4>
-            <div style="font-size:11px;color:var(--text-muted);line-height:1.7">Visibility only — Fuse cannot issue or bind tokens for this connection (no registered vendor key). Available action: revoke. Shorten-lifetime and scope-minimization apply through the platform's own config for real connectors.</div>
-        </div>`;
-    }
-
-    // activity rows
-    const lastUsed = a.last_activity ? `${a.last_activity_ago}  ·  ${new Date(a.last_activity).toLocaleString()}` : 'never used';
-    const actHtml = `<div class="detail-section"><h4>Activity</h4>
-        ${dl([['Last used', lastUsed],
-              ['Last used by', a.last_used_by || '—'],
-              ['First seen', a.created_ago || '—'],
-              ['Token issued by Fuse', a.last_token ? 'yes' : 'no'],
-              ['DPoP proof seen', a.last_proof ? 'yes' : 'no']])}
-    </div>`;
-
-    // permissions
-    const permHtml = `<div class="detail-section"><h4>Permissions (${(d.permissions||[]).length})</h4>
-        ${(d.permissions && d.permissions.length)
-            ? d.permissions.map(p => `<div class="perm-row"><code>${esc(p.name)}</code>${p.write ? '<span class="sig-badge" style="background:rgba(239,68,68,.16);color:#fca5a5">write</span>' : ''}</div>`).join('')
-            : '<div style="font-size:12px;color:var(--text-muted)">No scopes recorded.</div>'}
-    </div>`;
-
-    // event history
-    const evHtml = `<div class="detail-section"><h4>Event history</h4>
-        ${(d.events && d.events.length)
-            ? d.events.map(e => evRow(e)).join('')
-            : '<div style="font-size:12px;color:var(--text-muted)">No events recorded yet. Run a request from the Gateway view.</div>'}
-    </div>`;
-
-    const riskBadge = `<span class="badge ${RISK_BADGE[d.risk_level]||'risk-low'}">${d.risk_level}</span>`;
-
-    document.getElementById('detail-body').innerHTML = `
-        ${signalsHtml}
-        <div class="detail-section">
-            <h4>Overview</h4>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <span class="badge badge-${d.provider}">${esc((d.provider||'').toUpperCase())}</span>
-                ${riskBadge}
-                <span style="font-size:11px;color:var(--text-muted)">risk ${d.risk}/100</span>
-            </div>
-            <div class="scope-pill" style="max-width:100%">${esc(d.scope)}</div>
-        </div>
-        <div class="detail-section"><h4>Identity</h4>${dl(idRows)}</div>
-        ${polHtml}
-        ${controlsHtml}
-        ${actHtml}
-        ${permHtml}
-        ${evHtml}
-        <div class="detail-section">
-            <h4>Revoke access</h4>
-            <div style="font-size:11px;color:var(--text-muted);line-height:1.7">${esc(d.revoke_caveat||'')}</div>
-        </div>`;
-}
-
 function dl(rows) {
     return rows.map(([k,v]) => `<div class="dl-row"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
-}
-function evRow(e) {
-    const kind = (e.kind||'').toLowerCase();
-    const t = e.iso ? new Date(e.iso).toLocaleTimeString() : '';
-    let checks = '';
-    if (e.checks && e.checks.length) {
-        checks = `<div class="checks-grid">${e.checks.map(c =>
-            `<div class="check-line"><span class="${c.ok?'check-ok':'check-bad'}">${c.ok?'✓':'✗'}</span><span>${esc(c.name)}${c.detail?' — '+esc(c.detail):''}</span></div>`
-        ).join('')}</div>`;
-    }
-    return `<div class="ev-row">
-        <div class="ev-meta"><span class="ev-kind ev-${esc(kind)}">${esc(kind)}</span><span>${esc(t)}</span></div>
-        <div style="color:var(--text-dim)">${esc(e.message)}</div>
-        ${checks}
-    </div>`;
-}
-// offline / fallback detail straight from the session row
-function renderDetailFromSession(s) {
-    if (!s) { document.getElementById('detail-body').innerHTML = '<div style="padding:24px;color:var(--text-muted)">No detail available offline.</div>'; return; }
-    renderDetail({
-        name: s.vendor, platform: s.platform || s.provider, provider: s.provider, source: s.resource,
-        token_kind: s.token_kind || (s.bound ? 'bound' : 'bearer'), external_id: s.id, key_jkt: null,
-        governable: s.governable, status: s.revoked ? 'revoked' : 'active', revoked: !!s.revoked, bound: !!s.bound,
-        risk: s.token_usage, risk_level: s.risk_level, is_critical: s.is_critical, scope: s.scope,
-        policy: null, publisher: {}, risk_signals: [],
-        activity: { created_ago: '—', last_activity_ago: s.last_seen ? new Date(s.last_seen).toLocaleString() : '—' },
-        permissions: (s.scope === '—' ? [] : s.scope.split(' ').map(x => ({name:x, write:/write|export|full|admin|:all/i.test(x)}))),
-        events: [], revoke_caveat: 'Offline — connect to Fuse to act on this connection.'
-    });
-}
-
-function closePanel() {
-    document.getElementById('side-panel').classList.remove('open');
-    document.getElementById('panel-backdrop').classList.remove('show');
-    document.querySelectorAll('#sessions-tbody tr').forEach(r => r.style.outline = '');
-    panelToken = panelRow = null;
-}
-
-// ── Revoke ─────────────────────────────────────────────────────────────────
-async function doRevoke() {
-    const s = sessions.find(x => x.id === panelToken);
-    const name = s ? s.vendor : 'this connection';
-    if (!panelToken) return;
-
-    if (!confirm(`Revoke access for "${name}"?\n\nThis cuts the outstanding token now (and at the source for real Azure/GitHub connectors). The action is logged in the activity & audit trail.`)) return;
-
-    const btn = document.getElementById('revoke-btn');
-    btn.disabled = true;
-    btn.textContent = 'Revoking…';
-
-    let msg = 'Access revoked';
-    try {
-        if (apiOnline) {
-            const r = await fetch(`${API}/api/tokens/revoke`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token_id: panelToken })
-            });
-            const d = await r.json();
-            if (d && d.message) msg = d.message;
-        }
-    } catch (_) {}
-
-    closePanel();
-    toast(`✓ ${msg}`, 'success');
-    await loadSessions();
-    await loadAudit();
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
@@ -1906,8 +1586,9 @@ async function setPolicy(appId, patch) {
             toast('✓ '+what, 'success');
         }
     } catch(_) { toast('❌ policy update failed','danger'); }
-    if (panelToken === appId) openPanel(appId, panelRow);   // refresh the panel
+    if (currentDetailId === String(appId)) openGrantDetail(appId);   // refresh the open overlay
     loadSessions();
+    if (document.getElementById('policy-view').style.display === 'block') loadPolicy();
 }
 
 // ── Token Monitor (native grant inventory) ───────────────────────────────────
@@ -1932,10 +1613,10 @@ async function loadGrants() {
         tbody.innerHTML = `<tr><td colspan="8" style="padding:28px;text-align:center;color:var(--text-muted)">Grant inventory unavailable.</td></tr>`;
         return;
     }
-    // populate the source selector once (All sources · Live connectors · each tenant)
+    // populate the source selector once (All companies · Live connectors · live companies · demo tenants)
     if (!grantSourcesLoaded && (d.sources || []).length) {
         grantSourcesLoaded = true;
-        srcSel.innerHTML = d.sources.map(s => `<option value="${s.id}">${esc(s.name)}${(s.platform && s.platform !== 'mixed') ? ' · ' + esc(s.platform) : ''}</option>`).join('');
+        srcSel.innerHTML = d.sources.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
         srcSel.value = d.source || 'all';
     }
     document.getElementById('grant-count').textContent = (d.rows || []).length;
@@ -1988,31 +1669,52 @@ function renderGrantsTable(rows) {
     }).join('');
 }
 
+// ── Full-screen detail overlay (single entry for grants + live apps) ─────────
+let currentDetailId = null;
+function closeDetail() {
+    const ov = document.getElementById('detail-overlay');
+    if (ov) ov.style.display = 'none';
+    currentDetailId = null;
+}
 async function openGrantDetail(gid) {
-    const body = document.getElementById('detail-body');
-    document.getElementById('p-title').textContent = 'Grant detail';
-    document.getElementById('p-subtitle').textContent = 'Token monitoring deep-dive';
-    document.getElementById('revoke-btn').parentElement.style.display = 'none';  // grant revoke is platform-side
-    body.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px">Loading…</div>';
-    document.getElementById('side-panel').classList.add('open');
-    document.getElementById('panel-backdrop').classList.add('show');
+    currentDetailId = String(gid);
+    const ov = document.getElementById('detail-overlay');
+    document.getElementById('ov-title').textContent = 'Connection';
+    document.getElementById('ov-subtitle').textContent = '—';
+    document.getElementById('ov-body').innerHTML = '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:48px">Loading details…</div>';
+    ov.style.display = 'flex';
     let d = null;
-    try { const r = await fetch(`${API}/api/grant/${gid}`); d = await r.json(); } catch(_) {}
-    if (!d || d.error) { body.innerHTML = '<div style="padding:24px;color:var(--text-muted)">Detail unavailable.</div>'; return; }
+    try { const r = await fetch(`${API}/api/grant/${encodeURIComponent(gid)}`); d = await r.json(); } catch(_) {}
+    if (!d || d.error) { document.getElementById('ov-body').innerHTML = '<div style="padding:48px;color:var(--text-muted);text-align:center">Detail unavailable.</div>'; return; }
     renderGrantDetail(d);
 }
 
 function renderGrantDetail(d) {
-    document.getElementById('p-title').textContent = d.vendor;
-    document.getElementById('p-subtitle').textContent = `${d.platform} · ${d.type}${d.tenant ? ' · ' + d.tenant : ''}`;
+    document.getElementById('ov-title').textContent = d.vendor || 'Connection';
+    document.getElementById('ov-subtitle').textContent =
+        `${esc(d.platform||'')} · ${esc(d.type||'')}${d.tenant ? ' · ' + esc(d.tenant) : ''}  ·  ${esc(d.app_id||d.id||'')}`;
     const pub = d.publisher || {}, a = d.activity || {};
 
+    // Compliance checklist (the headline section)
+    const comp = d.compliance;
+    let compHtml = '';
+    if (comp) {
+        const verdict = comp.compliant
+            ? `<span class="ov-verdict ok">✓ Compliant</span>`
+            : `<span class="ov-verdict bad">✗ Non-compliant · ${comp.failed}/${comp.total} checks failing</span>`;
+        compHtml = `<div class="detail-section"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><h4 style="margin:0">Compliance</h4>${verdict}</div>
+            ${comp.checks.map(c => `<div class="ov-comp-row ${c.ok?'ok':'bad'}"><span class="ov-comp-tick">${c.ok?'✓':'✗'}</span>
+                <span><strong style="color:var(--text)">${esc(c.label)}</strong><div style="color:var(--text-muted);margin-top:2px">${esc(c.detail)}</div></span></div>`).join('')}</div>`;
+    }
+
+    // risk signals
     let signalsHtml = '';
     if (d.risk_signals && d.risk_signals.length) {
         signalsHtml = `<div class="risk-card"><strong style="font-size:12px">Risk signals</strong>
             <div class="sig-badges">${d.risk_signals.map(s => `<span class="sig-badge" title="${esc(s.key)}">${esc(s.label)}</span>`).join('')}</div>
-            <div class="sig-explain">${d.risk_signals.map(s => `<p>⚠ <strong>${esc(s.label)}</strong> — ${esc(s.explanation)}</p>`).join('')}</div></div>`;
+            <div class="sig-explain">${d.risk_signals.map(s => `<p>⚠ <strong>${esc(s.label)}</strong> — ${esc(s.explanation||'')}</p>`).join('')}</div></div>`;
     }
+
     const idRows = [
         ['App ID (client)', d.app_id],
         ['Service principal', d.sp_id],
@@ -2024,7 +1726,7 @@ function renderGrantDetail(d) {
         ['Account enabled', pub.account_enabled == null ? '—' : (pub.account_enabled ? '✓ Yes' : '✗ Disabled')],
         ['Created', d.created_at ? new Date(d.created_at).toLocaleDateString() : '—'],
         ['First seen', d.first_seen ? new Date(d.first_seen).toLocaleDateString() : '—'],
-        ['Status', d.is_active ? 'active' : 'removed'],
+        ['Status', d.is_active === false ? 'removed/revoked' : 'active'],
     ];
     const actRows = [['Last sign-in (any)', a.last_sign_in_iso ? `${a.last_sign_in_ago} · ${new Date(a.last_sign_in_iso).toLocaleString()}` : (a.last_sign_in_ago || '—')]];
     if (d.type === 'application') actRows.push(['Last app-only (client)', a.last_app_only_ago || '—']);
@@ -2038,28 +1740,72 @@ function renderGrantDetail(d) {
         <div class="ev-meta"><span class="ev-kind ev-${esc((e.type||'').replace('_','-'))}">${esc(e.type)}</span><span>${e.date ? new Date(e.date).toLocaleDateString() : ''}</span></div>
         ${e.detail ? `<div style="color:var(--text-dim)">${esc(e.detail)}</div>` : ''}</div>`).join('') || '<div style="font-size:12px;color:var(--text-muted)">No events.</div>';
 
-    // GitHub revoke action (when this is a GitHub connection)
-    let ghAction = '';
-    if (d.github) {
-        const g = d.github;
-        const apiBtn = g.can_api_revoke
-            ? `<button class="demo-btn bad" onclick="revokeGitHub('${esc(d.id)}')">Revoke installation (API)</button>`
-            : '';
-        ghAction = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-            ${apiBtn}
-            <a class="demo-btn" href="${esc(g.settings_url)}" target="_blank" rel="noopener">Open GitHub revoke page ↗</a>
-        </div>`;
+    // policy controls (governable) or visibility note
+    let polHtml = '';
+    if (d.governable && d.policy) {
+        const pol = d.policy;
+        const LIFE = [[60,'1 min'],[300,'5 mins'],[900,'15 mins'],[3600,'1 hr'],[21600,'6 hrs'],[86400,'1 day']];
+        const lifeOpts = LIFE.map(([v,l]) => `<option value="${v}" ${pol.lifetime_seconds==v?'selected':''}>${l}</option>`).join('');
+        polHtml = `<div class="detail-section"><h4>Policy controls</h4>
+            <label class="settings-checkbox-container" style="margin-bottom:12px">
+                <input type="checkbox" ${pol.binding_required?'checked':''} ${d.holds_key?'':'disabled'}
+                       onchange="setPolicy('${esc(d.id)}',{binding_required:this.checked})">
+                <span>Require sender binding (DPoP)${d.holds_key?'':' — no registered key'}</span>
+            </label>
+            <label class="settings-label">Token lifetime</label>
+            <select class="settings-select" style="margin-bottom:12px" onchange="setPolicy('${esc(d.id)}',{lifetime_seconds:parseInt(this.value)})">${lifeOpts}</select>
+            <label class="settings-label">Allowed scope</label>
+            <div style="display:flex;gap:8px">
+                <input id="ov-scope-${esc(d.id)}" class="settings-input" style="flex:1" value="${esc(pol.allowed_scope||'')}" placeholder="e.g. contacts:read">
+                <button class="demo-btn" onclick="setPolicy('${esc(d.id)}',{allowed_scope:document.getElementById('ov-scope-${esc(d.id)}').value})">Apply</button>
+            </div></div>`;
+    } else if (d.live && !d.governable) {
+        polHtml = `<div class="detail-section"><h4>Policy controls</h4>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.7">Visibility only — Fuse can't issue or bind tokens here (no registered vendor key). Revoke, or shorten lifetime / minimize scope via the platform's own config.</div></div>`;
     }
 
-    document.getElementById('detail-body').innerHTML = `
+    // revoke actions: our-side revoke when possible + a provider-redirect fallback
+    let revokeBtns = [];
+    if (d.live && d.is_active !== false) {
+        if (d.can_revoke_here !== false) {
+            revokeBtns.push(`<button class="demo-btn bad" onclick="revokeDetail('${esc(d.id)}')">Revoke access</button>`);
+        }
+        const pr = d.provider_revoke;
+        if (pr && pr.url) {
+            revokeBtns.push(`<a class="demo-btn" href="${esc(pr.url)}" target="_blank" rel="noopener">${esc(pr.label || ('Revoke at ' + pr.provider + ' ↗'))}</a>`);
+        }
+        if (d.can_revoke_here === false && !(pr && pr.url)) {
+            revokeBtns.push(`<span style="font-size:11px;color:var(--text-muted)">Revoke via the provider's admin console.</span>`);
+        }
+    } else if (d.is_active === false) {
+        revokeBtns.push(`<span class="badge risk-critical">already revoked</span>`);
+    }
+    const revokeHtml = revokeBtns.length
+        ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${revokeBtns.join('')}</div>` : '';
+
+    document.getElementById('ov-body').innerHTML = `
+        ${compHtml}
         ${signalsHtml}
-        <div class="detail-section"><h4>Identity</h4>${dl(idRows)}</div>
-        <div class="detail-section"><h4>Activity — when & by whom</h4>${dl(actRows)}</div>
+        <div class="ov-grid">
+            <div class="detail-section"><h4>Identity</h4>${dl(idRows)}</div>
+            <div class="detail-section"><h4>Activity — when & by whom</h4>${dl(actRows)}</div>
+        </div>
+        ${polHtml}
         <div class="detail-section"><h4>Permissions (${(d.permissions||[]).length})</h4>${permHtml}</div>
         <div class="detail-section"><h4>Event history</h4>${evHtml}</div>
         <div class="detail-section"><h4>Revoke access</h4>
             <div style="font-size:11px;color:var(--text-muted);line-height:1.7">${esc(d.revoke_caveat||'')}</div>
-            ${ghAction}</div>`;
+            ${revokeHtml}</div>`;
+}
+
+async function revokeDetail(appId) {
+    if (!confirm('Revoke access for this connection? This cuts the outstanding token now (and at the source for real connectors).')) return;
+    try {
+        const r = await fetch(`${API}/api/tokens/revoke`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token_id:appId})});
+        const d = await r.json();
+        toast(d.status === 'success' ? `✓ ${d.message}` : `⚠ ${d.message||'revoke failed'}`, d.status==='success'?'success':'warn');
+    } catch(_) { toast('❌ revoke failed','danger'); }
+    closeDetail(); await loadGrants(); loadSessions();
 }
 
 async function revokeGitHub(appId) {
@@ -2069,7 +1815,7 @@ async function revokeGitHub(appId) {
         const d = await r.json();
         toast(d.status === 'success' ? `✓ ${d.message}` : `⚠ ${d.message||'revoke failed'}`, d.status==='success'?'success':'warn');
     } catch(_) { toast('❌ GitHub revoke failed','danger'); }
-    closePanel(); await loadGrants(); loadSessions();
+    closeDetail(); await loadGrants(); loadSessions();
 }
 
 // ── Connectors view ──────────────────────────────────────────────────────────
@@ -2116,7 +1862,7 @@ function renderConnectorsGrouped(conns) {
     if (!host) return;
     conns = conns || [];
     // group: each company (even if empty) + an Unassigned bucket if needed
-    const groups = companies.map(co => ({ id: co.id, name: co.name,
+    let groups = companies.map(co => ({ id: co.id, name: co.name,
         items: conns.filter(c => c.company === co.id) }));
     const unassigned = conns.filter(c => !c.company || !companies.find(co => co.id === c.company));
     if (unassigned.length) groups.push({ id: null, name: 'Unassigned', items: unassigned });

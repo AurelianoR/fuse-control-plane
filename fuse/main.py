@@ -235,6 +235,70 @@ async def bulk_policy(request: Request):
     return {"ok": True, "matched": n, "revoked": revoked}
 
 
+def _conn_policy_row(app_obj):
+    pol = STATE.policies.get(app_obj.id)
+    return {
+        "id": app_obj.id, "name": app_obj.name, "platform": _provider(app_obj.platform),
+        "governable": app_obj.governable, "holds_key": app_obj.holds_key,
+        "revoked": app_obj.status == "revoked",
+        "policy": {
+            "lifetime_seconds": pol.lifetime_seconds if pol else None,
+            "lifetime_label": _fmt_lifetime(pol.lifetime_seconds) if pol else "—",
+            "allowed_scope": pol.allowed_scope if pol else "",
+            "binding_required": bool(pol and pol.binding_required and app_obj.holds_key),
+        } if pol else None,
+    }
+
+
+@app.get("/api/policy/overview")
+def policy_overview():
+    """Companies → connections with their current policy, for the Policy view.
+    Live connector apps group by company (governable); the seeded collector
+    tenants appear as read-only groups so every connection is represented."""
+    companies = {c["id"]: {"id": c["id"], "name": c["name"], "kind": "company",
+                           "governable_count": 0, "connections": []} for c in STATE.companies}
+    unassigned = {"id": None, "name": "Unassigned", "kind": "company",
+                  "governable_count": 0, "connections": []}
+
+    for app_obj in STATE.apps.values():
+        row = _conn_policy_row(app_obj)
+        cid = STATE.connector_company.get(app_obj.source)
+        grp = companies.get(cid, unassigned)
+        grp["connections"].append(row)
+        if app_obj.governable:
+            grp["governable_count"] += 1
+
+    groups = [g for g in companies.values()]
+    if unassigned["connections"]:
+        groups.append(unassigned)
+
+    # seeded collector tenants — read-only (visibility only, not governable)
+    if GRANTS_AVAILABLE:
+        db = _grant_session()
+        try:
+            by_tenant: dict = {}
+            for t, r in _iter_seeded_rows(db):
+                g = r.primary_grant
+                key = f"t{t.id}"
+                grp = by_tenant.setdefault(key, {
+                    "id": key, "name": f"{t.display_name} (collected)", "kind": "tenant",
+                    "governable_count": 0, "connections": []})
+                grp["connections"].append({
+                    "id": str(g.id), "name": g.client_display_name,
+                    "platform": "github" if (t.platform or "azure") == "github" else "azure",
+                    "governable": False, "holds_key": False, "revoked": not g.is_active,
+                    "policy": None,
+                })
+            groups.extend(by_tenant.values())
+        finally:
+            db.close()
+
+    for g in groups:
+        g["connections"].sort(key=lambda c: c["name"].lower())
+        g["total"] = len(g["connections"])
+    return {"companies": groups}
+
+
 def _matches(app, flt) -> bool:
     if flt.get("platform") and app.platform != flt["platform"]:
         return False
@@ -243,6 +307,8 @@ def _matches(app, flt) -> bool:
     if flt.get("governable") is not None and app.governable != flt["governable"]:
         return False
     if flt.get("min_risk") and app.risk() < int(flt["min_risk"]):
+        return False
+    if flt.get("company") and STATE.connector_company.get(app.source) != flt["company"]:
         return False
     return True
 
@@ -333,6 +399,8 @@ def _session_for(app_obj, pol) -> dict:
         expires_in = "Static Key"
 
     last_ts = _last_activity_ts(app_obj.id) or app_obj.created_at
+    cid = STATE.connector_company.get(app_obj.source)
+    comp = next((c for c in STATE.companies if c["id"] == cid), None)
     return {
         "id": app_obj.id,
         "vendor": app_obj.name,
@@ -352,6 +420,8 @@ def _session_for(app_obj, pol) -> dict:
         "token_kind": "bound" if bound else app_obj.token_kind,
         "governable": app_obj.governable,
         "revoked": revoked,
+        "company": cid,
+        "company_name": comp["name"] if comp else "Unassigned",
     }
 
 
@@ -576,22 +646,11 @@ def get_settings():
 
 @app.get("/api/compliance/findings")
 def compliance_findings():
-    """Only the NEGATIVE compliance status: framework gaps + concrete risk
-    findings across the connection inventory (live + seeded)."""
+    """Only the NEGATIVE compliance status: concrete risk findings across the
+    connection inventory (live + seeded)."""
     findings = []
 
-    # 1) framework coverage gaps (enabled frameworks below 100%)
-    for f in _SETTINGS["compliance"]["frameworks"]:
-        if f["enabled"] and f["score"] < 100:
-            sev = "high" if f["score"] < 70 else "medium" if f["score"] < 85 else "low"
-            findings.append({
-                "kind": "framework", "framework_id": f["id"],
-                "title": f"{f['name']} — {100 - f['score']}% coverage gap",
-                "detail": f"{f['description']} · current posture {f['score']}%.",
-                "severity": sev,
-            })
-
-    # 2) concrete risk findings aggregated across all connections
+    # concrete risk findings aggregated across all connections
     rows = []
     if STATE.apps:
         rows += _live_grant_rows()
@@ -1129,6 +1188,51 @@ def _iso_dt(dt):
     return dt.isoformat() if dt else None
 
 
+def _compliance_checks(signal_keys, *, bound, lifetime_seconds=None, verified=None,
+                       consent_type=None, account_enabled=None):
+    """Per-connection compliance checklist (the same controls the Compliance view
+    aggregates), returned as {label, ok, detail}. `signal_keys` is the set of
+    normalized risk-signal keys for the connection."""
+    sk = {(_wu.normalize_risk_signal(s) if isinstance(s, str) else s) for s in signal_keys}
+    checks = []
+
+    def add(label, ok, detail):
+        checks.append({"label": label, "ok": bool(ok), "detail": detail})
+
+    add("Sender-bound (DPoP)", bound,
+        "Token is cryptographically bound to the vendor's key — a stolen copy is useless."
+        if bound else "Stealable bearer token — not sender-bound. Bind it in Policy.")
+    if lifetime_seconds is not None:
+        short = lifetime_seconds <= 3600
+        add("Short-lived token", short,
+            f"Lifetime is {_fmt_lifetime(lifetime_seconds)} — within policy."
+            if short else f"Lifetime is {_fmt_lifetime(lifetime_seconds)} — longer than the 1h target.")
+    else:
+        add("Short-lived token", False,
+            "Long-lived / static credential with no enforced lifetime.")
+    add("Least privilege (no write-all)", "write-permissions" not in sk and "all-repos" not in sk,
+        "No write/export/admin or all-repository access." if ("write-permissions" not in sk and "all-repos" not in sk)
+        else "Holds write/export/admin (or all-repo) permissions — over-privileged.")
+    if verified is not None:
+        add("Verified publisher", verified,
+            "Publisher is verified by the platform." if verified else "Publisher is not verified.")
+    elif "unverified-publisher" in sk:
+        add("Verified publisher", False, "Publisher is not verified.")
+    add("Active / recently used", "never-used" not in sk and "dormant" not in sk,
+        "Recent activity recorded." if ("never-used" not in sk and "dormant" not in sk)
+        else "Dormant or never used — candidate for revocation.")
+    if consent_type is not None:
+        admin = consent_type != "Principal"
+        add("Admin-consented", admin,
+            "Granted by an admin for all users." if admin else "User-consented — may exceed intended access.")
+    if account_enabled is False:
+        add("Service principal enabled", False, "The service principal is disabled.")
+
+    compliant = all(c["ok"] for c in checks)
+    failed = sum(1 for c in checks if not c["ok"])
+    return {"compliant": compliant, "failed": failed, "total": len(checks), "checks": checks}
+
+
 def _sig_label(s):
     return _wu.RISK_SIGNAL_LABELS.get(_wu.normalize_risk_signal(s), s)
 
@@ -1191,6 +1295,7 @@ def _seeded_sessions():
                 "risk_level": _risk_level(score), "is_critical": score >= 80,
                 "last_seen": _iso_dt(last), "token_usage": score, "usage_limit": 100,
                 "bound": False, "token_kind": "bearer", "governable": False, "revoked": False,
+                "company": f"t{t.id}", "company_name": f"{t.display_name} (collected)",
             })
     finally:
         db.close()
@@ -1206,6 +1311,7 @@ def _live_grant_rows():
         last = _last_activity_ts(app_obj.id) or meta.get("last_sign_in")
         sigs = risk.compute_risk_signals(app_obj, policy=pol, last_activity_ts=last)
         conn = STATE.connectors.get(app_obj.source)
+        cid = STATE.connector_company.get(app_obj.source)
         rows.append({
             "id": app_obj.id, "vendor": app_obj.name, "app_id": app_obj.external_id or app_obj.id,
             "type": "application" if app_obj.token_kind in ("client_credentials", "installation", "application") else "delegated",
@@ -1217,7 +1323,8 @@ def _live_grant_rows():
             "last_used_ago": risk.timeago(last) if last else "—",
             "risk_signals": [{"key": s["key"], "label": s["label"]} for s in sigs],
             "first_seen": datetime.fromtimestamp(app_obj.created_at, tz=timezone.utc).strftime("%Y-%m-%d"),
-            "_source": "live",
+            "_source": cid or "unassigned",
+            "_kind": "live",
         })
     return rows
 
@@ -1225,20 +1332,28 @@ def _live_grant_rows():
 @app.get("/api/grants")
 def api_grants(source: str = "all", type: str = "", risk: str = "",
                search: str = "", platform: str = "", include_inactive: bool = False):
-    """Unified grant inventory: live connectors + seeded collector tenants."""
-    sources = [{"id": "all", "name": "All sources", "platform": "mixed"}]
-    if STATE.apps:
-        sources.append({"id": "live", "name": "Live connectors", "platform": "mixed"})
+    """Unified grant inventory grouped by COMPANY: live connector apps grouped
+    by their connector's company, plus seeded collector tenants as companies."""
+    sources = [{"id": "all", "name": "All companies", "platform": "mixed"}]
 
     all_rows = []
     if STATE.apps:
         all_rows += _live_grant_rows()
+        # "Live connectors" aggregates every live company, plus a per-company filter
+        live_cids = {r["_source"] for r in all_rows}
+        if all_rows:
+            sources.append({"id": "live", "name": "Live connectors (all)", "platform": "live"})
+        for c in STATE.companies:
+            if c["id"] in live_cids:
+                sources.append({"id": c["id"], "name": c["name"], "platform": "company"})
+        if "unassigned" in live_cids:
+            sources.append({"id": "unassigned", "name": "Unassigned", "platform": "company"})
 
     if GRANTS_AVAILABLE:
         db = _grant_session()
         try:
             for t in db.query(_wm.Tenant).order_by(_wm.Tenant.display_name).all():
-                sources.append({"id": f"t{t.id}", "name": t.display_name, "platform": t.platform or "azure"})
+                sources.append({"id": f"t{t.id}", "name": f"{t.display_name} (demo)", "platform": t.platform or "azure"})
             for t, r in _iter_seeded_rows(db):
                 g = r.primary_grant
                 last = r.activity.last_sign_in if r.activity else None
@@ -1252,13 +1367,17 @@ def api_grants(source: str = "all", type: str = "", risk: str = "",
                     "risk_signals": [{"key": s, "label": _sig_label(s)} for s in r.risk_signals],
                     "first_seen": g.first_seen_at.strftime("%Y-%m-%d") if g.first_seen_at else None,
                     "_source": f"t{t.id}",
+                    "_kind": "seeded",
                 })
         finally:
             db.close()
 
     # filter
     def keep(r):
-        if source != "all" and r.get("_source") != source:
+        if source == "live":
+            if r.get("_kind") != "live":
+                return False
+        elif source != "all" and r.get("_source") != source:
             return False
         if platform and r.get("platform") != platform:
             return False
@@ -1306,6 +1425,12 @@ def _live_app_grant_detail(app_obj):
                       "account_enabled": meta.get("account_enabled")},
         "consent": ("User-consented" if meta.get("consent_type") == "Principal" else "Admin consent (all users)") if meta.get("consent_type") else "—",
         "consented_by": meta.get("consented_by"),
+        "governable": app_obj.governable, "holds_key": app_obj.holds_key,
+        "bound": _is_bound(app_obj, pol),
+        "policy": ({
+            "lifetime_seconds": pol.lifetime_seconds, "lifetime_label": _fmt_lifetime(pol.lifetime_seconds),
+            "allowed_scope": pol.allowed_scope, "binding_required": bool(pol.binding_required and app_obj.holds_key),
+        } if pol else None),
         "created_at": _iso(app_obj.created_at), "first_seen": _iso(app_obj.created_at),
         "activity": {
             "last_sign_in_ago": risk.timeago(last) if last else "—",
@@ -1314,12 +1439,50 @@ def _live_app_grant_detail(app_obj):
         },
         "permissions": [{"name": s, "write": risk.is_write_scope(s)} for s in app_obj.scopes],
         "risk_signals": sigs,
+        "compliance": _compliance_checks(
+            [s["key"] for s in sigs],
+            bound=_is_bound(app_obj, pol),
+            lifetime_seconds=(pol.lifetime_seconds if (pol and app_obj.governable) else None),
+            verified=meta.get("verified_publisher"),
+            consent_type=meta.get("consent_type"),
+            account_enabled=meta.get("account_enabled")),
         "siblings": [],
         "events": events,
-        "revoke_caveat": "Live connection — revoke from the Dashboard (cuts the token now; real Azure/GitHub connectors cut at source).",
+        "revoke_caveat": "Revoke cuts the outstanding token now. For connections Fuse can't cut at source, use the provider's own revoke screen.",
         "live": True,
+        "can_revoke_here": _can_revoke_here(app_obj),
         "github": _github_revoke_info(app_obj),
+        "provider_revoke": _provider_revoke_info(app_obj),
     }
+
+
+def _can_revoke_here(app_obj):
+    """True when Fuse can actually cut this connection (governable token, or a
+    connector that implements remote revoke)."""
+    if app_obj.governable:
+        return True
+    conn = STATE.connectors.get(app_obj.source)
+    return bool(conn and conn.kind in ("github", "azure"))
+
+
+def _provider_revoke_info(app_obj):
+    """A link to the provider's own revoke screen, for connections Fuse can't
+    cut from its side."""
+    plat = (app_obj.platform or "").lower()
+    meta = app_obj.meta or {}
+    if "github" in plat:
+        gh = _github_revoke_info(app_obj)
+        return {"provider": "GitHub", "url": gh["settings_url"] if gh else "https://github.com/settings/installations",
+                "label": "Open GitHub installations ↗"}
+    if "azure" in plat or "entra" in plat:
+        app_id = meta.get("client_app_id") or app_obj.external_id
+        url = (f"https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Permissions/objectId//appId/{app_id}"
+               if app_id else
+               "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview")
+        return {"provider": "Microsoft Entra", "url": url, "label": "Open in Entra admin ↗"}
+    if "salesforce" in plat:
+        return {"provider": "Salesforce", "url": "https://login.salesforce.com/", "label": "Open Salesforce setup ↗"}
+    return None
 
 
 def _github_revoke_info(app_obj):
@@ -1418,6 +1581,10 @@ def api_grant_detail(gid: str):
             "risk_signals": [{"key": s, "label": _sig_label(s),
                               "explanation": _RISK_EXPLAIN.get(_wu.normalize_risk_signal(s), "")}
                              for s in risk_signals],
+            "compliance": _compliance_checks(
+                risk_signals, bound=False, lifetime_seconds=None,
+                verified=g.client_verified_publisher, consent_type=g.consent_type,
+                account_enabled=g.client_account_enabled),
             "siblings": [{"id": s.id, "permissions": s.permissions} for s in siblings],
             "events": [{"date": _iso_dt(run.started_at), "type": ev.event_type, "detail": _ev_detail(ev)}
                        for ev, run in ev_rows],

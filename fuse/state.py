@@ -170,9 +170,13 @@ class FuseState:
             app.status = "active"
             self.emit("policy", f"{app.name}: restored", app_id=app_id)
 
+    def company_for_app(self, app) -> Optional[str]:
+        """Resolve an app's company via the connector that surfaced it."""
+        return self.connector_company.get(app.source)
+
     def apply_bulk(self, flt: dict, policy: dict, action: Optional[str]) -> int:
         """Apply a policy (and/or revoke) to every app matching the filter:
-        platform, token_kind, governable, min_risk."""
+        platform, token_kind, governable, min_risk, company."""
         n = 0
         for app in list(self.apps.values()):
             if flt.get("platform") and app.platform != flt["platform"]:
@@ -182,6 +186,8 @@ class FuseState:
             if flt.get("governable") is not None and app.governable != flt["governable"]:
                 continue
             if flt.get("min_risk") and app.risk() < int(flt["min_risk"]):
+                continue
+            if flt.get("company") and self.connector_company.get(app.source) != flt["company"]:
                 continue
             pol = self.policies.get(app.id)
             if pol:

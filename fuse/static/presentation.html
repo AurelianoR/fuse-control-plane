@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fuse — Multi-Cloud Identity Brokering Control Plane</title>
-    <meta name="description" content="Fuse: Out-of-band Cloud Infrastructure Entitlement Management. Real-time token visibility, instant revocation, and compliance governance across AWS, Azure, and GCP.">
+    <title>Fuse — Third-Party Token Governance &amp; DPoP Binding</title>
+    <meta name="description" content="Fuse: see, monitor and lock down every third-party token connected to your SaaS data. Visibility, per-connection policy, and standards-based sender-binding (DPoP) that makes a stolen token useless to an attacker.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -304,6 +304,8 @@
         .mb-azure { background: rgba(0,120,212,.2); color: #38bdf8; }
         .mb-aws   { background: rgba(255,153,0,.2); color: var(--aws); }
         .mb-gcp   { background: rgba(234,67,53,.2); color: var(--red2); }
+        .mb-gh    { background: rgba(201,209,222,.18); color: #d7dde6; }
+        .mb-sf    { background: rgba(0,161,224,.2);  color: #58c4f5; }
         .mini-bar { height: 4px; border-radius: 99px; background: var(--border2); overflow: hidden; margin-top: 3px; }
         .mini-fill { height: 100%; border-radius: 99px; }
         .risk-low  { color: #4ade80; }
@@ -488,12 +490,12 @@
     </div>
     <div class="nav-links">
         <a href="#features">Features</a>
-        <a href="#dashboard">Dashboard</a>
+        <a href="#dashboard">Console</a>
+        <a href="#how">How it works</a>
         <a href="#api">API</a>
-        <a href="#compliance">Compliance</a>
-        <a href="#deploy">Deploy</a>
+        <a href="#deploy">Run it</a>
     </div>
-    <a class="nav-cta" href="index.html">Open Dashboard →</a>
+    <a class="nav-cta" href="/">Open Console →</a>
 </nav>
 
 <!-- ══ HERO ═════════════════════════════════════════════════════════════ -->
@@ -503,36 +505,34 @@
     <div>
         <div class="hero-tag anim-fade-up">
             <span class="hero-tag-dot"></span>
-            Out-of-Band · Zero Network Risk · Production Safe
+            Visibility · Policy · DPoP Sender-Binding
         </div>
         <h1 class="anim-fade-up delay-1">
-            Stop the next<br/><span class="accent">cloud identity breach</span><br/>before it starts.
+            Make a stolen<br/><span class="accent">vendor token</span><br/>useless to an attacker.
         </h1>
         <p class="hero-sub anim-fade-up delay-2">
-            Fuse is a Cloud Infrastructure Entitlement Management platform that gives security teams real-time visibility and instant revocation over every brokered IAM session across AWS, Azure, and GCP — without ever touching the network path.
+            When a SaaS vendor is breached, attackers replay the long-lived tokens it holds straight against your data — skipping MFA entirely. Fuse is the one place to see, monitor and lock down every third-party token, and for the connections that matter, bind it to a key the attacker never has.
         </p>
         <div class="hero-actions anim-fade-up delay-3">
-            <a class="btn-primary" href="index.html">
+            <a class="btn-primary" href="/">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
-                Open Live Dashboard
+                Open Live Console
             </a>
-            <a class="btn-secondary" href="https://github.com/YOUR_ORG/fuse-control-plane" target="_blank">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.749 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-                </svg>
-                View on GitHub
+            <a class="btn-secondary" href="#how">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                How it works
             </a>
         </div>
 
         <div class="provider-strip anim-fade-up delay-4">
-            <span style="font-size:12px;color:var(--muted);margin-right:4px">Governs:</span>
-            <div class="prov-chip"><span class="prov-dot" style="background:#FF9900"></span>AWS STS</div>
-            <div class="prov-chip"><span class="prov-dot" style="background:#0078d4"></span>Azure Entra ID</div>
-            <div class="prov-chip"><span class="prov-dot" style="background:#EA4335"></span>GCP Cloud IAM</div>
-            <div class="prov-chip"><span class="prov-dot" style="background:var(--green)"></span>ISO 27001 Ready</div>
-            <div class="prov-chip"><span class="prov-dot" style="background:var(--purple)"></span>SOC 2 Evidence</div>
+            <span style="font-size:12px;color:var(--muted);margin-right:4px">Connectors:</span>
+            <div class="prov-chip"><span class="prov-dot" style="background:#0078d4"></span>Azure / Entra ID</div>
+            <div class="prov-chip"><span class="prov-dot" style="background:#c9d1d9"></span>GitHub Apps</div>
+            <div class="prov-chip"><span class="prov-dot" style="background:#00A1E0"></span>Salesforce (demo)</div>
+            <div class="prov-chip"><span class="prov-dot" style="background:var(--green)"></span>RFC 9449 DPoP</div>
+            <div class="prov-chip"><span class="prov-dot" style="background:var(--purple)"></span>RFC 7523 private_key_jwt</div>
         </div>
     </div>
 </section>
@@ -542,19 +542,19 @@
 <div class="stats-strip">
     <div class="stat-item anim-fade-up delay-1">
         <div class="stat-num" style="color:var(--blue2)">3</div>
-        <div class="stat-label">Cloud Providers</div>
+        <div class="stat-label">Protection Tiers</div>
     </div>
     <div class="stat-item anim-fade-up delay-2">
-        <div class="stat-num" style="color:var(--green)">&lt;1s</div>
-        <div class="stat-label">Revocation Latency</div>
+        <div class="stat-num" style="color:var(--green)">4</div>
+        <div class="stat-label">DPoP Binding Checks</div>
     </div>
     <div class="stat-item anim-fade-up delay-3">
-        <div class="stat-num" style="color:var(--amber)">4</div>
-        <div class="stat-label">Compliance Frameworks</div>
+        <div class="stat-num" style="color:var(--amber)">months→min</div>
+        <div class="stat-label">Breach Window Cut</div>
     </div>
     <div class="stat-item anim-fade-up delay-4">
         <div class="stat-num" style="color:var(--purple)">0</div>
-        <div class="stat-label">Network Path Risk</div>
+        <div class="stat-label">Vendor Rebuild Required</div>
     </div>
 </div>
 <div class="divider"></div>
@@ -562,32 +562,34 @@
 <!-- ══ DASHBOARD PREVIEW ═════════════════════════════════════════════════ -->
 <section id="dashboard">
     <div style="padding:96px 32px 64px;text-align:center;max-width:1100px;margin:0 auto">
-        <div class="section-eyebrow anim-fade-up">The Control Plane</div>
-        <h2 class="anim-fade-up delay-1">Everything visible. Everything actionable.</h2>
-        <p class="section-sub anim-fade-up delay-2" style="margin:0 auto">A single dark-mode dashboard gives your SecOps team complete situational awareness — no cloud console switching, no IAM archaeology.</p>
+        <div class="section-eyebrow anim-fade-up">One console</div>
+        <h2 class="anim-fade-up delay-1">See every token. Govern it per company.</h2>
+        <p class="section-sub anim-fade-up delay-2" style="margin:0 auto">A single dark-mode console: discover connections via connectors, deep-dive any token's risk, set policy per company, and enforce sender-binding at the gateway — all on one origin.</p>
     </div>
     <div class="dash-frame anim-fade-up delay-2" style="max-width:1060px;margin:0 auto 0;margin-left:auto;margin-right:auto">
         <div class="dash-titlebar">
             <span class="win-btn win-close"></span>
             <span class="win-btn win-min"></span>
             <span class="win-btn win-max"></span>
-            <div class="win-url">🔒 localhost:3000 — Fuse | Multi-Cloud Governance Control Plane</div>
+            <div class="win-url">🔒 localhost:8000 — Fuse · Token Monitor</div>
         </div>
         <div class="dash-body">
             <!-- Sidebar -->
             <div class="dash-sidebar">
                 <div class="ds-logo">FUSE</div>
-                <div class="ds-item active">📊 Dashboard</div>
-                <div class="ds-item">🔑 Token Gov.</div>
-                <div class="ds-item">☁️ Environments</div>
-                <div class="ds-item">⚡ Integrations</div>
-                <div class="ds-item" style="margin-top:16px;font-size:9px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;padding:4px 10px">Compliance</div>
+                <div class="ds-item">📊 Dashboard</div>
+                <div class="ds-item">🔌 Connectors</div>
+                <div class="ds-item active">🪪 Token Monitor</div>
+                <div class="ds-item">⚡ Gateway</div>
+                <div class="ds-item" style="margin-top:10px;font-size:9px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;padding:4px 10px">Governance</div>
+                <div class="ds-item">🛡️ Policy</div>
+                <div class="ds-item">✅ Compliance</div>
                 <div class="ds-item">📋 Audit Log</div>
-                <div class="ds-item">⚙️ Settings</div>
+                <div class="ds-item">📑 Product Presentation ↗</div>
                 <div style="margin-top:auto;padding-top:20px">
-                    <div style="display:flex;align-items:center;gap:4px;font-size:9px;padding:6px 8px;border-radius:6px;background:var(--surface2)">
-                        <span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>
-                        <span style="color:var(--green)">API Connected</span>
+                    <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:0 8px 4px">Company</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;font-size:9px;padding:7px 8px;border-radius:6px;background:var(--surface2);border:1px solid var(--border)">
+                        <span style="color:var(--text)">Acme Corp (Demo)</span><span style="color:var(--muted)">▾</span>
                     </div>
                 </div>
             </div>
@@ -596,151 +598,120 @@
                 <!-- KPIs -->
                 <div class="dash-kpis">
                     <div class="dash-kpi" style="border-left:2px solid var(--azure)">
-                        <div class="dkl">Azure Tokens</div>
-                        <div class="dkv" style="color:var(--blue2)">2</div>
+                        <div class="dkl">Azure / Entra Apps</div>
+                        <div class="dkv" style="color:var(--blue2)">16</div>
                     </div>
-                    <div class="dash-kpi" style="border-left:2px solid var(--aws)">
-                        <div class="dkl">AWS Tokens</div>
-                        <div class="dkv" style="color:var(--aws)">2</div>
+                    <div class="dash-kpi" style="border-left:2px solid #c9d1d9">
+                        <div class="dkl">GitHub Apps</div>
+                        <div class="dkv" style="color:#c9d1d9">12</div>
                     </div>
-                    <div class="dash-kpi" style="border-left:2px solid var(--gcp)">
-                        <div class="dkl">GCP Tokens</div>
-                        <div class="dkv" style="color:var(--red2)">1</div>
+                    <div class="dash-kpi" style="border-left:2px solid var(--green)">
+                        <div class="dkl">Bound Tokens</div>
+                        <div class="dkv" style="color:var(--green)">2</div>
                     </div>
                     <div class="dash-kpi" style="border-left:2px solid var(--red)">
-                        <div class="dkl">Critical Risks</div>
-                        <div class="dkv" style="color:var(--red2)">1</div>
+                        <div class="dkl">High-Risk</div>
+                        <div class="dkv" style="color:var(--red2)">10</div>
                     </div>
                 </div>
                 <!-- Mid row -->
                 <div class="dash-mid">
-                    <!-- Usage bars -->
+                    <!-- Risk exposure -->
                     <div class="dash-card">
-                        <div class="dc-title">Live API Usage</div>
+                        <div class="dc-title">Risk Exposure (top)</div>
                         <div class="usage-row">
-                            <div class="usage-row-label"><span>Datadog</span><span>25%</span></div>
-                            <div class="ubar"><div class="ubar-fill" style="width:25%;background:var(--green)"></div></div>
+                            <div class="usage-row-label"><span style="color:var(--red2)">Lattice ⚠</span><span style="color:var(--red2)">85</span></div>
+                            <div class="ubar"><div class="ubar-fill" style="width:85%;background:var(--red)"></div></div>
                         </div>
                         <div class="usage-row">
-                            <div class="usage-row-label"><span>Terraform</span><span>45%</span></div>
-                            <div class="ubar"><div class="ubar-fill" style="width:45%;background:var(--green)"></div></div>
+                            <div class="usage-row-label"><span style="color:var(--red2)">TinyPulse ⚠</span><span style="color:var(--red2)">80</span></div>
+                            <div class="ubar"><div class="ubar-fill" style="width:80%;background:var(--red)"></div></div>
                         </div>
                         <div class="usage-row">
-                            <div class="usage-row-label"><span style="color:var(--red2)">Ext. Agency ⚠</span><span style="color:var(--red2)">1245%</span></div>
-                            <div class="ubar"><div class="ubar-fill" style="width:100%;background:var(--red)"></div></div>
+                            <div class="usage-row-label"><span>DocuSign</span><span>60</span></div>
+                            <div class="ubar"><div class="ubar-fill" style="width:60%;background:var(--amber)"></div></div>
                         </div>
                         <div class="usage-row">
-                            <div class="usage-row-label"><span>GH Actions</span><span>11%</span></div>
-                            <div class="ubar"><div class="ubar-fill" style="width:11%;background:var(--green)"></div></div>
-                        </div>
-                        <div class="usage-row">
-                            <div class="usage-row-label"><span>Grafana</span><span>78%</span></div>
-                            <div class="ubar"><div class="ubar-fill" style="width:78%;background:var(--amber)"></div></div>
+                            <div class="usage-row-label"><span>PipelineCRM</span><span>15</span></div>
+                            <div class="ubar"><div class="ubar-fill" style="width:15%;background:var(--green)"></div></div>
                         </div>
                     </div>
-                    <!-- Donut -->
+                    <!-- Binding posture donut -->
                     <div class="dash-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-                        <div class="dc-title" style="text-align:center">Token Health</div>
+                        <div class="dc-title" style="text-align:center">Token Binding Posture</div>
                         <svg width="100" height="100" viewBox="0 0 100 100">
                             <g class="donut-ring">
                                 <circle class="donut-track" cx="50" cy="50" r="36"/>
-                                <circle class="donut-seg" cx="50" cy="50" r="36" stroke="var(--blue)" stroke-dasharray="82,100" stroke-dashoffset="0"/>
-                                <circle class="donut-seg" cx="50" cy="50" r="36" stroke="var(--amber)" stroke-dasharray="10,100" stroke-dashoffset="-82"/>
-                                <circle class="donut-seg" cx="50" cy="50" r="36" stroke="var(--red)" stroke-dasharray="8,100" stroke-dashoffset="-92"/>
+                                <circle class="donut-seg" cx="50" cy="50" r="36" stroke="var(--green)" stroke-dasharray="50,100" stroke-dashoffset="0"/>
+                                <circle class="donut-seg" cx="50" cy="50" r="36" stroke="var(--amber)" stroke-dasharray="50,100" stroke-dashoffset="-50"/>
                             </g>
-                            <text x="50" y="46" font-size="16" font-weight="900" fill="var(--text)" text-anchor="middle" font-family="Inter,sans-serif">92%</text>
-                            <text x="50" y="57" font-size="8" fill="var(--muted)" text-anchor="middle" font-family="Inter,sans-serif">SHORT-LIVED</text>
+                            <text x="50" y="46" font-size="16" font-weight="900" fill="var(--text)" text-anchor="middle" font-family="Inter,sans-serif">50%</text>
+                            <text x="50" y="57" font-size="8" fill="var(--muted)" text-anchor="middle" font-family="Inter,sans-serif">BOUND</text>
                         </svg>
                         <div style="display:flex;gap:10px;margin-top:6px">
-                            <span style="font-size:8px;color:var(--muted);display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--blue)"></span>&lt;1hr</span>
-                            <span style="font-size:8px;color:var(--muted);display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--amber)"></span>&lt;8hr</span>
-                            <span style="font-size:8px;color:var(--muted);display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--red)"></span>Static</span>
+                            <span style="font-size:8px;color:var(--muted);display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--green)"></span>Bound</span>
+                            <span style="font-size:8px;color:var(--muted);display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--amber)"></span>Bearer</span>
+                            <span style="font-size:8px;color:var(--muted);display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--red)"></span>Visibility</span>
                         </div>
                     </div>
-                    <!-- Compliance -->
+                    <!-- Compliance findings -->
                     <div class="dash-card">
-                        <div class="dc-title">Compliance</div>
-                        <div class="comp-item">
-                            <div class="comp-bar-wrap">
-                                <div class="comp-bar-lbl"><span>ISO 27001</span><span style="color:#4ade80">94%</span></div>
-                                <div class="comp-bar"><div class="comp-fill" style="width:94%;background:var(--green)"></div></div>
-                            </div>
+                        <div class="dc-title">Compliance Findings</div>
+                        <div style="display:flex;gap:6px;margin-bottom:10px">
+                            <div style="flex:1;text-align:center;background:var(--surface2);border-radius:6px;padding:8px 4px"><div style="font-size:18px;font-weight:900;color:var(--red2)">3</div><div style="font-size:7px;color:var(--muted)">HIGH</div></div>
+                            <div style="flex:1;text-align:center;background:var(--surface2);border-radius:6px;padding:8px 4px"><div style="font-size:18px;font-weight:900;color:var(--amber)">2</div><div style="font-size:7px;color:var(--muted)">MED</div></div>
+                            <div style="flex:1;text-align:center;background:var(--surface2);border-radius:6px;padding:8px 4px"><div style="font-size:18px;font-weight:900;color:var(--blue2)">2</div><div style="font-size:7px;color:var(--muted)">LOW</div></div>
                         </div>
-                        <div class="comp-item">
-                            <div class="comp-bar-wrap">
-                                <div class="comp-bar-lbl"><span>SOC 2 II</span><span style="color:#4ade80">88%</span></div>
-                                <div class="comp-bar"><div class="comp-fill" style="width:88%;background:var(--purple)"></div></div>
-                            </div>
-                        </div>
-                        <div class="comp-item">
-                            <div class="comp-bar-wrap">
-                                <div class="comp-bar-lbl"><span>NIST CSF</span><span style="color:#fbbf24">76%</span></div>
-                                <div class="comp-bar"><div class="comp-fill" style="width:76%;background:var(--amber)"></div></div>
-                            </div>
-                        </div>
-                        <div class="comp-item">
-                            <div class="comp-bar-wrap">
-                                <div class="comp-bar-lbl"><span>CIS Cloud</span><span style="color:#f87171">61%</span></div>
-                                <div class="comp-bar"><div class="comp-fill" style="width:61%;background:var(--red)"></div></div>
-                            </div>
+                        <div style="font-size:8px;color:var(--dim);line-height:1.7">
+                            ✗ 18 hold write/export/admin<br/>
+                            ✗ 3 stealable bearer tokens<br/>
+                            ✗ 13 unverified publishers
                         </div>
                     </div>
                 </div>
                 <!-- Table -->
                 <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden">
                     <div class="dash-table-header">
-                        <span class="col-vendor">Vendor</span>
-                        <span class="col-prov">Provider</span>
-                        <span class="col-scope">Scope</span>
-                        <span class="col-usage">Usage</span>
-                        <span class="col-exp">Expires</span>
-                        <span class="col-risk">Risk</span>
-                        <span class="col-act">Action</span>
-                    </div>
-                    <div class="dash-row">
-                        <span class="col-vendor">Datadog Monitoring</span>
-                        <span class="col-prov"><span class="mini-badge mb-azure">AZURE</span></span>
-                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px">ReaderRole</span>
-                        <span class="col-usage"><div style="font-size:8px;color:var(--muted)">25%</div><div class="mini-bar"><div class="mini-fill" style="width:25%;background:var(--green)"></div></div></span>
-                        <span class="col-exp exp-ok">45m</span>
-                        <span class="col-risk risk-low">Low</span>
-                        <span class="col-act act-manage">Manage</span>
-                    </div>
-                    <div class="dash-row">
-                        <span class="col-vendor">Terraform Cloud Runner</span>
-                        <span class="col-prov"><span class="mini-badge mb-aws">AWS</span></span>
-                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px">s3:PutObject</span>
-                        <span class="col-usage"><div style="font-size:8px;color:var(--muted)">45%</div><div class="mini-bar"><div class="mini-fill" style="width:45%;background:var(--green)"></div></div></span>
-                        <span class="col-exp exp-warn">12m</span>
-                        <span class="col-risk risk-low">Low</span>
-                        <span class="col-act act-manage">Manage</span>
+                        <span class="col-vendor">Vendor app</span>
+                        <span class="col-prov">Platform</span>
+                        <span class="col-scope">Permissions</span>
+                        <span class="col-usage">Consent · Last used</span>
+                        <span class="col-risk">Risk signals</span>
                     </div>
                     <div class="dash-row" style="background:rgba(239,68,68,.05)">
-                        <span class="col-vendor"><span class="crit-pulse-dot"></span>External Dev Agency</span>
-                        <span class="col-prov"><span class="mini-badge mb-gcp">GCP</span></span>
-                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--red2)">roles/editor ⚠</span>
-                        <span class="col-usage"><div style="font-size:8px;color:var(--red2)">EXCEEDED</div><div class="mini-bar"><div class="mini-fill" style="width:100%;background:var(--red)"></div></div></span>
-                        <span class="col-exp exp-crit">Static</span>
-                        <span class="col-risk risk-crit">Critical</span>
-                        <span class="col-act act-inv">Investigate</span>
-                    </div>
-                    <div class="dash-row">
-                        <span class="col-vendor">GitHub Actions CI/CD</span>
+                        <span class="col-vendor"><span class="crit-pulse-dot"></span>Lattice</span>
                         <span class="col-prov"><span class="mini-badge mb-azure">AZURE</span></span>
-                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px">ContributorRole</span>
-                        <span class="col-usage"><div style="font-size:8px;color:var(--muted)">11%</div><div class="mini-bar"><div class="mini-fill" style="width:11%;background:var(--green)"></div></div></span>
-                        <span class="col-exp exp-ok">58m</span>
-                        <span class="col-risk risk-med">Medium</span>
-                        <span class="col-act act-manage">Manage</span>
+                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--red2)">User.ReadWrite.All</span>
+                        <span class="col-usage"><div style="font-size:8px;color:var(--muted)">Admin · 14d ago</div></span>
+                        <span class="col-risk risk-crit">unverified · write</span>
                     </div>
                     <div class="dash-row">
-                        <span class="col-vendor">Grafana Observability</span>
-                        <span class="col-prov"><span class="mini-badge mb-aws">AWS</span></span>
-                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px">CloudWatchReadOnly</span>
-                        <span class="col-usage"><div style="font-size:8px;color:var(--amber)">78%</div><div class="mini-bar"><div class="mini-fill" style="width:78%;background:var(--amber)"></div></div></span>
-                        <span class="col-exp exp-ok">30m</span>
-                        <span class="col-risk risk-low">Low</span>
-                        <span class="col-act act-manage">Manage</span>
+                        <span class="col-vendor">DocuSign</span>
+                        <span class="col-prov"><span class="mini-badge mb-azure">AZURE</span></span>
+                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px">Mail.ReadWrite</span>
+                        <span class="col-usage"><div style="font-size:8px;color:var(--muted)">Admin · yesterday</div></span>
+                        <span class="col-risk risk-med">write-perms</span>
+                    </div>
+                    <div class="dash-row">
+                        <span class="col-vendor">Zapier (OAuth)</span>
+                        <span class="col-prov"><span class="mini-badge mb-gh">GITHUB</span></span>
+                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--red2)">repo · all-repos</span>
+                        <span class="col-usage"><div style="font-size:8px;color:var(--muted)">User · 90d ago</div></span>
+                        <span class="col-risk risk-crit">all-repos</span>
+                    </div>
+                    <div class="dash-row">
+                        <span class="col-vendor">PipelineCRM</span>
+                        <span class="col-prov"><span class="mini-badge mb-sf">SALESFORCE</span></span>
+                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px">contacts:read</span>
+                        <span class="col-usage"><div style="font-size:8px;color:var(--green)">🔒 bound · 5m TTL</div></span>
+                        <span class="col-risk risk-low">— none</span>
+                    </div>
+                    <div class="dash-row">
+                        <span class="col-vendor">Microsoft Graph</span>
+                        <span class="col-prov"><span class="mini-badge mb-azure">AZURE</span></span>
+                        <span class="col-scope" style="font-family:'JetBrains Mono',monospace;font-size:8px">Directory.Read.All</span>
+                        <span class="col-usage"><div style="font-size:8px;color:var(--muted)">Admin · 2d ago</div></span>
+                        <span class="col-risk risk-med">read-all</span>
                     </div>
                 </div>
             </div>
@@ -753,34 +724,34 @@
     <div class="section-wrap">
         <div style="text-align:center">
             <div class="section-eyebrow anim-fade-up">Methodology</div>
-            <h2 class="anim-fade-up delay-1">How Fuse works</h2>
-            <p class="section-sub anim-fade-up delay-2" style="margin:0 auto">Five steps. Zero network disruption.</p>
+            <h2 class="anim-fade-up delay-1">Three tiers, value on day one</h2>
+            <p class="section-sub anim-fade-up delay-2" style="margin:0 auto">The lower tiers need nothing from any vendor. Binding is reserved for the connections worth the effort.</p>
         </div>
         <div class="how-grid">
             <div class="how-step anim-fade-up delay-1">
                 <div class="how-num">1</div>
-                <div class="how-title">Observe</div>
-                <div class="how-desc">Polls cloud IAM APIs out-of-band to inventory every active brokered session across AWS, Azure, and GCP</div>
+                <div class="how-title">Connect</div>
+                <div class="how-desc">Add a read-only connector (Azure/Entra, GitHub App, demo) under a company. No vendor change required.</div>
             </div>
             <div class="how-step anim-fade-up delay-2">
                 <div class="how-num">2</div>
-                <div class="how-title">Score</div>
-                <div class="how-desc">Automatically risk-scores each token by expiry, scope permissiveness, and API usage vs. quota</div>
+                <div class="how-title">Discover</div>
+                <div class="how-desc">Fuse inventories every grant, app and token — scope, age, last used, by whom, consent chain, publisher.</div>
             </div>
             <div class="how-step anim-fade-up delay-3">
                 <div class="how-num">3</div>
-                <div class="how-title">Alert</div>
-                <div class="how-desc">Surfaces Critical and High risk sessions instantly in the dashboard with pulsing visual indicators</div>
+                <div class="how-title">Score &amp; flag</div>
+                <div class="how-desc">Each connection gets risk signals (write-perms, unverified publisher, dormant, unbound) and compliance checks.</div>
             </div>
             <div class="how-step anim-fade-up delay-4">
                 <div class="how-num">4</div>
-                <div class="how-title">Revoke</div>
-                <div class="how-desc">On operator command, calls the provider's IAM control plane to invalidate the session at root in under 1 second</div>
+                <div class="how-title">Policy</div>
+                <div class="how-desc">Set short lifetimes, minimize scope, or revoke — per token or per company. Cuts the breach window from months to minutes.</div>
             </div>
             <div class="how-step anim-fade-up delay-5">
                 <div class="how-num">5</div>
-                <div class="how-title">Log</div>
-                <div class="how-desc">Writes an RFC3339-timestamped immutable audit entry with full context — ready for ISMS auditors</div>
+                <div class="how-title">Bind (DPoP)</div>
+                <div class="how-desc">For high-value connections, the gateway verifies a fresh sender-bound proof on every call — a stolen token alone fails.</div>
             </div>
         </div>
     </div>
@@ -790,53 +761,53 @@
 <section id="features">
     <div class="section-wrap">
         <div class="section-eyebrow anim-fade-up">Capabilities</div>
-        <h2 class="anim-fade-up delay-1">Built for cloud SecOps teams</h2>
-        <p class="section-sub anim-fade-up delay-2">Every feature designed around the real workflows of cloud security and governance teams.</p>
+        <h2 class="anim-fade-up delay-1">Built for token governance</h2>
+        <p class="section-sub anim-fade-up delay-2">Everything a security team needs to see, constrain and lock down third-party access — in one console.</p>
         <div class="features-grid">
             <div class="feat-card anim-fade-up delay-1">
-                <div class="feat-icon" style="background:rgba(59,130,246,.12)">🔍</div>
-                <div class="feat-title">Multi-Cloud Token Visibility</div>
-                <div class="feat-desc">Single inventory of every brokered IAM session across AWS STS, Azure Entra ID, and GCP Cloud IAM. No console switching.</div>
+                <div class="feat-icon" style="background:rgba(59,130,246,.12)">🪪</div>
+                <div class="feat-title">Token Monitor</div>
+                <div class="feat-desc">A live grant inventory of every OAuth grant, app install and PAT. Click any token for the full deep-dive: last used, by whom, consent chain, publisher, permissions, and event history.</div>
             </div>
             <div class="feat-card anim-fade-up delay-2">
-                <div class="feat-icon" style="background:rgba(34,197,94,.12)">📊</div>
-                <div class="feat-title">Live API Usage Monitoring</div>
-                <div class="feat-desc">Per-session gradient progress bars showing API calls consumed vs. session quota. Auto-refreshes every 10 seconds from the Go backend.</div>
+                <div class="feat-icon" style="background:rgba(34,197,94,.12)">🔒</div>
+                <div class="feat-title">DPoP Sender-Binding</div>
+                <div class="feat-desc">The differentiator. The Gateway verifies a fresh proof on every call — four checks (token, key match, request, freshness). A stolen token without the private key fails. Standards-based RFC 9449.</div>
             </div>
             <div class="feat-card anim-fade-up delay-3">
-                <div class="feat-icon" style="background:rgba(239,68,68,.12)">⚡</div>
-                <div class="feat-title">One-Click Revocation</div>
-                <div class="feat-desc">Click Revoke Access → confirm → done. The Go backend calls the cloud provider IAM API to invalidate the session at the root level.</div>
+                <div class="feat-icon" style="background:rgba(245,158,11,.12)">🛡️</div>
+                <div class="feat-title">Policy per Token &amp; Company</div>
+                <div class="feat-desc">Set token lifetime, scope and DPoP binding on each gateway token, or apply a group policy to a whole company in one click. Short lifetimes cut the breach window from months to minutes.</div>
             </div>
             <div class="feat-card anim-fade-up delay-4">
-                <div class="feat-icon" style="background:rgba(168,85,247,.12)">📋</div>
-                <div class="feat-title">Immutable Audit Trail</div>
-                <div class="feat-desc">Every revocation is permanently logged with RFC3339 timestamps, vendor, provider, scope, and actor. Survives reboots. Ready for ISMS auditors.</div>
+                <div class="feat-icon" style="background:rgba(168,85,247,.12)">🏢</div>
+                <div class="feat-title">Company-Scoped Console</div>
+                <div class="feat-desc">Organize connectors under companies and switch between them from the sidebar. The Dashboard and Connectors scope to the selected company; "All companies" shows each one side by side.</div>
             </div>
             <div class="feat-card anim-fade-up delay-5">
-                <div class="feat-icon" style="background:rgba(245,158,11,.12)">🔴</div>
-                <div class="feat-title">Automated Risk Scoring</div>
-                <div class="feat-desc">Low / Medium / High / Critical. Static keys, over-permissive roles (roles/editor), and quota-exceeded sessions are flagged automatically.</div>
+                <div class="feat-icon" style="background:rgba(239,68,68,.12)">⚡</div>
+                <div class="feat-title">Revoke — or Redirect</div>
+                <div class="feat-desc">Cut a connection's access from Fuse where possible. For tokens Fuse can't cut itself, the detail screen links straight to the provider's own revoke page (Entra admin, GitHub installations).</div>
             </div>
             <div class="feat-card anim-fade-up delay-6">
-                <div class="feat-icon" style="background:rgba(99,102,241,.12)">📐</div>
-                <div class="feat-title">Compliance Posture Meters</div>
-                <div class="feat-desc">Live framework coverage bars for ISO/IEC 27001, SOC 2 Type II, NIST CSF 2.0, and CIS Cloud Benchmark — exportable as evidence.</div>
+                <div class="feat-icon" style="background:rgba(99,102,241,.12)">✅</div>
+                <div class="feat-title">Compliance Findings</div>
+                <div class="feat-desc">Negative status only — the concrete gaps that need action: write/admin scope, unverified publisher, dormant, user-consented, unbound bearer. Each finding links to the affected connections.</div>
             </div>
             <div class="feat-card anim-fade-up delay-7">
-                <div class="feat-icon" style="background:rgba(22,197,94,.12)">🛡️</div>
-                <div class="feat-title">Out-of-Band Architecture</div>
-                <div class="feat-desc">Fuse never proxies production traffic. If it goes down, your cloud workloads continue unaffected. Zero single point of failure introduced.</div>
+                <div class="feat-icon" style="background:rgba(22,197,94,.12)">🔌</div>
+                <div class="feat-title">Real Connectors</div>
+                <div class="feat-desc">Not mocked. The Azure/Entra connector enumerates real service principals &amp; OAuth grants via Microsoft Graph; the GitHub App connector mints real installation tokens and lists org apps.</div>
             </div>
             <div class="feat-card anim-fade-up delay-8">
-                <div class="feat-icon" style="background:rgba(59,130,246,.12)">🔄</div>
-                <div class="feat-title">Graceful Offline Mode</div>
-                <div class="feat-desc">If the Go API is unreachable, the dashboard falls back to mock data with a clear sidebar indicator. Operators always know their data source.</div>
+                <div class="feat-icon" style="background:rgba(59,130,246,.12)">📋</div>
+                <div class="feat-title">Audit Log + Export</div>
+                <div class="feat-desc">Every connector sync, policy change, revocation, gateway allow/block and breach attempt is logged newest-first — and exportable as a timestamped report for auditors.</div>
             </div>
             <div class="feat-card anim-fade-up delay-1">
-                <div class="feat-icon" style="background:rgba(239,68,68,.12)">🔍</div>
-                <div class="feat-title">Advanced Filtering</div>
-                <div class="feat-desc">Filter the sessions table by cloud provider (Azure, AWS, GCP) or show only Critical-risk sessions. Filter state persists across auto-refreshes.</div>
+                <div class="feat-icon" style="background:rgba(22,197,94,.12)">🌐</div>
+                <div class="feat-title">Out-of-Band by Default</div>
+                <div class="feat-desc">For platforms that verify the proof themselves, Fuse is never in the request path — it's the management layer. Inline gateway mode is the rare fallback, your choice per connection.</div>
             </div>
         </div>
     </div>
@@ -845,39 +816,45 @@
 <!-- ══ API ════════════════════════════════════════════════════════════════ -->
 <section id="api" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
     <div class="section-wrap">
-        <div class="section-eyebrow anim-fade-up">REST API</div>
-        <h2 class="anim-fade-up delay-1">Simple, clean endpoints</h2>
-        <p class="section-sub anim-fade-up delay-2">The Go backend exposes 5 endpoints. All return JSON. All support CORS. Built to integrate with your SIEM and alerting stack.</p>
+        <div class="section-eyebrow anim-fade-up">JSON API</div>
+        <h2 class="anim-fade-up delay-1">Same-origin, one FastAPI app</h2>
+        <p class="section-sub anim-fade-up delay-2">The console is served by Fuse on :8000 and calls its own API. Below are the endpoints behind each view.</p>
         <div class="api-grid">
             <div class="api-card anim-fade-up delay-1">
                 <span class="api-method get">GET</span>
-                <div class="api-path">/api/health</div>
-                <div class="api-desc">Kubernetes liveness probe. Returns 200 when the API is ready to serve requests.</div>
-                <div class="code-block">{ "status": "ok", "service": "fuse-control-plane" }</div>
+                <div class="api-path">/api/grants</div>
+                <div class="api-desc">The Token Monitor inventory — live connector apps + the seeded grant store, grouped by company. Filter by <code>source</code>, <code>platform</code>, <code>risk</code>, <code>type</code>, <code>search</code>.</div>
+                <div class="code-block">{ "sources": [{"id":"co-…","name":"Acme Corp"}],<br/>  "rows": [{ "id":"app-…", "vendor":"PipelineCRM",<br/>    "platform":"salesforce", "consent":"Admin",<br/>    "last_used_ago":"5m ago", "risk_signals":[…] }] }</div>
             </div>
             <div class="api-card anim-fade-up delay-2">
                 <span class="api-method get">GET</span>
-                <div class="api-path">/api/tokens</div>
-                <div class="api-desc">Returns all active non-revoked brokered sessions with live usage metrics.</div>
-                <div class="code-block">[{ "id": "tok_az_1", "vendor": "Datadog",<br/>   "provider": "azure", "risk_level": "Low",<br/>   "token_usage": 657, "usage_limit": 5000 }]</div>
+                <div class="api-path">/api/grant/{id}</div>
+                <div class="api-desc">The full-screen detail: identity, activity (last used / by whom), permissions, a <b>compliance checklist</b>, event history, and provider-revoke links.</div>
+                <div class="code-block">{ "vendor":"DocuSign", "risk_signals":[…],<br/>  "compliance": { "compliant": false, "failed": 3,<br/>    "checks": [{"label":"Sender-bound (DPoP)","ok":false}…] },<br/>  "provider_revoke": {"provider":"Microsoft Entra","url":"…"} }</div>
             </div>
             <div class="api-card anim-fade-up delay-3">
-                <span class="api-method post">POST</span>
-                <div class="api-path">/api/tokens/revoke</div>
-                <div class="api-desc">Revokes a session by ID. Writes an immutable audit entry. Returns success or 404 if not found.</div>
-                <div class="code-block">curl -X POST /api/tokens/revoke \<br/>  -d '{"token_id":"tok_gcp_3"}'<br/><br/>→ { "status": "success" }</div>
+                <span class="api-method get">GET</span>
+                <div class="api-path">/api/policy/overview</div>
+                <div class="api-desc">Companies → connections with current policy, for the Policy view. Pairs with <code>POST /api/apps/{id}/policy</code> (per token) and <code>POST /api/policy/bulk</code> (per company).</div>
+                <div class="code-block">{ "companies": [{ "name":"Acme Corp", "kind":"company",<br/>    "connections": [{ "id":"app-…", "governable":true,<br/>      "policy": {"lifetime_seconds":300,"binding_required":true} }] }] }</div>
             </div>
             <div class="api-card anim-fade-up delay-4">
                 <span class="api-method get">GET</span>
-                <div class="api-path">/api/metrics</div>
-                <div class="api-desc">Aggregated snapshot for KPI cards — total tokens, per-provider counts, critical session count.</div>
-                <div class="code-block">{ "total_tokens": 5,<br/>  "by_provider": {"azure":2,"aws":2,"gcp":1},<br/>  "critical_count": 1 }</div>
+                <div class="api-path">/api/compliance/findings</div>
+                <div class="api-desc">Negative status only — concrete risk findings across the inventory, ranked by severity. Drives the Compliance view and the alert badge.</div>
+                <div class="code-block">{ "total": 7, "by_severity": {"high":3,"medium":2,"low":2},<br/>  "findings": [{ "severity":"high", "signal":"write-permissions",<br/>    "title":"18 hold write/export/admin permissions" }] }</div>
             </div>
-            <div class="api-card anim-fade-up delay-5" style="grid-column:1/-1">
+            <div class="api-card anim-fade-up delay-5">
+                <span class="api-method post">POST</span>
+                <div class="api-path">/api/tokens/revoke</div>
+                <div class="api-desc">Cut a connection's access. Real Azure/GitHub connectors revoke at source; otherwise the detail screen offers a provider-redirect. Writes an audit entry.</div>
+                <div class="code-block">curl -X POST /api/tokens/revoke \<br/>  -d '{"token_id":"app-b4343ef1"}'<br/><br/>→ { "status":"success", "message":"PipelineCRM: access cut" }</div>
+            </div>
+            <div class="api-card anim-fade-up delay-6">
                 <span class="api-method get">GET</span>
-                <div class="api-path">/api/audit</div>
-                <div class="api-desc">Returns the full immutable revocation log. Each entry is a timestamped RFC3339 string with full context for compliance evidence.</div>
-                <div class="code-block">{ "total": 1, "entries": [<br/>  "[2026-06-24T15:01:42+02:00] REVOKED | ID: tok_gcp_3 | Vendor: External Dev Agency | Provider: gcp | Scope: roles/editor (Over-Permissive)"<br/>]}</div>
+                <div class="api-path">/gateway/contacts</div>
+                <div class="api-desc">The inline DPoP gateway. Verifies the four binding checks on every request and forwards only verified calls. Driven from the Gateway view's legit + attacker runs.</div>
+                <div class="code-block">Authorization: DPoP &lt;token&gt;<br/>DPoP: &lt;fresh signed proof&gt;<br/><br/>→ 200 forwarded · or 401 "proof key does not match"</div>
             </div>
         </div>
     </div>
@@ -886,79 +863,71 @@
 <!-- ══ COMPLIANCE ══════════════════════════════════════════════════════════ -->
 <section id="compliance">
     <div class="section-wrap">
-        <div class="section-eyebrow anim-fade-up">Governance</div>
-        <h2 class="anim-fade-up delay-1">ISMS-ready from day one</h2>
-        <p class="section-sub anim-fade-up delay-2">Fuse was designed with regulatory compliance as a first-class requirement, not an afterthought.</p>
+        <div class="section-eyebrow anim-fade-up">Per-connection compliance</div>
+        <h2 class="anim-fade-up delay-1">Is this token compliant?</h2>
+        <p class="section-sub anim-fade-up delay-2">Every connection's detail screen runs the same checklist. The Compliance view aggregates the failures across your whole inventory — negative status only.</p>
         <div class="compliance-grid">
             <div class="comp-card anim-fade-up delay-1">
                 <div class="comp-card-header">
-                    <div class="comp-icon-big" style="background:rgba(59,130,246,.12)">🛡️</div>
+                    <div class="comp-icon-big" style="background:rgba(34,197,94,.12)">🔒</div>
                     <div>
-                        <div class="comp-name-big">ISO/IEC 27001:2022</div>
-                        <div class="comp-sub-big">Information Security Management</div>
+                        <div class="comp-name-big">Sender-bound (DPoP)</div>
+                        <div class="comp-sub-big">A stolen copy is useless without the key</div>
                     </div>
                 </div>
-                <div class="comp-score" style="color:var(--green)">94%</div>
-                <div class="comp-bar-big"><div class="comp-fill-big" style="width:94%;background:linear-gradient(90deg,var(--green),#4ade80)"></div></div>
                 <div class="comp-domains">
-                    <span class="comp-domain-chip">A.5 Org Controls</span>
-                    <span class="comp-domain-chip">A.8 Tech Controls</span>
-                    <span class="comp-domain-chip">A.9 Access Control</span>
-                    <span class="comp-domain-chip">A.12 Operations</span>
-                    <span class="comp-domain-chip">A.16 Incidents</span>
+                    <span class="comp-domain-chip">✓ Short-lived token</span>
+                    <span class="comp-domain-chip">✓ Least privilege — no write-all</span>
+                    <span class="comp-domain-chip">✓ Verified publisher</span>
+                    <span class="comp-domain-chip">✓ Active / recently used</span>
+                    <span class="comp-domain-chip">✓ Admin-consented</span>
                 </div>
             </div>
             <div class="comp-card anim-fade-up delay-2">
                 <div class="comp-card-header">
-                    <div class="comp-icon-big" style="background:rgba(168,85,247,.12)">🔒</div>
+                    <div class="comp-icon-big" style="background:rgba(239,68,68,.12)">⚠️</div>
                     <div>
-                        <div class="comp-name-big">SOC 2 Type II</div>
-                        <div class="comp-sub-big">Trust Services Criteria</div>
+                        <div class="comp-name-big">Risk signals</div>
+                        <div class="comp-sub-big">Surfaced on every grant, ported from the collector</div>
                     </div>
                 </div>
-                <div class="comp-score" style="color:var(--green)">88%</div>
-                <div class="comp-bar-big"><div class="comp-fill-big" style="width:88%;background:linear-gradient(90deg,var(--purple),#c084fc)"></div></div>
                 <div class="comp-domains">
-                    <span class="comp-domain-chip">CC6 Logical Access</span>
-                    <span class="comp-domain-chip">CC7 Operations</span>
-                    <span class="comp-domain-chip">CC9 Risk Mitigation</span>
-                    <span class="comp-domain-chip">Security</span>
-                    <span class="comp-domain-chip">Availability</span>
+                    <span class="comp-domain-chip" style="color:var(--red2);border-color:rgba(239,68,68,.3)">write-permissions</span>
+                    <span class="comp-domain-chip" style="color:var(--red2);border-color:rgba(239,68,68,.3)">unverified-publisher</span>
+                    <span class="comp-domain-chip" style="color:var(--amber);border-color:rgba(245,158,11,.3)">user-consented</span>
+                    <span class="comp-domain-chip" style="color:var(--amber);border-color:rgba(245,158,11,.3)">dormant &gt;90d</span>
+                    <span class="comp-domain-chip" style="color:var(--amber);border-color:rgba(245,158,11,.3)">unbound-bearer</span>
+                    <span class="comp-domain-chip" style="color:var(--amber);border-color:rgba(245,158,11,.3)">all-repos</span>
                 </div>
             </div>
             <div class="comp-card anim-fade-up delay-3">
                 <div class="comp-card-header">
-                    <div class="comp-icon-big" style="background:rgba(245,158,11,.12)">📋</div>
+                    <div class="comp-icon-big" style="background:rgba(59,130,246,.12)">🕓</div>
                     <div>
-                        <div class="comp-name-big">NIST CSF 2.0</div>
-                        <div class="comp-sub-big">Cybersecurity Framework</div>
+                        <div class="comp-name-big">Activity — when &amp; by whom</div>
+                        <div class="comp-sub-big">From Graph sign-in data &amp; live events</div>
                     </div>
                 </div>
-                <div class="comp-score" style="color:var(--amber)">76%</div>
-                <div class="comp-bar-big"><div class="comp-fill-big" style="width:76%;background:linear-gradient(90deg,var(--amber),#fbbf24)"></div></div>
                 <div class="comp-domains">
-                    <span class="comp-domain-chip">GV Govern</span>
-                    <span class="comp-domain-chip">ID Identify</span>
-                    <span class="comp-domain-chip">PR Protect</span>
-                    <span class="comp-domain-chip">DE Detect</span>
-                    <span class="comp-domain-chip">RS Respond</span>
+                    <span class="comp-domain-chip">Last sign-in</span>
+                    <span class="comp-domain-chip">Last app-only / delegated</span>
+                    <span class="comp-domain-chip">Consent chain</span>
+                    <span class="comp-domain-chip">First seen</span>
+                    <span class="comp-domain-chip">Event history</span>
                 </div>
             </div>
             <div class="comp-card anim-fade-up delay-4">
                 <div class="comp-card-header">
-                    <div class="comp-icon-big" style="background:rgba(239,68,68,.12)">⚠️</div>
+                    <div class="comp-icon-big" style="background:rgba(168,85,247,.12)">⚖️</div>
                     <div>
-                        <div class="comp-name-big">CIS Cloud Benchmark</div>
-                        <div class="comp-sub-big">IAM Hardening Controls</div>
+                        <div class="comp-name-big">Honest limitations</div>
+                        <div class="comp-sub-big">What Fuse does — and doesn't — claim</div>
                     </div>
                 </div>
-                <div class="comp-score" style="color:var(--red2)">61%</div>
-                <div class="comp-bar-big"><div class="comp-fill-big" style="width:61%;background:linear-gradient(90deg,var(--red),var(--red2))"></div></div>
                 <div class="comp-domains">
-                    <span class="comp-domain-chip">IAM L1 Controls</span>
-                    <span class="comp-domain-chip">IAM L2 Controls</span>
-                    <span class="comp-domain-chip">MFA Enforcement</span>
-                    <span class="comp-domain-chip" style="color:var(--red2);border-color:rgba(239,68,68,.3)">⚠ Gaps flagged</span>
+                    <span class="comp-domain-chip">Binding defends theft, not host compromise</span>
+                    <span class="comp-domain-chip">Binding needs vendor key adoption</span>
+                    <span class="comp-domain-chip">Policy orchestrates the platform's own controls</span>
                 </div>
             </div>
         </div>
@@ -969,38 +938,38 @@
 <section id="stack" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
     <div class="section-wrap">
         <div class="section-eyebrow anim-fade-up">Technology</div>
-        <h2 class="anim-fade-up delay-1">Cloud-native from the ground up</h2>
-        <p class="section-sub anim-fade-up delay-2">Every technology choice made for performance, security, and operational simplicity.</p>
+        <h2 class="anim-fade-up delay-1">Real crypto, no hand-rolled auth</h2>
+        <p class="section-sub anim-fade-up delay-2">Standards-based primitives so no one can say the binding was invented here.</p>
         <div class="stack-grid">
             <div class="stack-card anim-fade-up delay-1">
-                <div class="stack-icon">🐹</div>
-                <div class="stack-name">Go 1.21</div>
-                <div class="stack-why">Zero-dependency static binary. Sub-millisecond latency. The industry standard for cloud infrastructure tooling. ~12MB Docker image.</div>
+                <div class="stack-icon">🐍</div>
+                <div class="stack-name">Python · FastAPI</div>
+                <div class="stack-why">Three async services on uvicorn: the Fuse console &amp; token authority (:8000), a mock company platform (:8010), and a vendor that holds keys and signs proofs (:8020).</div>
             </div>
             <div class="stack-card anim-fade-up delay-2">
-                <div class="stack-icon">🐋</div>
-                <div class="stack-name">Docker (Multi-stage)</div>
-                <div class="stack-why">Multi-stage build compiles the binary in Go 1.21, copies only the binary into Alpine 3.19. Non-root user. CA certs for cloud API calls.</div>
+                <div class="stack-icon">🔑</div>
+                <div class="stack-name">DPoP · ES256 · private_key_jwt</div>
+                <div class="stack-why">jwcrypto + PyJWT. RFC 9449 sender-bound proofs with a cnf.jkt thumbprint, RFC 7523 client assertions. The four binding checks are real and verifiable.</div>
             </div>
             <div class="stack-card anim-fade-up delay-3">
-                <div class="stack-icon">🟣</div>
-                <div class="stack-name">Terraform 1.5+</div>
-                <div class="stack-why">Declarative, state-managed provisioning of the entire Azure infrastructure. Reproducible environments. One command to provision, one to destroy.</div>
+                <div class="stack-icon">🗄️</div>
+                <div class="stack-name">SQLAlchemy · SQLite</div>
+                <div class="stack-why">The grant inventory store, seeded with realistic demo tenants across two collection runs (so you see new / removed / permission-added deltas and dormancy).</div>
             </div>
             <div class="stack-card anim-fade-up delay-4">
-                <div class="stack-icon">☸️</div>
-                <div class="stack-name">Azure AKS</div>
-                <div class="stack-why">Managed Kubernetes with System-Assigned Managed Identity. No credentials to manage. Native integration with ACR and Log Analytics.</div>
+                <div class="stack-icon">☁️</div>
+                <div class="stack-name">Microsoft Graph · GitHub App</div>
+                <div class="stack-why">Real connectors via MSAL + httpx: Entra service principals &amp; oauth2PermissionGrants; GitHub App installation tokens and org app inventory.</div>
             </div>
             <div class="stack-card anim-fade-up delay-5">
                 <div class="stack-icon">🌐</div>
                 <div class="stack-name">Vanilla HTML/CSS/JS</div>
-                <div class="stack-why">No build step. No framework CVE surface. Instant load. The dashboard works from a file:// URL or served by any static server.</div>
+                <div class="stack-why">One self-contained SPA, no build step, no framework CVE surface. Served same-origin by Fuse so the browser only ever talks to one host.</div>
             </div>
             <div class="stack-card anim-fade-up delay-6">
-                <div class="stack-icon">📊</div>
-                <div class="stack-name">Azure Log Analytics</div>
-                <div class="stack-why">90-day audit log retention for all cluster events. KQL queryable. ISMS-compliant. Integrated at AKS level — zero additional configuration.</div>
+                <div class="stack-icon">🧩</div>
+                <div class="stack-name">Connector framework</div>
+                <div class="stack-why">Each source normalizes into Apps + Tokens behind one interface — demo, GitHub, Azure today; Salesforce / Google next. Connecting is always manual &amp; reversible.</div>
             </div>
         </div>
     </div>
@@ -1010,26 +979,29 @@
 <section id="deploy">
     <div class="section-wrap">
         <div class="section-eyebrow anim-fade-up">Quick Start</div>
-        <h2 class="anim-fade-up delay-1">Running in 30 seconds locally</h2>
-        <p class="section-sub anim-fade-up delay-2">One Docker Compose command gives you the full stack. Terraform provisions production in ~8 minutes.</p>
+        <h2 class="anim-fade-up delay-1">Running locally in a minute</h2>
+        <p class="section-sub anim-fade-up delay-2">One script starts all three services and seeds the demo grant inventory. Everything is same-origin on :8000.</p>
         <div class="api-grid" style="margin-top:48px">
             <div class="api-card anim-fade-up delay-1">
-                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">🐋 Local — Docker Compose</div>
-                <div class="code-block">git clone github.com/YOUR_ORG/fuse-control-plane<br/>cd fuse-control-plane<br/><br/>docker compose up --build<br/><br/># Dashboard → http://localhost:3000<br/># API       → http://localhost:8080</div>
+                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">① Install</div>
+                <div class="code-block">cd backend<br/>python3 -m venv .venv<br/>source .venv/bin/activate<br/>pip install -r requirements.txt</div>
             </div>
             <div class="api-card anim-fade-up delay-2">
-                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">🐹 Local — Go directly</div>
-                <div class="code-block">cd backend && go run main.go<br/># 🚀 Fuse API listening on :8080<br/><br/>open frontend/index.html<br/><br/># Verify:<br/>curl localhost:8080/api/health<br/>curl localhost:8080/api/tokens</div>
+                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">② Run all services</div>
+                <div class="code-block">./run.sh<br/><br/># Fuse console   → http://localhost:8000<br/># Company API    → :8010   Vendor → :8020<br/># (grant store seeded automatically)</div>
             </div>
             <div class="api-card anim-fade-up delay-3">
-                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">🟣 Production — Terraform + AKS</div>
-                <div class="code-block">az login<br/>cd infrastructure<br/>terraform init<br/>terraform apply<br/><br/># Build & push to ACR:<br/>ACR=$(terraform output -raw acr_login_server)<br/>docker build -t $ACR/fuse-api:latest ./backend<br/>docker push $ACR/fuse-api:latest</div>
+                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">③ Populate the demo</div>
+                <div class="code-block"># Open http://localhost:8000<br/>Connectors → ⚡ Quick-connect demo<br/><br/># or add a real source:<br/>Connectors → Add a Source → Azure / GitHub</div>
             </div>
             <div class="api-card anim-fade-up delay-4">
-                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">☸️ Deploy to AKS</div>
-                <div class="code-block">eval "$(terraform output -raw aks_get_credentials_cmd)"<br/><br/>kubectl create deployment fuse-api \<br/>  --image=$ACR/fuse-api:latest \<br/>  --replicas=2<br/><br/>kubectl expose deployment fuse-api \<br/>  --type=LoadBalancer --port=80 \<br/>  --target-port=8080</div>
+                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">④ Try the binding demo</div>
+                <div class="code-block">Gateway → Run legit request      → ALLOWED<br/>Gateway → Forge a proof          → BLOCKED<br/>Gateway → Replay stolen token    → BLOCKED<br/># a stolen token without the key is useless</div>
             </div>
         </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:24px;text-align:center">
+            In-memory &amp; single-worker by design — restart resets state &amp; regenerates Fuse's signing key. Real Azure/GitHub connectors need their own read scopes &amp; admin consent.
+        </p>
     </div>
 </section>
 
@@ -1038,22 +1010,20 @@
     <div style="position:relative;z-index:1">
         <div class="section-eyebrow anim-fade-up" style="text-align:center">Get started</div>
         <p class="cta-quote anim-fade-up delay-1">
-            <strong>"The best time to revoke an over-permissive token was when it was issued.</strong><br/>
-            The second best time is right now."
+            <strong>"You cannot defend a connection you cannot see —</strong><br/>
+            and a token bound to a key you'll never hold is a token you can't replay."
         </p>
-        <p class="cta-sub anim-fade-up delay-2">Fuse: See everything. Revoke instantly. Prove it to auditors.</p>
+        <p class="cta-sub anim-fade-up delay-2">Fuse: see every third-party token, constrain it, and make the ones that matter theft-proof.</p>
         <div class="hero-actions anim-fade-up delay-3">
-            <a class="btn-primary" href="index.html">
+            <a class="btn-primary" href="/">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
-                Open Live Dashboard
+                Open Live Console
             </a>
-            <a class="btn-secondary" href="https://github.com/YOUR_ORG/fuse-control-plane" target="_blank">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.749 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-                </svg>
-                Star on GitHub
+            <a class="btn-secondary" href="#dashboard">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                See the console
             </a>
         </div>
     </div>
@@ -1064,14 +1034,14 @@
     <div style="display:flex;align-items:center;gap:8px">
         <div class="nav-logo-mark" style="width:24px;height:24px;font-size:10px">F</div>
         <span style="font-weight:700;letter-spacing:2px;color:var(--blue2)">FUSE</span>
-        <span>— Multi-Cloud Identity Brokering Control Plane</span>
+        <span>— Third-Party Token Governance</span>
     </div>
     <div style="display:flex;gap:24px">
-        <a href="index.html" style="color:var(--muted);text-decoration:none;transition:.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Dashboard</a>
-        <a href="README.md" style="color:var(--muted);text-decoration:none;transition:.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">README</a>
-        <a href="https://github.com/YOUR_ORG/fuse-control-plane" style="color:var(--muted);text-decoration:none;transition:.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">GitHub</a>
+        <a href="/" style="color:var(--muted);text-decoration:none;transition:.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Console</a>
+        <a href="#how" style="color:var(--muted);text-decoration:none;transition:.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">How it works</a>
+        <a href="#deploy" style="color:var(--muted);text-decoration:none;transition:.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Run it</a>
     </div>
-    <div>MIT © 2026 Cloud Governance Team</div>
+    <div>Demo / PoC · in-memory, single-worker</div>
 </footer>
 
 </body>
